@@ -10,13 +10,7 @@ export function Footer() {
               <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-4 tracking-widest">Contact Us</h4>
               <p className="text-xs mb-2">+91 8788965436</p>
               <p className="text-xs mb-3">jerseyunicorn1@gmail.com</p>
-              <a href="https://wa.me/918788965436" className="text-[10px] font-bold border-b border-gray-500 hover:text-white transition-colors">Chat on WhatsApp</a>
-            </div>
-            
-            <div>
-              <h4 className="text-[10px] font-bold uppercase text-gray-500 mb-4 tracking-widest">Policies</h4>
-              <p className="text-xs mb-2">Exchange for damages only (within 3 days)</p>
-              <p className="text-xs text-[#25D366] font-bold uppercase">Prepaid Orders Only</p>
+              <a href="https://wa.me/918788965436" target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold border-b border-gray-500 hover:text-white transition-colors">Chat on WhatsApp</a>
             </div>
           </div>
 
