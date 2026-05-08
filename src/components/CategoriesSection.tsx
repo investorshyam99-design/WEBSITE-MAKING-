@@ -25,8 +25,11 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
   
   const scrollToCategory = (id: string) => {
     const element = document.getElementById(`category-${id}`);
-    const offset = 130;
+    const navElement = document.getElementById('category-nav');
     if (element) {
+      const headerHeight = window.innerWidth >= 768 ? 96 : 80;
+      const navHeight = navElement ? navElement.offsetHeight : 0;
+      const offset = headerHeight + navHeight;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({

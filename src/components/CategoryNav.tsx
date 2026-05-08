@@ -3,10 +3,16 @@ import { categories } from "../data/products";
 export function CategoryNav() {
   const scrollToCategory = (id: string) => {
     const element = document.getElementById(`category-${id}`);
-    const offset = 130; // Handle sticky header + subnav
+    const navElement = document.getElementById('category-nav');
+    
     if (element) {
+      const headerHeight = window.innerWidth >= 768 ? 96 : 80;
+      const navHeight = navElement ? navElement.offsetHeight : 0;
+      const offset = headerHeight + navHeight;
+      
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth"
@@ -15,9 +21,9 @@ export function CategoryNav() {
   };
 
   return (
-    <div className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#5A2E0F]/10 shadow-sm">
+    <div id="category-nav" className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#5A2E0F]/10 shadow-sm">
       <div className="max-w-7xl mx-auto px-1 sm:px-4">
-        <div className="grid grid-cols-6 w-full gap-1 sm:gap-2 p-1">
+        <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1">
           {categories.map((cat) => (
             <button
               key={`nav-${cat.id}`}

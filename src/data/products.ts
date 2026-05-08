@@ -37,11 +37,6 @@ export const categories = [
     name: "INDIAN EMBROIDERY",
     description: "Made in India, embroidered finish, budget-friendly.",
   },
-  {
-    id: "tshirts",
-    name: "TSHIRTS/ HOODIES",
-    description: "Casual tees for everyday wear.",
-  },
 ];
 
 const mockImages = [
@@ -98,8 +93,18 @@ export function useProducts() {
       if (!isMounted) return;
       if (data && data.length > 0) {
         const parsed = parseShopifyProducts(data);
-        shopifyProductsStore = parsed;
-        setProducts(parsed);
+        
+        // Put Spain Away 2026 Full Set at the top
+        const sortedParsed = parsed.sort((a, b) => {
+          const aIsTarget = a.name.toLowerCase().includes("spain away 2026") || a.name.toLowerCase().includes("spain away 26");
+          const bIsTarget = b.name.toLowerCase().includes("spain away 2026") || b.name.toLowerCase().includes("spain away 26");
+          if (aIsTarget && !bIsTarget) return -1;
+          if (!aIsTarget && bIsTarget) return 1;
+          return 0;
+        });
+
+        shopifyProductsStore = sortedParsed;
+        setProducts(sortedParsed);
       }
       setIsLoading(false);
     }).catch((err) => {
