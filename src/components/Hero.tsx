@@ -7,10 +7,12 @@ export function Hero() {
         loop
         muted
         playsInline
-        src="/hero-video-new.mp4?v=1"
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        key="main-hero-video-v8"
-      />
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover z-0 bg-[#1A1A1A]"
+        key="main-hero-video-v10"
+      >
+        <source src="/hero-video-new.mp4" type="video/mp4" />
+      </video>
 
       {/* Subtle overlay to ensure button readability */}
       <div className="absolute inset-0 bg-black/30 z-[5]"></div>
