@@ -57,7 +57,7 @@ export function Header() {
                 <Phone className="h-5 w-5" /> Contact Us
               </a>
               <a 
-                href="https://chat.whatsapp.com/Jlqr9TdMDIQHmhx2kTOflz"
+                href="https://chat.whatsapp.com/FTaUnhzUKZTKac79nhttv5"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -66,7 +66,7 @@ export function Header() {
                 <Users className="h-5 w-5" /> Join WhatsApp Group
               </a>
               <a 
-                href="https://www.instagram.com/jerseyunicorn_?igsh=ejZjdm8yamhnaGZ0" 
+                href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" 
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -125,7 +125,7 @@ export function Header() {
         <span>⚽ Premium Jerseys | Fast Dispatch</span>
         <div className="absolute right-4 md:right-8 flex items-center gap-4">
           <a 
-            href="https://www.instagram.com/jerseyunicorn_?igsh=ejZjdm8yamhnaGZ0" 
+            href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="flex items-center gap-1.5 hover:text-[#EDE3D8] transition-colors"
@@ -134,7 +134,7 @@ export function Header() {
             <span className="hidden sm:inline-block">Follow Us</span>
           </a>
           <a
-            href="https://chat.whatsapp.com/Jlqr9TdMDIQHmhx2kTOflz"
+            href="https://chat.whatsapp.com/FTaUnhzUKZTKac79nhttv5"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 hover:text-[#EDE3D8] transition-colors"
@@ -160,7 +160,7 @@ export function Header() {
             <a href="/#categories" className="hover:text-[#5A2E0F] transition-colors">Shop</a>
             <a href="/#categories" className="hover:text-[#5A2E0F] transition-colors">Categories</a>
             <a href="#footer" className="hover:text-[#5A2E0F] transition-colors">Contact</a>
-            <a href="https://www.instagram.com/jerseyunicorn_?igsh=ejZjdm8yamhnaGZ0" target="_blank" rel="noopener noreferrer" className="hover:text-[#5A2E0F] transition-colors">Instagram</a>
+            <a href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" target="_blank" rel="noopener noreferrer" className="hover:text-[#5A2E0F] transition-colors">Instagram</a>
           </nav>
 
           <div className="flex items-center gap-4">

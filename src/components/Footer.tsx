@@ -18,12 +18,12 @@ export function Footer() {
           <div className="text-left md:text-right flex flex-col md:items-end justify-between min-h-[100px]">
             <div className="mb-4">
               <a 
-                href="https://www.instagram.com/jerseyunicorn_?igsh=ejZjdm8yamhnaGZ0" 
+                href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs opacity-80 hover:opacity-100 font-medium transition-opacity inline-flex items-center"
               >
-                Follow us on Instagram @jerseyunicorn_
+                Follow us on Instagram @jerseyunicorn1
               </a>
             </div>
             <p className="text-[10px] opacity-40 uppercase tracking-wider font-bold">© {new Date().getFullYear()} Jersey Unicorn. Premium Apparel.</p>

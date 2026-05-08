@@ -74,7 +74,7 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
         <div className="mt-8 text-center">
           <button 
             onClick={handleLoadMore}
-            className="text-[10px] sm:text-xs font-bold uppercase py-2 px-6 border-2 border-[#1A1A1A] hover:bg-[#1A1A1A] text-[#1A1A1A] hover:text-white transition-all"
+            className="text-xs sm:text-sm font-black uppercase inline-flex items-center justify-center px-8 py-3 border-2 border-[#5A2E0F] bg-[#5A2E0F] text-white hover:bg-[#4A260C] hover:border-[#4A260C] transition-colors tracking-widest shadow-sm rounded-none"
           >
             Load More {category.name}s
           </button>
