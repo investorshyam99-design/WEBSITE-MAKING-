@@ -9,9 +9,9 @@ export function Hero() {
         playsInline
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover z-0 bg-[#1A1A1A]"
-        key="main-hero-video-v12"
+        key="main-hero-video-v14"
       >
-        <source src="/hero-video-hpvnxl.mp4" type="video/mp4" />
+        <source src="/hero-video.mp4" type="video/mp4" />
       </video>
 
       {/* Subtle overlay to ensure button readability */}
