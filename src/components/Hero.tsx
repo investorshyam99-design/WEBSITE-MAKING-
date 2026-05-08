@@ -1,8 +1,21 @@
+import { useEffect, useRef } from 'react';
+
 export function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(e => console.error("Autoplay prevents:", e));
+    }
+  }, []);
+
   return (
     <section className="bg-[#1A1A1A] flex flex-col justify-center relative overflow-hidden min-h-[70vh] md:min-h-[85vh]">
       {/* Background Video */}
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
@@ -10,7 +23,7 @@ export function Hero() {
         preload="auto"
         poster="/hero-poster.jpg"
         className="absolute inset-0 w-full h-full object-cover z-0"
-        key="main-hero-video-v17"
+        key="main-hero-video-v18"
       >
         <source src="/hero-video.mp4" type="video/mp4" />
       </video>
