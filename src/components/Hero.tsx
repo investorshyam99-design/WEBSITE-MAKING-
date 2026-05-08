@@ -2,14 +2,17 @@ export function Hero() {
   return (
     <section className="bg-[#1A1A1A] flex flex-col justify-center relative overflow-hidden min-h-[70vh] md:min-h-[85vh]">
       {/* Background Video */}
-      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#1A1A1A]">
-        <iframe 
-          className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2"
-          src="https://streamable.com/e/efao5o?autoplay=1&nocontrols=1&muted=1&loop=1" 
-          frameBorder="0" 
-          allow="autoplay" 
-        />
-      </div>
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover z-0 bg-[#1A1A1A]"
+        key="main-hero-video-v12"
+      >
+        <source src="/hero-video-hpvnxl.mp4" type="video/mp4" />
+      </video>
 
       {/* Subtle overlay to ensure button readability */}
       <div className="absolute inset-0 bg-black/30 z-[5]"></div>
