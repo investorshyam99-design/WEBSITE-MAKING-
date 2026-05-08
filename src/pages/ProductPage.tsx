@@ -268,10 +268,10 @@ export function ProductPage() {
                         key={size}
                         onClick={() => handleSizeClickAndOrder(size)}
                         className={cn(
-                          "group flex-1 py-4 px-2 border-2 flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-sm min-w-[60px]",
+                          "group flex-1 py-4 px-2 border-2 border-[#5A2E0F] bg-[#5A2E0F] text-white flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-sm min-w-[60px] hover:bg-[#3d1f0a]",
                           selectedSize === size
-                            ? "border-[#5A2E0F] bg-[#5A2E0F] text-[#EDE3D8]"
-                            : "border-gray-200 bg-white text-[#1A1A1A] hover:border-[#1A1A1A]"
+                            ? "ring-2 ring-offset-2 ring-[#5A2E0F]"
+                            : ""
                         )}
                       >
                         <span className="text-2xl md:text-3xl font-black">{size}</span>
