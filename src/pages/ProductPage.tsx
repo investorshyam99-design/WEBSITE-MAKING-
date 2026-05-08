@@ -268,7 +268,7 @@ export function ProductPage() {
                     return (
                       <button
                         key={size}
-                        onClick={() => setSelectedSize(size)}
+                        onClick={() => handleSizeClickAndOrder(size)}
                         className={cn(
                           "group flex-1 py-4 px-2 border-2 flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-sm min-w-[60px]",
                           selectedSize === size
@@ -305,21 +305,6 @@ export function ProductPage() {
                     <Heart className={`w-6 h-6 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-[#1A1A1A]'}`} />
                   </button>
                 </div>
-                
-                <button 
-                    onClick={() => {
-                        if (!selectedSize) {
-                            alert("Please select a size first!");
-                            return;
-                        }
-                        const message = `Hello Jersey Unicorn! 🦄\n\nI am interested in this jersey:\n*${product.name}*\nPrice: ₹${product.price.toLocaleString('en-IN')}\nSize: ${selectedSize}\nQuantity: 1\nLink: ${window.location.href}\n\nPlease help me with the order.`;
-                        const encodedMessage = encodeURIComponent(message);
-                        window.open(`https://wa.me/918788965436?text=${encodedMessage}`, '_blank');
-                    }}
-                    className="w-full bg-[#25D366] text-white py-4 font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#20bd5a] transition-colors"
-                >
-                  <MessageCircle className="w-5 h-5" /> Order on WhatsApp
-                </button>
               </div>
 
               {/* Category & Description */}
