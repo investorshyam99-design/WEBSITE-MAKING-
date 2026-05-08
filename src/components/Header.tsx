@@ -7,10 +7,7 @@ import { useShop } from "../context/ShopContext";
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { cart, wishlist, setIsCartOpen, setIsWishlistOpen, loginWithGoogle, logout, user } = useShop();
-
-  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const wishlistItemsCount = wishlist.length;
+  const { loginWithGoogle, logout, user } = useShop();
 
   // Close mobile menu on route change or resize
   useEffect(() => {
@@ -191,30 +188,6 @@ export function Header() {
               <Search className="h-5 w-5 md:h-6 md:w-6" />
             </button>
 
-            <button 
-              className="text-[#1A1A1A] hover:text-[#5A2E0F] transition-colors relative hidden md:block"
-              onClick={() => setIsWishlistOpen(true)}
-            >
-              <Heart className="h-5 w-5 md:h-6 md:w-6" />
-              {wishlistItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                  {wishlistItemsCount}
-                </span>
-              )}
-            </button>
-
-            <button 
-              className="text-[#1A1A1A] hover:text-[#5A2E0F] transition-colors relative"
-              onClick={() => setIsCartOpen(true)}
-            >
-              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#5A2E0F] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                  {cartItemsCount > 9 ? "9+" : cartItemsCount}
-                </span>
-              )}
-            </button>
-            
             <button 
               className="md:hidden text-[#1A1A1A] hover:text-[#5A2E0F] transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}

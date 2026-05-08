@@ -15,8 +15,6 @@ const SIZES = ["S", "M", "L", "XL", "XXL"];
 export function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const { products, isLoading } = useProducts();
-  const { addToCart, toggleWishlist, isInWishlist } = useShop();
-  
   // Need to decode the ID from React Router param if it's base64/shopify encoded
   // Or just use the original id. URL encoding might have messed it up if not encoded properly when linking
   const decodedId = useMemo(() => id ? decodeURIComponent(id) : "", [id]);
@@ -283,29 +281,7 @@ export function ProductPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 mt-8">
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => {
-                        if (!selectedSize) {
-                            alert("Please select a size first!");
-                            return;
-                        }
-                        addToCart(product, selectedSize);
-                    }}
-                    className="flex-1 bg-[#5A2E0F] text-white py-4 font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#3d1f0a] transition-colors"
-                  >
-                    <ShoppingBag className="w-5 h-5" /> Add to Bag
-                  </button>
-                  <button 
-                    onClick={() => toggleWishlist(product)}
-                    className="px-5 border-2 border-[#EDE3D8] hover:bg-gray-50 flex items-center justify-center transition-colors rounded-sm"
-                  >
-                    <Heart className={`w-6 h-6 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-[#1A1A1A]'}`} />
-                  </button>
-                </div>
-              </div>
+
 
               {/* Category & Description */}
               <div>
