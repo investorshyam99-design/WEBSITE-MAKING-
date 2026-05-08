@@ -1,3 +1,6 @@
+import heroVideo from '../assets/hero-video.mp4';
+import heroPoster from '../assets/hero-poster.jpg';
+
 export function Hero() {
   return (
     <section className="bg-[#1A1A1A] flex flex-col justify-center relative overflow-hidden min-h-[70vh] md:min-h-[85vh]">
@@ -8,10 +11,11 @@ export function Hero() {
         muted
         playsInline
         preload="auto"
-        className="absolute inset-0 w-full h-full object-cover z-0 bg-[#1A1A1A]"
-        key="main-hero-video-v14"
+        poster={heroPoster}
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        key="main-hero-video-v16"
       >
-        <source src="/hero-video.mp4" type="video/mp4" />
+        <source src={heroVideo} type="video/mp4" />
       </video>
 
       {/* Subtle overlay to ensure button readability */}
