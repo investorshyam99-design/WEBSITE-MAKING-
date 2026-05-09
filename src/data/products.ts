@@ -94,13 +94,15 @@ export function useProducts() {
       if (data && data.length > 0) {
         const parsed = parseShopifyProducts(data);
         
-        // Put Spain Away 2026 Full Set at the top
+        // Prioritize specific jerseys to the top
         const sortedParsed = parsed.sort((a, b) => {
-          const aIsTarget = a.name.toLowerCase().includes("spain away 2026") || a.name.toLowerCase().includes("spain away 26");
-          const bIsTarget = b.name.toLowerCase().includes("spain away 2026") || b.name.toLowerCase().includes("spain away 26");
-          if (aIsTarget && !bIsTarget) return -1;
-          if (!aIsTarget && bIsTarget) return 1;
-          return 0;
+          const getPriority = (name: string) => {
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes("spain away 2026") || lowerName.includes("spain away 26")) return 1;
+            if (lowerName.includes("argentina away 2026") && lowerName.includes("messi")) return 1;
+            return 0;
+          };
+          return getPriority(b.name) - getPriority(a.name);
         });
 
         shopifyProductsStore = sortedParsed;
