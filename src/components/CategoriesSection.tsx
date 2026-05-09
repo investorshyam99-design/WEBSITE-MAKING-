@@ -48,22 +48,13 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
   return (
     <section id={`category-${category.id}`} className="scroll-mt-48">
       {/* Heading block */}
-      <div className="mb-8 p-6 bg-[#F5EFE6] border border-[#EDE3D8] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-[#1E2A44]"></div>
-        <div>
-          <h3 className="text-lg md:text-2xl font-black uppercase text-[#1B1B1B] mb-2 tracking-tight">
-            {category.name}
-          </h3>
-          <p className="text-xs md:text-sm font-medium text-[#1E2A44]/80 uppercase tracking-wide">
-            {category.description}
-          </p>
-        </div>
-        <button 
-          onClick={() => scrollToCategory(category.id)}
-          className="text-[10px] font-bold uppercase border-b border-[#1B1B1B] hover:text-[#1E2A44] hover:border-[#1E2A44] transition-colors whitespace-nowrap"
-        >
-          Back to Top ↑
-        </button>
+      <div className="mb-6 py-3 px-4 md:py-4 md:px-6 bg-[#1E2A44] flex flex-col items-start justify-center shadow-sm">
+        <h3 className="text-base md:text-xl font-black uppercase text-white mb-1 tracking-tight">
+          {category.name}
+        </h3>
+        <p className="text-[10px] md:text-xs font-medium text-white/80 uppercase tracking-wide">
+          {category.description}
+        </p>
       </div>
       
       {/* Product Grid */}
