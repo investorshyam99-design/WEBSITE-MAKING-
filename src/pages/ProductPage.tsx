@@ -74,7 +74,7 @@ export function ProductPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center text-gray-500">
+          <div className="text-center text-[#F5EFE6]0">
             Loading...
           </div>
         </div>
@@ -90,7 +90,7 @@ export function ProductPage() {
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-            <Link to="/" className="text-[#5A2E0F] underline font-bold uppercase tracking-widest">Return to shop</Link>
+            <Link to="/" className="text-[#1E2A44] underline font-bold uppercase tracking-widest">Return to shop</Link>
           </div>
         </div>
         <Footer />
@@ -145,13 +145,13 @@ export function ProductPage() {
       <Header />
       
       {/* Breadcrumb */}
-      <div className="border-b border-gray-100 bg-gray-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-gray-500">
-          <Link to="/" className="text-[#5A2E0F] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Home</Link>
+      <div className="border-b border-gray-100 bg-[#F5EFE6]/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-[#F5EFE6]0">
+          <Link to="/" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Home</Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
-          <Link to="/#categories" className="text-[#5A2E0F] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Shop</Link>
+          <Link to="/#categories" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Shop</Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
-          <span className="text-[#1A1A1A] font-black uppercase tracking-wider truncate">{product.name}</span>
+          <span className="text-[#1B1B1B] font-black uppercase tracking-wider truncate">{product.name}</span>
         </div>
       </div>
 
@@ -163,7 +163,7 @@ export function ProductPage() {
             <div className="sticky top-24 space-y-4">
               {/* Main Image with Zoom and Swipe */}
               <div 
-                className="aspect-[4/5] md:aspect-square lg:aspect-[4/5] border border-[#EDE3D8] bg-[#f5f5f5] flex items-center justify-center p-0 overflow-hidden cursor-crosshair relative group"
+                className="aspect-[4/5] md:aspect-square lg:aspect-[4/5] border border-[#EDE3D8] bg-[#F5EFE6] flex items-center justify-center p-0 overflow-hidden cursor-crosshair relative group"
                 onMouseMove={handleMouseMove}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
@@ -210,7 +210,7 @@ export function ProductPage() {
                 )}
 
                 {/* Zoom Hint */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#1A1A1A] rounded shadow-sm opacity-100 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none hidden md:block">
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#1B1B1B] rounded shadow-sm opacity-100 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none hidden md:block">
                    Hover to Zoom
                 </div>
               </div>
@@ -223,7 +223,7 @@ export function ProductPage() {
                       onClick={() => setActiveImage(img)}
                       className={cn(
                         "flex-shrink-0 w-20 h-24 border-2 transition-all overflow-hidden",
-                        activeImage === img ? "border-[#5A2E0F]" : "border-transparent hover:border-[#EDE3D8]"
+                        activeImage === img ? "border-[#1E2A44]" : "border-transparent hover:border-[#EDE3D8]"
                       )}
                     >
                        <img src={img || undefined} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
@@ -237,16 +237,16 @@ export function ProductPage() {
           <div className="flex-1 flex flex-col">
             
             {/* Prepaid Badge */}
-            <div className="mb-6 inline-flex items-center space-x-2 bg-[#5A2E0F] text-white px-4 py-2 text-[10px] font-bold tracking-widest uppercase w-fit">
+            <div className="mb-6 inline-flex items-center space-x-2 bg-[#1E2A44] text-white px-4 py-2 text-[10px] font-bold tracking-widest uppercase w-fit">
                <ShieldAlert className="w-4 h-4" />
                <span>PREPAID ORDERS ONLY</span>
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-black text-[#1A1A1A] tracking-tight mb-4 uppercase">
+            <h1 className="text-3xl md:text-5xl font-black text-[#1B1B1B] tracking-tight mb-4 uppercase">
               {product.name}
             </h1>
             
-            <p className="text-2xl md:text-3xl font-black text-[#5A2E0F] mb-8">
+            <p className="text-2xl md:text-3xl font-black text-[#1E2A44] mb-8">
               ₹{product.price.toLocaleString('en-IN')}
             </p>
 
@@ -257,7 +257,7 @@ export function ProductPage() {
                   <h3 className="text-xs font-bold text-gray-700 uppercase tracking-widest flex items-center gap-2">
                     Select Size to Order
                   </h3>
-                  <button className="text-[10px] text-[#5A2E0F] font-bold uppercase underline tracking-wider hover:opacity-80 transition-opacity">
+                  <button className="text-[10px] text-[#1E2A44] font-bold uppercase underline tracking-wider hover:opacity-80 transition-opacity">
                     Size Guide
                   </button>
                 </div>
@@ -268,9 +268,9 @@ export function ProductPage() {
                         key={size}
                         onClick={() => handleSizeClickAndOrder(size)}
                         className={cn(
-                          "group flex-1 py-4 px-2 border-2 border-[#5A2E0F] bg-[#5A2E0F] text-white flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-sm min-w-[60px] hover:bg-[#3d1f0a]",
+                          "group flex-1 py-4 px-2 border-2 border-[#1E2A44] bg-[#1E2A44] text-white flex flex-col items-center justify-center gap-1 transition-all duration-300 shadow-sm min-w-[60px] hover:bg-[#223A5E]",
                           selectedSize === size
-                            ? "ring-2 ring-offset-2 ring-[#5A2E0F]"
+                            ? "ring-2 ring-offset-2 ring-[#1E2A44]"
                             : ""
                         )}
                       >
@@ -285,13 +285,13 @@ export function ProductPage() {
 
               {/* Category & Description */}
               <div>
-                <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Description</h3>
-                <p className="text-[#1A1A1A] leading-relaxed text-sm md:text-base font-medium">
+                <h3 className="text-[10px] font-bold text-[#F5EFE6]0 uppercase tracking-widest mb-3">Description</h3>
+                <p className="text-[#1B1B1B] leading-relaxed text-sm md:text-base font-medium">
                   {product.description}
                 </p>
-                <div className="mt-4 p-4 bg-gray-50 border border-[#EDE3D8]">
-                    <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mt-1">
-                        <span className="text-[#1A1A1A]">Category:</span> {product.category.replace(/-/g, ' ').toUpperCase()}
+                <div className="mt-4 p-4 bg-[#F5EFE6] border border-[#EDE3D8]">
+                    <p className="text-[11px] text-[#F5EFE6]0 font-bold uppercase tracking-wider mt-1">
+                        <span className="text-[#1B1B1B]">Category:</span> {product.category.replace(/-/g, ' ').toUpperCase()}
                     </p>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export function ProductPage() {
 
             {/* Actions */}
             <div className="mt-auto space-y-4">
-              <div className="text-center text-[11px] font-bold uppercase tracking-widest text-[#5A2E0F] flex flex-col items-center gap-2">
+              <div className="text-center text-[11px] font-bold uppercase tracking-widest text-[#1E2A44] flex flex-col items-center gap-2">
                  <p className="mt-2 text-gray-400">Secure checkout via WhatsApp</p>
               </div>
             </div>
@@ -309,9 +309,9 @@ export function ProductPage() {
 
       {/* Similar Products */}
       {product && (
-        <section className="bg-gray-50 py-16 border-t border-[#EDE3D8]">
+        <section className="bg-[#F5EFE6] py-16 border-t border-[#EDE3D8]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-xl md:text-2xl font-black uppercase text-[#1A1A1A] mb-8 text-center tracking-tight">
+            <h2 className="text-xl md:text-2xl font-black uppercase text-[#1B1B1B] mb-8 text-center tracking-tight">
               Similar Products
             </h2>
             <div className="flex overflow-x-auto gap-4 md:gap-6 pb-4 snap-x pl-4 sm:pl-0 snap-mandatory scrollbar-hide -mx-4 sm:mx-0">

@@ -31,11 +31,11 @@ export function Header() {
             className="fixed inset-y-0 right-0 w-[80%] max-w-sm bg-white shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-300"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-[#EDE3D8] flex items-center justify-between bg-[#f5f5f5]">
-              <span className="font-black text-lg text-[#5A2E0F]">MENU</span>
+            <div className="p-4 border-b border-[#EDE3D8] flex items-center justify-between bg-[#F5EFE6]">
+              <span className="font-black text-lg text-[#1E2A44]">MENU</span>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-[#1A1A1A] hover:text-[#5A2E0F] hover:bg-gray-200 rounded-full transition-colors"
+                className="p-2 text-[#1B1B1B] hover:text-[#1E2A44] hover:bg-gray-200 rounded-full transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -45,14 +45,14 @@ export function Header() {
               <Link 
                 to="/" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1A1A1A] hover:bg-[#f5f5f5] hover:text-[#5A2E0F] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
               >
                 <Home className="h-5 w-5" /> Home
               </Link>
               <a 
                 href="#footer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1A1A1A] hover:bg-[#f5f5f5] hover:text-[#5A2E0F] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
               >
                 <Phone className="h-5 w-5" /> Contact Us
               </a>
@@ -61,7 +61,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#25D366] hover:bg-[#f5f5f5] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#25D366] hover:bg-[#F5EFE6] border-b border-gray-100 transition-colors uppercase"
               >
                 <Users className="h-5 w-5" /> Join WhatsApp Group
               </a>
@@ -70,7 +70,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#E1306C] hover:bg-[#f5f5f5] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#E1306C] hover:bg-[#F5EFE6] border-b border-gray-100 transition-colors uppercase"
               >
                 <Instagram className="h-5 w-5" /> Join Instagram
               </a>
@@ -79,7 +79,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1A1A1A] hover:bg-[#f5f5f5] hover:text-[#5A2E0F] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
               >
                 <MessageSquare className="h-5 w-5" /> Chat with Us
               </a>
@@ -90,19 +90,19 @@ export function Header() {
                     loginWithGoogle();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1A1A1A] hover:bg-[#f5f5f5] hover:text-[#5A2E0F] transition-colors uppercase w-full text-left"
+                  className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] transition-colors uppercase w-full text-left"
                 >
                   <LogIn className="h-5 w-5" /> Register/Login
                 </button>
               ) : (
                 <div className="mt-2 border-t border-gray-100">
-                  <div className="px-6 py-4 text-sm font-semibold text-gray-500">{user.email}</div>
+                  <div className="px-6 py-4 text-sm font-semibold text-[#F5EFE6]0">{user.email}</div>
                   <button 
                     onClick={() => {
                       logout();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-3 px-6 py-4 text-base font-bold text-red-600 hover:bg-[#f5f5f5] transition-colors uppercase w-full text-left"
+                    className="flex items-center gap-3 px-6 py-4 text-base font-bold text-red-600 hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
                   >
                     <LogOut className="h-5 w-5" /> Logout
                   </button>
@@ -110,9 +110,9 @@ export function Header() {
               )}
             </div>
             
-            <div className="mt-auto p-6 bg-[#f5f5f5]">
-              <div className="flex justify-center items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                <img src="https://i.imgur.com/Qb89oaI.png" alt="Logo" className="w-8 h-8 opacity-50 grayscale" />
+            <div className="mt-auto p-6 bg-[#F5EFE6]">
+              <div className="flex justify-center items-center gap-2 text-xs font-bold text-[#F5EFE6]0 uppercase">
+                <img src="https://i.imgur.com/VaSs3Xd.png" alt="Logo" className="w-[35px] h-[35px] rounded-full opacity-50 grayscale object-cover" />
                 Jersey Unicorn
               </div>
             </div>
@@ -121,7 +121,7 @@ export function Header() {
       )}
 
       {/* Top Announcement Bar */}
-      <div className="bg-[#5A2E0F] text-white py-1.5 px-4 text-center text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center justify-center">
+      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-center text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center justify-center">
         <span>⚽ Premium Jerseys | Fast Dispatch</span>
         <div className="absolute right-4 md:right-8 flex items-center gap-4">
           <a 
@@ -149,25 +149,25 @@ export function Header() {
       <header className="bg-white border-b border-[#EDE3D8] px-4 md:px-8 h-[80px] md:h-[96px] flex flex-col justify-center sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
           <div className="flex items-center gap-4 md:gap-8">
-            <Link to="/" className="text-2xl md:text-3xl font-black tracking-tighter text-[#5A2E0F] flex items-center gap-3">
-              <img src="https://i.imgur.com/Qb89oaI.png" alt="Jersey Unicorn Logo" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+            <Link to="/" className="text-2xl md:text-3xl font-black tracking-tighter text-[#1E2A44] flex items-center gap-3">
+              <img src="https://i.imgur.com/VaSs3Xd.png" alt="Jersey Unicorn Logo" className="w-[53px] h-[53px] md:w-[70px] md:h-[70px] rounded-full object-cover" />
               JERSEY UNICORN
             </Link>
           </div>
 
           <nav className="hidden md:flex gap-6 text-sm font-medium uppercase tracking-wider">
-            <Link to="/" className="text-[#5A2E0F] font-bold border-b-2 border-[#5A2E0F]">Home</Link>
-            <a href="/#categories" className="hover:text-[#5A2E0F] transition-colors">Shop</a>
-            <a href="/#categories" className="hover:text-[#5A2E0F] transition-colors">Categories</a>
-            <a href="#footer" className="hover:text-[#5A2E0F] transition-colors">Contact</a>
-            <a href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" target="_blank" rel="noopener noreferrer" className="hover:text-[#5A2E0F] transition-colors">Instagram</a>
+            <Link to="/" className="text-[#1E2A44] font-bold border-b-2 border-[#1E2A44]">Home</Link>
+            <a href="/#categories" className="hover:text-[#1E2A44] transition-colors">Shop</a>
+            <a href="/#categories" className="hover:text-[#1E2A44] transition-colors">Categories</a>
+            <a href="#footer" className="hover:text-[#1E2A44] transition-colors">Contact</a>
+            <a href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" target="_blank" rel="noopener noreferrer" className="hover:text-[#1E2A44] transition-colors">Instagram</a>
           </nav>
 
           <div className="flex items-center gap-4">
             {!user ? (
                <button 
                  onClick={loginWithGoogle}
-                 className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1A1A1A] hover:text-[#5A2E0F] transition-colors"
+                 className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
                >
                  <LogIn className="h-4 w-4" /> Login
                </button>
@@ -183,13 +183,13 @@ export function Header() {
 
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="text-[#1A1A1A] hover:text-[#5A2E0F] transition-colors"
+              className="text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
             >
               <Search className="h-5 w-5 md:h-6 md:w-6" />
             </button>
 
             <button 
-              className="md:hidden text-[#1A1A1A] hover:text-[#5A2E0F] transition-colors"
+              className="md:hidden text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
