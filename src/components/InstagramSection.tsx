@@ -14,7 +14,7 @@ export function InstagramSection() {
           Instagram
         </a>
         <a 
-          href="https://chat.whatsapp.com/FTaUnhzUKZTKac79nhttv5" 
+          href="https://chat.whatsapp.com/L0D4uDrUCsq0LO3d5Hwlz6" 
           target="_blank" 
           rel="noopener noreferrer"
           className="flex w-full sm:w-[220px] h-[44px] sm:h-[48px] items-center justify-center px-1 sm:px-6 border-2 border-[#1E2A44] bg-[#1E2A44] text-white font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-[#223A5E] hover:border-[#223A5E] transition-colors whitespace-nowrap text-center"
