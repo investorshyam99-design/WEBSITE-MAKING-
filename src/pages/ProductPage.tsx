@@ -236,12 +236,6 @@ export function ProductPage() {
           {/* Product Details */}
           <div className="flex-1 flex flex-col">
             
-            {/* Prepaid Badge */}
-            <div className="mb-6 inline-flex items-center space-x-2 bg-[#1E2A44] text-white px-4 py-2 text-[10px] font-bold tracking-widest uppercase w-fit">
-               <ShieldAlert className="w-4 h-4" />
-               <span>PREPAID ORDERS ONLY</span>
-            </div>
-
             <h1 className="text-3xl md:text-5xl font-black text-[#1B1B1B] tracking-tight mb-4 uppercase">
               {product.name}
             </h1>
