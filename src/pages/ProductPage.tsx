@@ -100,8 +100,7 @@ export function ProductPage() {
 
   const handleSizeClickAndOrder = (size: string) => {
     setSelectedSize(size);
-    const link = `${window.location.origin}/?product=${product.id}`;
-    const message = `Hello Jersey Unicorn! 🦄\n\nI am interested in this jersey:\n*${product.name}*\nPrice: ₹${product.price.toLocaleString('en-IN')}\nSize: ${size}\nQuantity: 1\nLink: ${link}\n\nPlease help me with the order.`;
+    const message = `Hello Jersey Unicorn! 🦄\n\nI am interested in this jersey:\n*${product.name}*\nPrice: ₹${product.price.toLocaleString('en-IN')}\nSize: ${size}\nQuantity: 1\nLink: ${window.location.href}\n\nPlease help me with the order.`;
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/918788965436?text=${encodedMessage}`, '_blank');
   };
