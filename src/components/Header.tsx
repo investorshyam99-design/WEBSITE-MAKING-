@@ -60,7 +60,7 @@ export function Header() {
                 <Phone className="h-5 w-5" /> Contact Us
               </a>
               <a 
-                href="https://chat.whatsapp.com/L0D4uDrUCsq0LO3d5Hwlz6"
+                href="https://chat.whatsapp.com/LOf5SJ1VZMwJBRqZOzcw6x"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -146,7 +146,7 @@ export function Header() {
             <span className="hidden sm:inline-block">Follow Us</span>
           </a>
           <a
-            href="https://chat.whatsapp.com/L0D4uDrUCsq0LO3d5Hwlz6"
+            href="https://chat.whatsapp.com/LOf5SJ1VZMwJBRqZOzcw6x"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 hover:text-[#EDE3D8] transition-colors"
