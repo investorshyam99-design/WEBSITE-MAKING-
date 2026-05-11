@@ -24,7 +24,7 @@ export const categories = [
   },
   {
     id: "master",
-    name: "MASTER QUALITY",
+    name: "MASTER VERSION",
     description: "Upgraded version of fan version, premium finishing, made in Thailand.",
   },
   {

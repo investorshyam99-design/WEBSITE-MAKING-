@@ -1,12 +1,14 @@
-import { ShoppingCart, Menu, Search, Instagram, MessageCircle, X, Home, Phone, Users, MessageSquare, LogIn, LogOut, Heart } from "lucide-react";
+import { ShoppingCart, Menu, Search, Instagram, MessageCircle, X, Home, Phone, Users, MessageSquare, LogIn, LogOut, Heart, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SearchModal } from "./SearchModal";
+import { PoliciesModal } from "./PoliciesModal";
 import { useShop } from "../context/ShopContext";
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
   const { loginWithGoogle, logout, user } = useShop();
 
   // Close mobile menu on route change or resize
@@ -23,6 +25,7 @@ export function Header() {
   return (
     <>
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <PoliciesModal isOpen={isPoliciesOpen} onClose={() => setIsPoliciesOpen(false)} />
       
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
@@ -83,6 +86,15 @@ export function Header() {
               >
                 <MessageSquare className="h-5 w-5" /> Chat with Us
               </a>
+              <button 
+                onClick={() => {
+                  setIsPoliciesOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] border-b border-gray-100 transition-colors uppercase w-full text-left"
+              >
+                <FileText className="h-5 w-5" /> Our Policies
+              </button>
               
               {!user ? (
                 <button 

@@ -1,18 +1,34 @@
+import { useState } from "react";
+import { PoliciesModal } from "./PoliciesModal";
+
 export function Footer() {
+  const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
+
   return (
-    <footer id="footer" className="bg-[#1B1B1B] text-white p-6 md:p-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12">
-          
-          {/* Contact & Policies */}
-          <div className="flex flex-col sm:flex-row gap-12 sm:gap-24">
-            <div>
-              <h4 className="text-[10px] font-bold uppercase text-[#F5EFE6]0 mb-4 tracking-widest">Contact Us</h4>
-              <p className="text-xs mb-2">+91 8788965436</p>
-              <p className="text-xs mb-3">jerseyunicorn1@gmail.com</p>
-              <a href="https://wa.me/918788965436" target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold border-b border-[#F5EFE6]0 hover:text-white transition-colors">Chat on WhatsApp</a>
+    <>
+      <footer id="footer" className="bg-[#1B1B1B] text-white p-6 md:p-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+            
+            {/* Contact & Policies */}
+            <div className="flex flex-col sm:flex-row gap-12 sm:gap-24">
+              <div>
+                <h4 className="text-[10px] font-bold uppercase text-[#F5EFE6]0 mb-4 tracking-widest">Contact Us</h4>
+                <p className="text-xs mb-2">+91 8788965436</p>
+                <p className="text-xs mb-3">jerseyunicorn1@gmail.com</p>
+                <a href="https://wa.me/918788965436" target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold border-b border-[#F5EFE6]0 hover:text-white transition-colors block mb-2 w-fit">Chat on WhatsApp</a>
+              </div>
+              
+              <div>
+                <h4 className="text-[10px] font-bold uppercase text-[#F5EFE6]0 mb-4 tracking-widest">Legal</h4>
+                <button 
+                  onClick={() => setIsPoliciesOpen(true)}
+                  className="text-[10px] font-bold border-b border-[#F5EFE6]0 hover:text-white transition-colors"
+                >
+                  Our Policies
+                </button>
+              </div>
             </div>
-          </div>
 
           {/* Social & Copyright */}
           <div className="text-left md:text-right flex flex-col md:items-end justify-between min-h-[100px]">
@@ -32,5 +48,7 @@ export function Footer() {
         </div>
       </div>
     </footer>
+    <PoliciesModal isOpen={isPoliciesOpen} onClose={() => setIsPoliciesOpen(false)} />
+    </>
   );
 }
