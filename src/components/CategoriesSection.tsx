@@ -20,7 +20,7 @@ export function CategoriesSection() {
 }
 
 function CategoryBlock({ category, products }: { category: any, products: any[], key?: string | number }) {
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [visibleCount, setVisibleCount] = useState(12);
   const categoryProducts = getProductsByCategory(category.id, products);
   
   const scrollToCategory = (id: string) => {
@@ -40,7 +40,7 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
   };
 
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 8);
+    setVisibleCount(prev => prev + 12);
   };
 
   if (categoryProducts.length === 0) return null;
