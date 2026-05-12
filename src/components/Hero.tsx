@@ -7,7 +7,14 @@ export function Hero() {
     if (videoRef.current) {
       videoRef.current.defaultMuted = true;
       videoRef.current.muted = true;
-      videoRef.current.play().catch(e => console.error("Autoplay prevents:", e));
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((e: any) => {
+          if (e.name !== 'AbortError') {
+             console.error("Autoplay prevents:", e);
+          }
+        });
+      }
     }
   }, []);
 

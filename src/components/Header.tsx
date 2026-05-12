@@ -52,13 +52,18 @@ export function Header() {
               >
                 <Home className="h-5 w-5" /> Home
               </Link>
-              <a 
-                href="#footer"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (window.location.hash !== '#/') {
+                    window.location.hash = '#/';
+                  }
+                  setTimeout(() => document.getElementById('footer')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                }}
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase w-full text-left"
               >
                 <Phone className="h-5 w-5" /> Contact Us
-              </a>
+              </button>
               <a 
                 href="https://chat.whatsapp.com/LOf5SJ1VZMwJBRqZOzcw6x"
                 target="_blank"
@@ -169,9 +174,18 @@ export function Header() {
 
           <nav className="hidden md:flex gap-6 text-sm font-medium uppercase tracking-wider">
             <Link to="/" className="text-[#1E2A44] font-bold border-b-2 border-[#1E2A44]">Home</Link>
-            <a href="/#categories" className="hover:text-[#1E2A44] transition-colors">Shop</a>
-            <a href="/#categories" className="hover:text-[#1E2A44] transition-colors">Categories</a>
-            <a href="#footer" className="hover:text-[#1E2A44] transition-colors">Contact</a>
+            <button onClick={() => {
+              if (window.location.hash !== '#/') window.location.hash = '#/';
+              setTimeout(() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }} className="hover:text-[#1E2A44] transition-colors cursor-pointer">Shop</button>
+            <button onClick={() => {
+              if (window.location.hash !== '#/') window.location.hash = '#/';
+              setTimeout(() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }} className="hover:text-[#1E2A44] transition-colors cursor-pointer">Categories</button>
+            <button onClick={() => {
+              if (window.location.hash !== '#/') window.location.hash = '#/';
+              setTimeout(() => document.getElementById('footer')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }} className="hover:text-[#1E2A44] transition-colors cursor-pointer">Contact</button>
             <a href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" target="_blank" rel="noopener noreferrer" className="hover:text-[#1E2A44] transition-colors">Instagram</a>
           </nav>
 
