@@ -149,7 +149,7 @@ export function ProductPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-[#F5EFE6]0">
           <Link to="/" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Home</Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
-          <Link to="/#categories" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Shop</Link>
+          <Link to="/" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Shop</Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
           <span className="text-[#1B1B1B] font-black uppercase tracking-wider truncate">{product.name}</span>
         </div>

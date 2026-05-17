@@ -96,13 +96,30 @@ export function useProducts() {
         
         // Prioritize specific jerseys to the top
         const sortedParsed = parsed.sort((a, b) => {
-          const getPriority = (name: string) => {
-            const lowerName = name.toLowerCase();
-            if (lowerName.includes("spain away 2026") || lowerName.includes("spain away 26")) return 1;
-            if (lowerName.includes("argentina away 2026") && lowerName.includes("messi")) return 1;
-            return 0;
+          const getPriority = (product: Product) => {
+            let priority = 0;
+            const lowerName = product.name.toLowerCase();
+
+            // Deprioritize full sleeve jerseys so they appear at the bottom
+            if (lowerName.includes("full sleeve") || lowerName.includes("full-sleeve") || lowerName.includes("long sleeve") || lowerName.includes("long-sleeve")) {
+              priority -= 1000;
+            }
+
+            if (product.category === "player") {
+              if (lowerName.includes("spain") && product.price === 999) priority += 100;
+              else if (lowerName.includes("spain")) priority += 95;
+              else if (lowerName.includes("argentina") && product.price === 899) priority += 90;
+              else if (lowerName.includes("argentina")) priority += 85;
+              else if (lowerName.includes("japan")) priority += 80;
+              else if (lowerName.includes("portugal")) priority += 70;
+              else if (lowerName.includes("brazil")) priority += 60;
+              else if (lowerName.includes("real madrid")) priority += 50;
+              else if (lowerName.includes("manchester united") || lowerName.includes("man utd")) priority += 40;
+            }
+
+            return priority;
           };
-          return getPriority(b.name) - getPriority(a.name);
+          return getPriority(b) - getPriority(a);
         });
 
         shopifyProductsStore = sortedParsed;
