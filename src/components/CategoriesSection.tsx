@@ -7,7 +7,7 @@ export function CategoriesSection() {
 
   return (
     <div id="categories" className="bg-white relative">
-      <div className="py-12 space-y-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-8 space-y-12 md:space-y-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {isLoading && (
           <div className="text-center text-[#F5EFE6]0 py-12">Loading products from Shopify...</div>
         )}
@@ -40,19 +40,30 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
   };
 
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 12);
+    setVisibleCount(categoryProducts.length);
+  };
+
+  const getButtonText = (name: string) => {
+    const uppercaseName = name.toUpperCase();
+    if (uppercaseName.includes('VERSION')) {
+      return uppercaseName.replace('VERSION', 'JERSEYS');
+    }
+    if (uppercaseName.includes('JERSEY') && !uppercaseName.includes('JERSEYS')) {
+      return uppercaseName.replace('JERSEY', 'JERSEYS');
+    }
+    return uppercaseName;
   };
 
   if (categoryProducts.length === 0) return null;
 
   return (
-    <section id={`category-${category.id}`} className="scroll-mt-48">
+    <section id={`category-${category.id}`} className="scroll-mt-48 mb-4">
       {/* Heading block */}
-      <div className="mb-6 py-3 px-4 md:py-4 md:px-6 bg-[#1E2A44] flex flex-col items-start justify-center shadow-sm">
-        <h3 className="text-base md:text-xl font-black uppercase text-white mb-1 tracking-tight">
+      <div className="mb-6 py-4 px-5 md:py-5 md:px-8 bg-[#F5F1EB] flex flex-col items-start justify-center shadow-sm border-l-4 border-[#14213D] rounded-r-2xl">
+        <h3 className="text-lg md:text-2xl font-black uppercase text-[#1A1A1A] mb-1 md:mb-2 tracking-tight">
           {category.name}
         </h3>
-        <p className="text-[10px] md:text-xs font-medium text-white/80 uppercase tracking-wide">
+        <p className="text-xs md:text-sm font-medium text-[#1A1A1A]/70 uppercase tracking-widest">
           {category.description}
         </p>
       </div>
@@ -65,12 +76,12 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
       </div>
       
       {visibleCount < categoryProducts.length && (
-        <div className="mt-8 text-center">
+        <div className="mt-8 mb-4 text-center w-full flex justify-center px-4">
           <button 
             onClick={handleLoadMore}
-            className="text-xs sm:text-sm font-black uppercase inline-flex items-center justify-center px-8 py-3 border-2 border-[#1E2A44] bg-[#1E2A44] text-white hover:bg-[#223A5E] hover:border-[#223A5E] transition-colors tracking-widest shadow-sm rounded-none"
+            className="w-full sm:w-auto min-h-[64px] text-base md:text-lg font-black uppercase inline-flex items-center justify-center px-12 py-5 bg-[#14213D] text-[#FFFFFF] hover:bg-[#1D3557] active:scale-[0.98] hover:-translate-y-1 transition-all duration-300 tracking-[0.15em] shadow-[0_8px_30px_rgba(20,33,61,0.25)] hover:shadow-[0_12px_40px_rgba(20,33,61,0.35)] rounded-full mx-1"
           >
-            Load More {category.name}s
+            SHOP ALL {getButtonText(category.name)} &rarr;
           </button>
         </div>
       )}
