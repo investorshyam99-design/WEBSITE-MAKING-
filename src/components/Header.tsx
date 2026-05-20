@@ -170,9 +170,22 @@ export function Header() {
       )}
 
       {/* Top Announcement Bar */}
-      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-center text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center justify-center">
-        <span>⚽ Premium Jerseys | Fast Dispatch</span>
-        <div className="absolute right-4 md:right-8 flex items-center gap-4">
+      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center overflow-hidden h-7">
+        <div className="whitespace-nowrap animate-marquee flex items-center pr-8">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="flex items-center">
+              <span>COD AVAILABLE</span>
+              <span className="mx-8">&bull;</span>
+            </div>
+          ))}
+          {[...Array(10)].map((_, i) => (
+            <div key={"second-" + i} className="flex items-center">
+              <span>COD AVAILABLE</span>
+              <span className="mx-8">&bull;</span>
+            </div>
+          ))}
+        </div>
+        <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#1E2A44] pl-4 z-10">
           <a 
             href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" 
             target="_blank" 
