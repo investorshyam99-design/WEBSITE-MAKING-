@@ -2,5 +2,5 @@
   "name": "Jersey Unicorn",
   "description": "Premium football jerseys, prepaid orders only.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

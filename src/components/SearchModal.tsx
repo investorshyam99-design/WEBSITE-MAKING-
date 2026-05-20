@@ -6,22 +6,24 @@ import { useProducts, Product } from "../data/products";
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialQuery?: string;
 }
 
-export function SearchModal({ isOpen, onClose }: SearchModalProps) {
-  const [query, setQuery] = useState("");
+export function SearchModal({ isOpen, onClose, initialQuery }: SearchModalProps) {
+  const [query, setQuery] = useState(initialQuery || "");
   const { products } = useProducts();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
+      setQuery(initialQuery || "");
       setTimeout(() => inputRef.current?.focus(), 100);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
       setQuery("");
     }
-  }, [isOpen]);
+  }, [isOpen, initialQuery]);
 
   if (!isOpen) return null;
 
