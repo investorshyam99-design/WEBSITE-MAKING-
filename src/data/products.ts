@@ -13,14 +13,14 @@ export type Product = {
 
 export const categories = [
   {
-    id: "player",
-    name: "PLAYER VERSION",
-    description: "Jersey that players wear, heat-pressed logos, made in Thailand.",
-  },
-  {
     id: "fan",
     name: "FAN VERSION",
     description: "Embroidered logos, comes with shorts, made in Thailand.",
+  },
+  {
+    id: "player",
+    name: "PLAYER VERSION",
+    description: "Jersey that players wear, heat-pressed logos, made in Thailand.",
   },
   {
     id: "master",
@@ -28,14 +28,14 @@ export const categories = [
     description: "Upgraded version of fan version, premium finishing, made in Thailand.",
   },
   {
-    id: "sublimation",
-    name: "SUBLIMATION JERSEY",
-    description: "Printed logos, lightweight, affordable pricing.",
-  },
-  {
     id: "indian",
     name: "INDIAN EMBROIDERY",
     description: "Made in India, embroidered finish, budget-friendly.",
+  },
+  {
+    id: "sublimation",
+    name: "SUBLIMATION JERSEY",
+    description: "Printed logos, lightweight, affordable pricing.",
   },
 ];
 
@@ -58,7 +58,7 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
     if (title.toLowerCase().includes("player")) category = "player";
     if (title.toLowerCase().includes("master")) category = "master";
     if (title.toLowerCase().includes("sublimation") || title.toLowerCase().includes("sublimition")) category = "sublimation";
-    if (title.toLowerCase().includes("indian")) category = "indian";
+    if (title.toLowerCase().includes("indian") || title.toLowerCase().includes("embroidery")) category = "indian";
     if (title.toLowerCase().includes("tshirt") || title.toLowerCase().includes("tee")) category = "tshirts";
 
     const price = parseFloat(sp.variants?.edges[0]?.node?.price?.amount || "0");
