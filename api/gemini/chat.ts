@@ -43,8 +43,8 @@ KEY RESPONSIBILITIES:
     let history = messages.slice(0, -1);
     const currentMessage = messages[messages.length - 1];
     
-    let contextStr = history.map((m: any) => `${m.role === 'user' ? 'User' : 'Jersey Unicorn AI'}: ${m.content}`).join('\\n');
-    let prompt = \`Conversation History:\\n\${contextStr}\\n\\nUser: \${currentMessage.content}\\n\\nPlease reply as Jersey Unicorn AI.\`;
+    let contextStr = history.map((m: any) => `${m.role === 'user' ? 'User' : 'Jersey Unicorn AI'}: ${m.content}`).join('\n');
+    let prompt = `Conversation History:\n${contextStr}\n\nUser: ${currentMessage.content}\n\nPlease reply as Jersey Unicorn AI.`;
     
     if (history.length === 0) {
       prompt = currentMessage.content;
