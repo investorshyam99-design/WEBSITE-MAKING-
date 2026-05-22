@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Sparkles, Loader2 } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -15,7 +15,16 @@ export function AIAssistant() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Voice feature states
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const currentAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -25,11 +34,152 @@ export function AIAssistant() {
     scrollToBottom();
   }, [messages, isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleSubmitRef = useRef<any>(null);
 
-    const userMessage = input.trim();
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setTimeout(() => {
+            if (handleSubmitRef.current) {
+              handleSubmitRef.current(undefined, transcript);
+            }
+          }, 100);
+        };
+        
+        recognitionRef.current.onerror = (event: any) => {
+          console.error("Speech recognition error", event.error);
+          setIsListening(false);
+        };
+        
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
+    
+    return () => {
+      stopAudio();
+    };
+  }, []);
+
+  const initializeAudioContext = () => {
+    try {
+      if (!audioContextRef.current) {
+        const AudioContextCls = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextCls) {
+          audioContextRef.current = new (AudioContextCls as any)({ sampleRate: 24000 });
+        } else {
+          console.warn("AudioContext is not supported in this browser");
+          return;
+        }
+      }
+      if (audioContextRef.current?.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+    } catch (e) {
+      console.error("Audio Context Init Error:", e);
+    }
+  };
+
+  const stopAudio = () => {
+    if (currentAudioSourceRef.current) {
+      try {
+        currentAudioSourceRef.current.stop();
+        currentAudioSourceRef.current.disconnect();
+      } catch (e) {}
+      currentAudioSourceRef.current = null;
+    }
+    setIsSpeaking(false);
+  };
+
+  const playPCMBase64 = async (base64Audio: string) => {
+    if (!base64Audio) return;
+    try {
+      if (!audioContextRef.current) {
+        const AudioContextCls = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextCls) {
+          audioContextRef.current = new AudioContextCls({ sampleRate: 24000 });
+        } else {
+          console.warn("AudioContext not supported");
+          return;
+        }
+      }
+      const audioCtx = audioContextRef.current;
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+      const binaryString = atob(base64Audio);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const pcm16 = new Int16Array(bytes.buffer);
+      const audioBuffer = audioCtx.createBuffer(1, pcm16.length, 24000);
+      const channelData = audioBuffer.getChannelData(0);
+      for (let i = 0; i < pcm16.length; i++) {
+        channelData[i] = pcm16[i] / 32768.0;
+      }
+      
+      stopAudio();
+      
+      const source = audioCtx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioCtx.destination);
+      source.onended = () => setIsSpeaking(false);
+      currentAudioSourceRef.current = source;
+      
+      setIsSpeaking(true);
+      source.start();
+    } catch (e) {
+      console.error("PCM playback error:", e);
+      setIsSpeaking(false);
+    }
+  };
+
+  const toggleVoiceMode = () => {
+    setIsVoiceMode(!isVoiceMode);
+    if (!isVoiceMode) {
+      initializeAudioContext();
+    } else {
+      stopAudio();
+    }
+  };
+
+  const toggleListening = () => {
+    initializeAudioContext();
+    if (!recognitionRef.current) {
+      alert("🎙️ Voice recognition is not supported in this browser. Please try using Chrome or Android.");
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      if (!isVoiceMode) setIsVoiceMode(true); // Auto-enable voice responses if mic is used
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const handleSubmit = async (e?: React.FormEvent, overrideInput?: string) => {
+    if (e) e.preventDefault();
+    initializeAudioContext();
+    const textToSubmit = overrideInput !== undefined ? overrideInput : input;
+    if (!textToSubmit.trim() || isLoading) return;
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+    }
+    stopAudio();
+
+    const userMessage = textToSubmit.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
@@ -38,20 +188,32 @@ export function AIAssistant() {
       const response = await fetch('/api/gemini/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, { role: 'user', content: userMessage }] })
+        body: JSON.stringify({ 
+          messages: [...messages, { role: 'user', content: userMessage }],
+          voice: isVoiceMode 
+        })
       });
 
       if (!response.ok) throw new Error('API Error');
 
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'ai', content: data.text }]);
+      
+      if (isVoiceMode && data.audio) {
+        playPCMBase64(data.audio);
+      }
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'ai', content: "Oops, something went wrong on our end. Please try again later." }]);
+      const errorMsg = "Oops, something went wrong on our end. Please try again later.";
+      setMessages(prev => [...prev, { role: 'ai', content: errorMsg }]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
 
   return (
     <>
@@ -88,16 +250,34 @@ export function AIAssistant() {
                   <Sparkles className="w-5 h-5 text-[#E6C9A8]" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white tracking-widest uppercase text-sm">Jersey Unicorn AI</h3>
+                  <h3 className="font-bold text-white tracking-widest uppercase text-sm flex items-center gap-2">
+                    Jersey Unicorn AI
+                    {isSpeaking && (
+                      <span className="flex gap-1 h-3 items-center">
+                        <span className="w-1 h-2 bg-[#E6C9A8] animate-[bounce_1s_infinite] rounded-full" />
+                        <span className="w-1 h-3 bg-[#E6C9A8] animate-[bounce_1.2s_infinite] rounded-full" />
+                        <span className="w-1 h-2 bg-[#E6C9A8] animate-[bounce_0.8s_infinite] rounded-full" />
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-[#EDE3D8]/60 text-xs font-medium">Premium Styling Assistant</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="text-[#EDE3D8]/60 hover:text-white p-2 rounded-full hover:bg-[#1D3557] transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={toggleVoiceMode}
+                  className="text-[#EDE3D8]/60 hover:text-[#E6C9A8] p-2 rounded-full hover:bg-[#1D3557] transition-colors"
+                  title="Toggle Voice Responses"
+                >
+                  {isVoiceMode ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="text-[#EDE3D8]/60 hover:text-white p-2 rounded-full hover:bg-[#1D3557] transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Chat Area */}
@@ -143,20 +323,33 @@ export function AIAssistant() {
                       handleSubmit(e);
                     }
                   }}
-                  placeholder="Ask about sizes, styles, or teams..."
-                  className="w-full bg-[#0B1325] text-white placeholder-[#EDE3D8]/40 border border-[#1D3557] rounded-2xl pl-4 pr-12 py-3.5 focus:outline-none focus:border-[#E6C9A8] focus:ring-1 focus:ring-[#E6C9A8] resize-none h-[54px] min-h-[54px] max-h-[120px] text-sm"
+                  placeholder={isListening ? "Listening..." : "Ask about sizes, styles, or teams..."}
+                  className="w-full bg-[#0B1325] text-white placeholder-[#EDE3D8]/40 border border-[#1D3557] rounded-2xl pl-4 pr-[88px] py-3.5 focus:outline-none focus:border-[#E6C9A8] focus:ring-1 focus:ring-[#E6C9A8] resize-none h-[54px] min-h-[54px] max-h-[120px] text-sm"
                   rows={1}
                 />
-                <button
-                  type="submit"
-                  disabled={!input.trim() || isLoading}
-                  className="absolute right-2 bottom-[9px] p-2 bg-[#E6C9A8] text-[#0B1325] rounded-xl hover:bg-[#D5B796] disabled:opacity-50 disabled:hover:bg-[#E6C9A8] transition-colors"
-                >
-                  <Send className="w-4 h-4 translate-x-[1px] translate-y-[1px]" />
-                </button>
+                <div className="absolute right-2 bottom-[9px] flex items-center gap-1 z-10">
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    className={`p-2 rounded-xl transition-colors ${
+                      isListening ? 'text-red-400 bg-red-400/10' : 'text-[#EDE3D8]/60 hover:text-[#E6C9A8] hover:bg-[#1D3557]'
+                    }`}
+                    title="Voice Input"
+                  >
+                    {isListening ? <Mic className="w-4 h-4 animate-pulse" /> : <MicOff className="w-4 h-4" />}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={(!input.trim() && !isListening) || isLoading}
+                    className="p-2 bg-[#E6C9A8] text-[#0B1325] rounded-xl hover:bg-[#D5B796] disabled:opacity-50 disabled:hover:bg-[#E6C9A8] transition-colors"
+                  >
+                    <Send className="w-4 h-4 translate-x-[1px] translate-y-[1px]" />
+                  </button>
+                </div>
               </form>
-              <div className="text-center mt-2">
+              <div className="text-center mt-2 flex justify-between items-center px-2">
                 <span className="text-[10px] text-[#EDE3D8]/40 uppercase tracking-widest">Powered by Gemini AI</span>
+                {isListening && <span className="text-[10px] text-red-400 font-bold uppercase tracking-widest animate-pulse">Recording...</span>}
               </div>
             </div>
           </motion.div>
