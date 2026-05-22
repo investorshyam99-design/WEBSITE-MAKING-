@@ -6,7 +6,7 @@ async function run() {
     const infoRes = await fetch('https://api.streamable.com/videos/hpvnxl');
     const info = await infoRes.json();
     
-    let vidUrl = info.files['mp4'].url;
+    let vidUrl = (info.files['mp4-mobile'] || info.files['mp4']).url;
     if (vidUrl.startsWith('//')) vidUrl = 'https:' + vidUrl;
     
     let thumbUrl = info.thumbnail_url;

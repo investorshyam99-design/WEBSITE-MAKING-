@@ -27,12 +27,15 @@ export function Hero() {
         loop
         muted
         playsInline
+        disablePictureInPicture
+        disableRemotePlayback
         preload="auto"
         poster="/hero-poster.jpg"
+        style={{ transform: "translateZ(0)", willChange: "transform" }}
         className="absolute inset-0 w-full h-full object-cover z-0"
-        key="main-hero-video-v18"
+        key="main-hero-video-v19"
       >
-        <source src="/hero-video.mp4" type="video/mp4" />
+        <source src="/hero-video.mp4?v=2" type="video/mp4" />
       </video>
 
       {/* Subtle overlay to ensure button readability */}
