@@ -99,6 +99,11 @@ export function useProducts() {
           const getPriority = (product: Product) => {
             let priority = 0;
             const lowerName = product.name.toLowerCase();
+            
+            // Unconditional Top Priority: Spain Away 2026 and Spain 2026 variants
+            if (lowerName.includes("spain") && (lowerName.includes("away") || lowerName.includes("2026") || lowerName.includes("26"))) {
+              priority += 50000;
+            }
 
             // Deprioritize full sleeve jerseys so they appear at the bottom
             if (lowerName.includes("full sleeve") || lowerName.includes("full-sleeve") || lowerName.includes("long sleeve") || lowerName.includes("long-sleeve")) {
