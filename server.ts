@@ -2,12 +2,96 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, Modality } from "@google/genai";
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+
+let razorpayClient: Razorpay | null = null;
+export function getRazorpay(): Razorpay {
+  if (!razorpayClient) {
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!key_id || !key_secret) {
+      throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET variables are required');
+    }
+    razorpayClient = new Razorpay({ key_id, key_secret });
+  }
+  return razorpayClient;
+}
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Razorpay Order API
+  app.post('/api/create-razorpay-order', async (req, res) => {
+    try {
+      const { items, paymentMode } = req.body;
+      const razorpay = getRazorpay();
+      
+      let amount = 0;
+      const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+
+      if (paymentMode === 'partial') {
+        amount = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0); // 150 advance per item
+      } else {
+        amount = itemsTotal; // free delivery
+      }
+
+      const options = {
+        amount: amount * 100, // amount in the smallest currency unit
+        currency: "INR",
+        receipt: "receipt_order_" + Date.now(),
+      };
+
+      const order = await razorpay.orders.create(options);
+      res.json({ id: order.id, amount: order.amount, currency: order.currency });
+    } catch (error: any) {
+      console.error('Error creating razorpay order:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Razorpay Verify API
+  app.post('/api/verify-razorpay-payment', (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET || '';
+
+    const generated_signature = crypto
+      .createHmac('sha256', key_secret)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest('hex');
+
+    if (generated_signature === razorpay_signature) {
+      res.json({ success: true, message: "Payment verified successfully" });
+    } else {
+      res.status(400).json({ success: false, message: "Payment verification failed" });
+    }
+  });
+
+  app.post("/api/shopify", async (req, res) => {
+    try {
+      const { query } = req.body;
+      const domain = process.env.VITE_SHOPIFY_DOMAIN || "https://0qtwuu-br.myshopify.com";
+      const token = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN || "e711ef4603f75af0b8370a9b8ebeb2e5";
+      
+      const response = await fetch(`${domain}/api/2024-01/graphql.json`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": token,
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      const json = await response.json();
+      res.json(json);
+    } catch (error: any) {
+      console.error("Error fetching Shopify products proxy:", error);
+      res.status(500).json({ error: "Failed to fetch from Shopify" });
+    }
+  });
 
   // AI Assistant API Route
   app.post("/api/gemini/chat", async (req, res) => {
@@ -76,16 +160,17 @@ LANGUAGE RULES:
 - If English → reply in crisp, confident, modern Indian English.
 - Mix languages naturally like real humans in India do.
 
-VOICE ASSISTANT CAPABILITIES:
+VOICE ASSISTANT CAPABILITIES & STORE CONTEXT:
 - General conversation
 - Business guidance
-- Website help
-- Shopping suggestions
-- Motivation
-- Productivity
-- Creative ideas
-- Tech support
+- Website & Shopping help
+- Motivation & Productivity
 - Real-time friendly chat
+
+IMPORTANT STORE INFO:
+- We deliver between 5 to 10 days across India.
+- We sell premium Thailand quality football jerseys (Fan versions).
+- Cash on Delivery (COD) is available with a ₹150 advance to confirm.
 
 RESPONSE STYLE EXAMPLES:
 

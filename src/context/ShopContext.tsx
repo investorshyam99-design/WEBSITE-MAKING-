@@ -1,14 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
+import { auth } from '../lib/firebase';
+import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
-type CartItem = Product & { quantity: number; selectedSize?: string };
+type CartItem = Product & { 
+  quantity: number; 
+  selectedSize?: string;
+  customization?: { name: string; number: string };
+};
 
 interface ShopContextType {
   cart: CartItem[];
   wishlist: Product[];
-  addToCart: (product: Product, selectedSize?: string) => void;
-  removeFromCart: (productId: string, selectedSize?: string) => void;
-  updateQuantity: (productId: string, selectedSize: string | undefined, quantity: number) => void;
+  addToCart: (product: Product, selectedSize?: string, customization?: { name: string; number: string }) => void;
+  removeFromCart: (productId: string, selectedSize?: string, customization?: { name: string; number: string }) => void;
+  updateQuantity: (productId: string, selectedSize: string | undefined, quantity: number, customization?: { name: string; number: string }) => void;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: string) => boolean;
   isCartOpen: boolean;
@@ -17,9 +23,10 @@ interface ShopContextType {
   setIsWishlistOpen: (open: boolean) => void;
   isLoginOpen: boolean;
   setIsLoginOpen: (open: boolean) => void;
-  user: { email: string; name: string } | null;
+  user: { email: string; name: string; uid: string } | null;
   loginWithGoogle: () => void;
   logout: () => void;
+  clearCart: () => void;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -30,17 +37,30 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [user, setUser] = useState<{ email: string; name: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser && currentUser.email) {
+        setUser({
+          email: currentUser.email,
+          name: currentUser.displayName || 'User',
+          uid: currentUser.uid,
+        });
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Load from LocalStorage
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem('cart');
       const savedWishlist = localStorage.getItem('wishlist');
-      const savedUser = localStorage.getItem('user');
       if (savedCart) setCart(JSON.parse(savedCart));
       if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
-      if (savedUser) setUser(JSON.parse(savedUser));
     } catch (e) {
       console.error('Failed to load from local storage', e);
     }
@@ -55,43 +75,53 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
-    }
-  }, [user]);
+  const clearCart = () => setCart([]);
 
-  const addToCart = (product: Product, selectedSize?: string) => {
+  const addToCart = (product: Product, selectedSize?: string, customization?: { name: string; number: string }) => {
     setCart((prev) => {
+      const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
+        if (!itemCustom && !targetCustom) return true;
+        if (!itemCustom || !targetCustom) return false;
+        return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
+      };
+
       const existingItem = prev.find(
-        (item) => item.id === product.id && item.selectedSize === selectedSize
+        (item) => item.id === product.id && item.selectedSize === selectedSize && isCustomSame(item.customization, customization)
       );
       if (existingItem) {
         return prev.map((item) =>
-          item.id === product.id && item.selectedSize === selectedSize
+          item.id === product.id && item.selectedSize === selectedSize && isCustomSame(item.customization, customization)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1, selectedSize }];
+      return [...prev, { ...product, quantity: 1, selectedSize, customization, price: product.price + (customization ? 199 : 0) }];
     });
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, selectedSize?: string) => {
-    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === selectedSize)));
+  const removeFromCart = (productId: string, selectedSize?: string, customization?: { name: string; number: string }) => {
+    const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
+      if (!itemCustom && !targetCustom) return true;
+      if (!itemCustom || !targetCustom) return false;
+      return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
+    };
+    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && isCustomSame(item.customization, customization))));
   };
 
-  const updateQuantity = (productId: string, selectedSize: string | undefined, quantity: number) => {
+  const updateQuantity = (productId: string, selectedSize: string | undefined, quantity: number, customization?: { name: string; number: string }) => {
     if (quantity < 1) {
-      removeFromCart(productId, selectedSize);
+      removeFromCart(productId, selectedSize, customization);
       return;
     }
+    const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
+      if (!itemCustom && !targetCustom) return true;
+      if (!itemCustom || !targetCustom) return false;
+      return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
+    };
     setCart((prev) =>
       prev.map((item) =>
-        item.id === productId && item.selectedSize === selectedSize
+        item.id === productId && item.selectedSize === selectedSize && isCustomSame(item.customization, customization)
           ? { ...item, quantity }
           : item
       )
@@ -113,16 +143,23 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     return wishlist.some((item) => item.id === productId);
   };
 
-  // Mock Google Login for visual demonstration since Firebase setup was canceled.
-  const loginWithGoogle = () => {
-    // In a real app, integrate Firebase/Google Auth here.
-    setIsLoginOpen(false);
-    setUser({ email: 'user@gmail.com', name: 'Google User' });
-    alert('Logged in successfully with Google!');
+  const loginWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      setIsLoginOpen(false);
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+      alert("Failed to sign in. Please try again.");
+    }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out", error);
+    }
   };
 
   return (
@@ -144,6 +181,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         user,
         loginWithGoogle,
         logout,
+        clearCart,
       }}
     >
       {children}

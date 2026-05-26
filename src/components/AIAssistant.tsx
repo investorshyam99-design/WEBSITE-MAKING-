@@ -312,10 +312,10 @@ export function AIAssistant() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 flex items-center justify-center gap-2 group bg-[#14213D] text-[#EDE3D8] hover:bg-[#1D3557] px-6 py-4 rounded-full shadow-[0_8px_40px_rgba(20,33,61,0.5)] border border-white/10 transition-all duration-300 transform hover:-translate-y-1 backdrop-blur-sm"
+            className="fixed bottom-28 md:bottom-6 right-4 md:right-6 z-40 flex items-center justify-center gap-2 group bg-[#14213D] text-[#EDE3D8] hover:bg-[#1D3557] p-4 md:px-6 md:py-4 rounded-full shadow-[0_8px_40px_rgba(20,33,61,0.5)] border border-white/10 transition-all duration-300 transform hover:-translate-y-1 backdrop-blur-sm"
           >
-            <Sparkles className="w-5 h-5 text-[#E6C9A8]" />
-            <span className="font-bold text-sm tracking-widest uppercase">Ask Stylist</span>
+            <Sparkles className="w-6 h-6 md:w-5 md:h-5 text-[#E6C9A8]" />
+            <span className="hidden md:inline font-bold text-sm tracking-widest uppercase">Ask Stylist</span>
           </motion.button>
         )}
       </AnimatePresence>

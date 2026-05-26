@@ -9,6 +9,7 @@ export type Product = {
   galleryImages: string[];
   category: string;
   description?: string;
+  variantId?: string;
 };
 
 export const categories = [
@@ -62,6 +63,9 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
     if (title.toLowerCase().includes("tshirt") || title.toLowerCase().includes("tee")) category = "tshirts";
 
     const price = parseFloat(sp.variants?.edges[0]?.node?.price?.amount || "0");
+    const variantId = sp.variants?.edges[0]?.node?.id || "";
+    // extract digits from gid://shopify/ProductVariant/44976826056774
+    const rawVariantId = variantId.replace("gid://shopify/ProductVariant/", "");
     const images = sp.images?.edges.map((e: any) => e.node.url) || [];
     const mainImage = images[0] || "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop";
     
@@ -72,7 +76,8 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       image: mainImage,
       galleryImages: images.length > 0 ? images : [mainImage],
       category: category,
-      description: sp.description || "Premium quality football jersey. Express your passion for the game."
+      description: sp.description || "Premium quality football jersey. Express your passion for the game.",
+      variantId: rawVariantId
     };
   });
 }

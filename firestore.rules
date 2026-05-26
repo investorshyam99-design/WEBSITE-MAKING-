@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'investorshyam99@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'productName', 'price', 'status']) &&
+             data.userId == request.auth.uid;
+    }
+
+    match /orders/{orderId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && 
+                    isValidOrder(request.resource.data);
+      allow update: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.userId); // allow updating status to paid
+      allow delete: if request.auth != null && isAdmin();
+    }
+  }
+}

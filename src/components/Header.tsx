@@ -11,7 +11,10 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
-  const { loginWithGoogle, logout, user } = useShop();
+  const { loginWithGoogle, logout, user, setIsCartOpen, cart } = useShop();
+
+  // Calculate total cart items
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   // Close mobile menu on route change or resize
   useEffect(() => {
@@ -132,20 +135,27 @@ export function Header() {
               >
                 <FileText className="h-5 w-5" /> Our Policies
               </button>
-              
+
               {!user ? (
                 <button 
                   onClick={() => {
                     loginWithGoogle();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] transition-colors uppercase w-full text-left"
+                  className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
                 >
                   <LogIn className="h-5 w-5" /> Register/Login
                 </button>
               ) : (
-                <div className="mt-2 border-t border-gray-100">
-                  <div className="px-6 py-4 text-sm font-semibold text-[#F5EFE6]0">{user.email}</div>
+                <div className="mt-2 py-2 border-t border-gray-100">
+                  <div className="px-6 py-2 text-sm font-semibold text-gray-400">{user.email}</div>
+                  <Link 
+                    to="/orders"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
+                  >
+                    <FileText className="h-5 w-5" /> My Orders
+                  </Link>
                   <button 
                     onClick={() => {
                       logout();
@@ -176,11 +186,19 @@ export function Header() {
             <div key={i} className="flex items-center">
               <span>COD AVAILABLE</span>
               <span className="mx-8">&bull;</span>
+              <span>FREE DELIVERY</span>
+              <span className="mx-8">&bull;</span>
+              <span>CUSTOMISATION AVAILABLE</span>
+              <span className="mx-8">&bull;</span>
             </div>
           ))}
           {[...Array(10)].map((_, i) => (
             <div key={"second-" + i} className="flex items-center">
               <span>COD AVAILABLE</span>
+              <span className="mx-8">&bull;</span>
+              <span>FREE DELIVERY</span>
+              <span className="mx-8">&bull;</span>
+              <span>CUSTOMISATION AVAILABLE</span>
               <span className="mx-8">&bull;</span>
             </div>
           ))}
@@ -243,13 +261,21 @@ export function Header() {
                  <LogIn className="h-4 w-4" /> Login
                </button>
             ) : (
-               <button 
-                 onClick={logout}
-                 className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600 transition-colors"
-                 title={`Logged in as ${user.email}`}
-               >
-                 <LogOut className="h-4 w-4" /> Logout
-               </button>
+               <div className="hidden md:flex items-center gap-4">
+                 <Link 
+                   to="/orders"
+                   className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+                 >
+                   Orders
+                 </Link>
+                 <button 
+                   onClick={logout}
+                   className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600 transition-colors"
+                   title={`Logged in as ${user.email}`}
+                 >
+                   <LogOut className="h-4 w-4" /> Logout
+                 </button>
+               </div>
             )}
 
             <button 
@@ -257,6 +283,18 @@ export function Header() {
               className="text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
             >
               <Search className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+            
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="text-[#1B1B1B] hover:text-[#1E2A44] transition-colors relative"
+            >
+              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
             </button>
 
             <button 

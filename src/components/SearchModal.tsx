@@ -34,7 +34,7 @@ export function SearchModal({ isOpen, onClose, initialQuery }: SearchModalProps)
   );
 
   return (
-    <div className="fixed inset-0 z-[60] bg-white/95 backdrop-blur-md flex flex-col">
+    <div className="fixed inset-0 z-[60] bg-white/95 flex flex-col">
       <div className="p-4 md:p-8 flex items-center gap-4 max-w-7xl mx-auto w-full border-b border-[#EDE3D8]">
         <Search className="h-6 w-6 text-gray-400" />
         <input
