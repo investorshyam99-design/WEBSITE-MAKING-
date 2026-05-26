@@ -37,17 +37,20 @@ export async function fetchShopifyProducts() {
   `;
 
   try {
-    const response = await fetch(`${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`, {
+    const response = await fetch('/api/shopify', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
       },
       body: JSON.stringify({ query }),
       cache: "no-cache",
     });
 
     const json = await response.json();
+    if (!json.data || !json.data.products) {
+      console.error("Invalid response from Shopify:", json);
+      return [];
+    }
     return json.data.products.edges.map((edge: any) => edge.node);
   } catch (error) {
     console.error("Error fetching Shopify products:", error);
