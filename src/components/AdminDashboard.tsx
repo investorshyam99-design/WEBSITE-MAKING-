@@ -66,9 +66,9 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
     try {
       await deleteDoc(doc(db, 'orders', orderId));
       refreshOrders();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to delete order");
+      alert("Failed to delete order. " + e.message);
     }
   };
 
@@ -96,9 +96,9 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
       await Promise.all(promises);
       refreshOrders();
       alert(`Successfully deleted ${draftOrders.length} draft orders.`);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to delete some draft orders.");
+      alert("Failed to delete some draft orders. " + e.message);
     }
   };
 
@@ -115,9 +115,9 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
       await Promise.all(promises);
       refreshOrders();
       alert(`Successfully deleted all ${orders.length} orders.`);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to delete some orders.");
+      alert("Failed to delete some orders. " + e.message);
     }
   };
 
@@ -456,21 +456,19 @@ function AdminOrderCard({
                  )}
 
                  {isDraft && (
-                   <div className="flex gap-2">
-                     <button
-                       onClick={() => handleUpdateStatusWithWhatsApp("Processing", "paymentSuccess")}
-                       className="flex-1 py-2.5 bg-green-600 text-white text-xs font-bold uppercase tracking-wider rounded hover:bg-green-700 transition-colors flex justify-center items-center gap-1 border border-green-700"
-                     >
-                       <Check className="h-4 w-4" /> Mark Processing
-                     </button>
-                     <button
-                       onClick={onDelete}
-                       className="flex-1 py-2.5 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded hover:bg-red-100 transition-colors flex justify-center items-center gap-1 border border-red-200"
-                     >
-                       <Trash2 className="h-4 w-4" /> Delete Draft
-                     </button>
-                   </div>
+                    <button
+                      onClick={() => handleUpdateStatusWithWhatsApp("Processing", "paymentSuccess")}
+                      className="w-full mb-2 py-2.5 bg-green-600 text-white text-xs font-bold uppercase tracking-wider rounded hover:bg-green-700 transition-colors flex justify-center items-center gap-1 border border-green-700"
+                    >
+                      <Check className="h-4 w-4" /> Mark Processing
+                    </button>
                  )}
+                 <button
+                   onClick={onDelete}
+                   className="w-full py-2.5 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded hover:bg-red-100 transition-colors flex justify-center items-center gap-1 border border-red-200"
+                 >
+                   <Trash2 className="h-4 w-4" /> {isDraft ? "Delete Draft" : "Delete Order"}
+                 </button>
                </div>
             </div>
 
