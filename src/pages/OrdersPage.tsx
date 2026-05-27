@@ -110,12 +110,12 @@ export function OrdersPage() {
       <Header />
       <main className="flex-grow max-w-[1200px] mx-auto w-full px-4 py-8 md:py-12">
         {user.email !== "investorshyam99@gmail.com" && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-            <h1 className="text-3xl font-black text-[#1B1B1B] uppercase tracking-tight">
+          <div className="flex flex-row items-center justify-between mb-8 gap-4">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#1B1B1B] uppercase tracking-tight">
                My Orders
             </h1>
-            <button onClick={() => navigate('/')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <X className="h-6 w-6 text-gray-500" />
+            <button onClick={() => navigate('/')} className="p-2 hover:bg-gray-200 bg-gray-100 rounded-full transition-colors">
+              <X className="h-6 w-6 text-gray-700" />
             </button>
           </div>
         )}
