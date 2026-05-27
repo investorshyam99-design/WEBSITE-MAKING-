@@ -3,8 +3,9 @@ import { db } from '../lib/firebase';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { 
   Package, Search, Phone, MapPin, Copy, 
-  MessageCircle, Truck, Check, Trash2, ChevronDown, RefreshCw, Star
+  MessageCircle, Truck, Check, Trash2, ChevronDown, RefreshCw, Star, X
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Order {
   id: string;
@@ -40,6 +41,7 @@ function generateWhatsAppLink(phone: string, text: string) {
 }
 
 export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], refreshOrders: () => void }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('new');
   const [search, setSearch] = useState('');
   
@@ -115,7 +117,17 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
       {/* Mobile-first Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="p-4">
-          <h2 className="text-xl font-black text-[#1E2A44] uppercase tracking-widest mb-3">Operations</h2>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-xl font-black text-[#1E2A44] uppercase tracking-widest flex items-center gap-2">
+              Operations
+            </h2>
+            <button 
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="h-6 w-6 text-gray-500" />
+            </button>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input 
@@ -312,6 +324,8 @@ function AdminOrderCard({
                       <option value="DTDC">DTDC</option>
                       <option value="XpressBees">XpressBees</option>
                       <option value="Ecom Express">Ecom Express</option>
+                      <option value="India Post">India Post</option>
+                      <option value="Ekart">Ekart</option>
                     </select>
                     <input 
                       type="text" 

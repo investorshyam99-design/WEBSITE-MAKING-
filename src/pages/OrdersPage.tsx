@@ -4,8 +4,8 @@ import { Footer } from "../components/Footer";
 import { useShop } from "../context/ShopContext";
 import { db } from "../lib/firebase";
 import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { Package, Truck } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Package, Truck, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { AdminDashboard } from "../components/AdminDashboard";
 
 interface Order {
@@ -31,6 +31,7 @@ export function OrdersPage() {
   const { user, loginWithGoogle } = useShop();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchOrders = useCallback(async () => {
     if (!user) {
@@ -113,25 +114,9 @@ export function OrdersPage() {
             <h1 className="text-3xl font-black text-[#1B1B1B] uppercase tracking-tight">
                My Orders
             </h1>
-            {orders.length > 0 && (
-              <button
-                onClick={async () => {
-                  if (confirm("Are you sure you want to clear your order history?")) {
-                    try {
-                      const promises = orders.map(order => deleteDoc(doc(db, 'orders', order.id)));
-                      await Promise.all(promises);
-                      setOrders([]);
-                      alert("Order history cleared.");
-                    } catch (e) {
-                      console.error("Failed to delete orders", e);
-                    }
-                  }
-                }}
-                className="text-red-500 font-bold uppercase text-xs tracking-wider border border-red-200 px-4 py-2 rounded hover:bg-red-50 transition-colors"
-              >
-                Clear History
-              </button>
-            )}
+            <button onClick={() => navigate('/')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <X className="h-6 w-6 text-gray-500" />
+            </button>
           </div>
         )}
 

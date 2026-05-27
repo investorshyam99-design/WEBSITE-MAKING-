@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
-import { auth } from '../lib/firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
+import { signInWithPopup, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 type CartItem = Product & { 
   quantity: number; 
@@ -66,10 +67,41 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save to LocalStorage
+  // Save to LocalStorage and Sync Abandoned Carts to Firestore
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
+    
+    async function syncAbandonedCarts() {
+      if (!user) return;
+      try {
+        const q = query(collection(db, 'orders'), where('userId', '==', user.uid), where('status', '==', 'pending_cart'));
+        const snapshot = await getDocs(q);
+        const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, 'orders', d.id)));
+        await Promise.all(deletePromises);
+
+        if (cart.length > 0) {
+           const addPromises = cart.map((item, index) => {
+              const orderId = `cart_${user.uid}_${Date.now()}_${index}`;
+              return setDoc(doc(db, 'orders', orderId), {
+                 userId: user.uid,
+                 productName: `${item.quantity}x ${item.name}`,
+                 image: item.image,
+                 size: item.selectedSize || 'N/A',
+                 customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
+                 price: item.price * item.quantity,
+                 status: 'pending_cart',
+                 createdAt: new Date(),
+                 fullName: user.name
+              });
+           });
+           await Promise.all(addPromises);
+        }
+      } catch (e) {
+        console.error("Failed to sync abandoned cart", e);
+      }
+    }
+    syncAbandonedCarts();
+  }, [cart, user]);
 
   useEffect(() => {
     localStorage.setItem('wishlist', JSON.stringify(wishlist));
