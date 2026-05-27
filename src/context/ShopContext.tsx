@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
 import { auth } from '../lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 type CartItem = Product & { 
   quantity: number; 
@@ -40,6 +40,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
 
   useEffect(() => {
+    // Handle redirect result if user signed in via redirect on mobile
+    getRedirectResult(auth).then((result) => {
+      if (result) setIsLoginOpen(false);
+    }).catch((error) => {
+      console.error("Error from redirect sign-in:", error);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser && currentUser.email) {
         setUser({
@@ -146,14 +153,28 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      setIsLoginOpen(false);
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+        setIsLoginOpen(false);
+      }
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       if (error.code === 'auth/unauthorized-domain') {
-        alert("Domain not authorized for Google Sign-In. Administrator: Please add this domain to Firebase Console > Authentication > Settings > Authorized domains.");
+        alert("Domain not authorized for Google Sign-In. You must add 'jerseyunicorn.com' to Firebase Console > Authentication > Settings > Authorized domains.");
+      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/popup-blocked') {
+        // Fallback to redirect if popup fails
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithRedirect(auth, provider);
+        } catch (redirectError: any) {
+          alert("Failed to sign in. Popups are blocked. " + (redirectError.message || "Please try again."));
+        }
       } else {
-        alert("Failed to sign in: " + (error.message || "Please try again."));
+        alert("Failed to sign in (Error: " + error.code + "). " + (error.message || "Please try again."));
       }
     }
   };
