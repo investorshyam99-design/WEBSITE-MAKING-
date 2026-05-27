@@ -87,6 +87,7 @@ export function CartModal() {
         const docRef = await addDoc(collection(db, 'orders'), {
           userId: user.uid,
           productName: item.name,
+          image: item.image,
           size: item.selectedSize || 'N/A',
           customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
           price: item.price * item.quantity,

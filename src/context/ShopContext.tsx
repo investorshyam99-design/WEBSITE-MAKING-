@@ -148,9 +148,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       setIsLoginOpen(false);
-    } catch (error) {
-      console.error("Error signing in with Google", error);
-      alert("Failed to sign in. Please try again.");
+    } catch (error: any) {
+      console.error("Error signing in with Google:", error);
+      if (error.code === 'auth/unauthorized-domain') {
+        alert("Domain not authorized for Google Sign-In. Administrator: Please add this domain to Firebase Console > Authentication > Settings > Authorized domains.");
+      } else {
+        alert("Failed to sign in: " + (error.message || "Please try again."));
+      }
     }
   };
 

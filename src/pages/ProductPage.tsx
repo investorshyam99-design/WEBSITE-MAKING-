@@ -8,6 +8,7 @@ import { TrustSection } from "../components/TrustSection";
 import { InstagramSection } from "../components/InstagramSection";
 import { SizeGuideModal } from "../components/SizeGuideModal";
 import { ReviewsSection, getProductReviewsInfo } from "../components/ReviewsSection";
+import { FAQ } from "../components/FAQ";
 import { ChevronRight, ChevronLeft, ShieldCheck, Truck, RefreshCcw, Star, CheckCircle2, Lock, Shirt } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useShop } from "../context/ShopContext";
@@ -520,6 +521,7 @@ export function ProductPage() {
       )}
 
       <ReviewsSection productId={product.id} />
+      <FAQ />
       <InstagramSection />
       <TrustSection />
       <Footer />
