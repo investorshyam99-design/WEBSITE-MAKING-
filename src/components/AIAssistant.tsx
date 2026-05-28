@@ -250,7 +250,10 @@ export function AIAssistant() {
         })
       });
 
-      if (!response.ok) throw new Error('API Error');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'API Error');
+      }
 
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'ai', content: data.text }]);
@@ -278,9 +281,9 @@ export function AIAssistant() {
           window.speechSynthesis.speak(utterance);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      const errorMsg = "Oops, something went wrong on our end. Please try again later.";
+      const errorMsg = error.message || "Oops, something went wrong on our end. Please try again later.";
       setMessages(prev => [...prev, { role: 'ai', content: errorMsg }]);
     } finally {
       setIsLoading(false);

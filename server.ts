@@ -98,8 +98,13 @@ async function startServer() {
     try {
       const { messages } = req.body;
       
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "Missing GEMINI_API_KEY on the server." });
+      }
+
       const ai = new GoogleGenAI({
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey: apiKey,
         httpOptions: {
           headers: {
             'User-Agent': 'aistudio-build',
@@ -278,8 +283,8 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
       res.json({ text: responseText, audio: audioData });
       
     } catch (error: any) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to generate AI response" });
+      console.error("AI Error: ", error);
+      res.status(500).json({ error: error.message || "Failed to generate AI response" });
     }
   });
 
