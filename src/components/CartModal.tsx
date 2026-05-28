@@ -60,6 +60,11 @@ export function CartModal() {
   };
 
   const handleCheckout = async () => {
+    if (!user) {
+      alert("Please login first to place an order.");
+      loginWithGoogle();
+      return;
+    }
     if (!fullName || !phone || !pincode || !streetAddress) {
       alert("Please fill in your full name, phone number, pincode and delivery address");
       return;
@@ -83,10 +88,9 @@ export function CartModal() {
 
       // 1. Create order in Firestore as Pending
       const createdOrderIds: string[] = [];
-      const userId = user?.uid || `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       for (const item of cart) {
         const docRef = await addDoc(collection(db, 'orders'), {
-          userId: userId,
+          userId: user.uid,
           productName: item.name,
           image: item.image,
           size: item.selectedSize || 'N/A',
@@ -160,8 +164,8 @@ export function CartModal() {
           }
         },
         prefill: {
-          name: user?.name || fullName,
-          email: user?.email || `${phone}@guest.com`,
+          name: user.name,
+          email: user.email,
           contact: phone
         },
         theme: {
@@ -409,6 +413,9 @@ export function CartModal() {
               <Lock className="w-4 h-4" />
               {isSubmitting ? 'Processing...' : `Proceed to Pay ₹${paymentMode === 'full' ? total : advanceAmount}`}
             </button>
+            {!user && (
+              <p className="text-xs text-red-500 text-center font-bold mt-3">Sign in to place an order</p>
+            )}
           </div>
         )}
       </div>
