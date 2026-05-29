@@ -134,32 +134,6 @@ export function ProductPage() {
     window.open(waUrl, '_blank');
   };
 
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert("Please select a size first");
-      return;
-    }
-    if (isCustomized && !customName.trim()) {
-      alert("Please enter a name for customization");
-      return;
-    }
-    addToCart(product, selectedSize, isCustomized ? { name: customName, number: customNumber } : undefined);
-    setIsCartOpen(true);
-  };
-
-  const handleBuyNow = () => {
-    if (!selectedSize) {
-      alert("Please select a size first");
-      return;
-    }
-    if (isCustomized && !customName.trim()) {
-      alert("Please enter a name for customization");
-      return;
-    }
-    addToCart(product, selectedSize, isCustomized ? { name: customName, number: customNumber } : undefined);
-    setIsCartOpen(true);
-  };
-
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isZoomed) return;
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -464,48 +438,14 @@ export function ProductPage() {
                  </ul>
               </div>
 
-              {/* Desktop CTA Buttons */}
-              <div className="hidden md:flex flex-col gap-3 mt-6">
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    className="flex-1 flex items-center justify-center text-center border-2 border-[#1E2A44] text-[#1E2A44] py-4 rounded-xl font-black uppercase tracking-widest hover:bg-gray-50 transition-colors text-sm"
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    onClick={handleBuyNow}
-                    className="flex-1 flex items-center justify-center text-center bg-[#1E2A44] border-2 border-[#1E2A44] text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-md hover:bg-[#151D2F] hover:-translate-y-0.5 transition-all duration-300 text-sm"
-                  >
-                    Buy Now
-                  </button>
-                </div>
-              </div>
+              {/* Desktop CTA Buttons Removed */}
 
             </div>
           </div>
         </div>
       </main>
 
-      {/* Mobile Sticky CTA Bar */}
-      <div className={cn(
-        "fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-gray-200 z-50 md:hidden transition-transform duration-300 ease-in-out flex gap-3",
-        // Only show if we haven't scrolled to the absolute bottom (footer)
-        isScrolledToBottom ? "translate-y-full" : "translate-y-0"
-      )}>
-         <button
-            onClick={handleAddToCart}
-            className="flex-1 flex items-center justify-center text-center border-2 border-[#1E2A44] text-[#1E2A44] py-3.5 rounded-xl font-black uppercase tracking-widest bg-white shadow-sm transition-colors text-xs"
-          >
-            Add to Cart
-          </button>
-          <button
-            onClick={handleBuyNow}
-            className="flex-1 flex items-center justify-center text-center bg-[#1E2A44] border-2 border-[#1E2A44] text-white py-3.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-colors text-xs"
-          >
-            Buy Now
-          </button>
-      </div>
+      {/* Mobile Sticky CTA Bar Removed */}
 
       {/* Similar Products */}
       {product && (
