@@ -447,16 +447,23 @@ export function CartModal() {
 
         {cart.length > 0 && (!isKeyboardOpen || window.innerWidth >= 768) && (
           <div className="shrink-0 p-4 md:p-6 bg-white border-t border-gray-100 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-            <button
-              onClick={handleCheckout}
-              disabled={isSubmitting}
-              className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
-            >
-              <Lock className="w-4 h-4" />
-              {isSubmitting ? 'Processing...' : `Proceed to Pay ₹${paymentMode === 'full' ? total : advanceAmount}`}
-            </button>
-            {!user && (
-              <p className="text-xs text-red-500 text-center font-bold mt-3">Sign in to place an order</p>
+            {!user ? (
+              <button
+                onClick={loginWithGoogle}
+                className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all flex items-center justify-center gap-2"
+              >
+                <Lock className="w-4 h-4" />
+                Sign in to place order
+              </button>
+            ) : (
+              <button
+                onClick={handleCheckout}
+                disabled={isSubmitting}
+                className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+              >
+                <Lock className="w-4 h-4" />
+                {isSubmitting ? 'Processing...' : `Proceed to Pay ₹${paymentMode === 'full' ? total : advanceAmount}`}
+              </button>
             )}
           </div>
         )}
