@@ -13,6 +13,8 @@ interface Order {
   productName: string;
   image?: string;
   size: string;
+  quantity?: number;
+  cartItems?: any[];
   customization?: string;
   price: number;
   status: string;
@@ -207,6 +209,20 @@ function AdminOrderCard({
   const customerName = order.fullName || "Guest Customer";
   const paymentLink = `https://jerseyunicorn.com/#/checkout?order=${order.id}`;
 
+  // Heuristic for older orders that missed the quantity field
+  let effectiveQuantity = order.quantity;
+  if (!effectiveQuantity) {
+    if (order.price >= 1800) {
+      if (order.price % 1499 === 0) effectiveQuantity = order.price / 1499;
+      else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
+      else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
+      else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
+      else effectiveQuantity = Math.max(1, Math.round(order.price / (order.productName?.toLowerCase().includes('player') ? 1499 : 999)));
+    } else {
+      effectiveQuantity = 1;
+    }
+  }
+
   const handleCopy = (e: React.MouseEvent, text: string) => {
     e.stopPropagation();
     navigator.clipboard.writeText(text);
@@ -247,7 +263,12 @@ function AdminOrderCard({
               <p className="font-bold text-[#1E2A44] text-sm truncate pr-2">{customerName}</p>
               <p className="text-xs text-gray-500 truncate">{order.productName}</p>
             </div>
-            <p className="font-black text-[#1B1B1B] text-sm">₹{(order.price || 0).toLocaleString("en-IN")}</p>
+            <div className="text-right">
+              <p className="font-black text-[#1B1B1B] text-sm">₹{(order.price || 0).toLocaleString("en-IN")}</p>
+              {(order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance')) && (
+                 <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">COD: ₹{((order.price || 0) + (50 * effectiveQuantity) - (150 * effectiveQuantity)).toLocaleString("en-IN")}</p>
+              )}
+            </div>
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-100 text-gray-600">
@@ -267,11 +288,38 @@ function AdminOrderCard({
           
           {/* Detailed Info Grid */}
           <div className="grid grid-cols-2 gap-3 text-xs bg-white p-3 rounded-lg border border-gray-100">
-            <div>
-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">Size</p>
-              <p className="font-semibold text-gray-800">{order.size}</p>
+            <div className="col-span-2 flex justify-between items-center bg-gray-50 px-3 py-2 rounded border border-gray-100">
+              <div>
+                <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">Payment</p>
+                <p className="font-semibold text-gray-800 uppercase text-[10px]">
+                  {order.paymentMode === 'full' ? 'Prepaid (Full)' : (order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance') ? 'Advance Paid (Partial)' : order.paymentMode || 'Unknown')}
+                </p>
+              </div>
+              {(order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance')) && (
+                 <div className="text-right">
+                   <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">To Collect (COD)</p>
+                   <p className="font-black text-red-600 text-sm">₹{((order.price || 0) + (50 * effectiveQuantity) - (150 * effectiveQuantity)).toLocaleString("en-IN")}</p>
+                 </div>
+              )}
             </div>
-            <div>
+            
+            <div className="col-span-2">
+              <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">Items</p>
+              {order.cartItems && order.cartItems.length > 0 ? (
+                <div className="space-y-1">
+                  {order.cartItems.map((item: any, idx: number) => (
+                    <p key={idx} className="font-semibold text-gray-800">
+                      {item.quantity}x {item.name} (Size: {item.size})
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-semibold text-gray-800">
+                  {effectiveQuantity}x Size: {order.size}
+                </p>
+              )}
+            </div>
+            <div className="col-span-2">
               <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">Customization</p>
               <p className="font-semibold text-gray-800">{order.customization || 'None'}</p>
             </div>

@@ -132,6 +132,7 @@ export function CartModal() {
           productName: item.name,
           image: item.image,
           size: item.selectedSize || 'N/A',
+          quantity: item.quantity || 1,
           customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
           price: item.price * item.quantity,
           status: paymentMode === 'full' ? 'pending full payment' : 'pending advance payment',

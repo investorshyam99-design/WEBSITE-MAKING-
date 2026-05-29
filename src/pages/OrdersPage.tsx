@@ -14,6 +14,8 @@ interface Order {
   productName: string;
   image?: string;
   size: string;
+  quantity?: number;
+  cartItems?: any[];
   customization?: string;
   price: number;
   status: string;
@@ -179,6 +181,20 @@ function OrderCard({ order, user }: { order: Order; user: any }) {
       })
     : "Just now";
 
+  // Heuristic for older orders that missed the quantity field
+  let effectiveQuantity = order.quantity;
+  if (!effectiveQuantity) {
+    if (order.price >= 1800) {
+      if (order.price % 1499 === 0) effectiveQuantity = order.price / 1499;
+      else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
+      else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
+      else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
+      else effectiveQuantity = Math.max(1, Math.round(order.price / (order.productName?.toLowerCase().includes('player') ? 1499 : 999)));
+    } else {
+      effectiveQuantity = 1;
+    }
+  }
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="bg-gray-50 border-b border-gray-200 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -194,8 +210,11 @@ function OrderCard({ order, user }: { order: Order; user: any }) {
               Total
             </p>
             <p className="font-semibold text-[#1B1B1B]">
-              ₹{order.price.toLocaleString("en-IN")}
+              ₹{(order.price || 0).toLocaleString("en-IN")}
             </p>
+            {(order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance')) && (
+               <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">COD: ₹{((order.price || 0) + (50 * effectiveQuantity) - (150 * effectiveQuantity)).toLocaleString("en-IN")}</p>
+            )}
           </div>
         </div>
         <div className="text-left md:text-right">
@@ -220,9 +239,19 @@ function OrderCard({ order, user }: { order: Order; user: any }) {
             <h3 className="font-black text-[#1B1B1B] text-lg uppercase tracking-tight">
               {order.productName}
             </h3>
-            <p className="text-gray-600 text-sm font-medium mt-1">
-              Size: {order.size}
-            </p>
+            {order.cartItems && order.cartItems.length > 0 ? (
+              <div className="mt-2 space-y-1">
+                {order.cartItems.map((item: any, idx: number) => (
+                  <p key={idx} className="text-gray-600 text-sm font-medium">
+                    {item.quantity}x {item.name} (Size: {item.size})
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600 text-sm font-medium mt-1">
+                {effectiveQuantity}x Size: {order.size}
+              </p>
+            )}
             {order.customization && (
               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">
                 Custom: {order.customization}
