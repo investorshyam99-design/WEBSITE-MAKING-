@@ -49,7 +49,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     }).catch((error) => {
       console.error("Redirect sign-in error:", error);
       if (error.code === 'auth/unauthorized-domain') {
-        alert("For security, Google Sign-In requires your domain to be authorized. Please add " + window.location.hostname + " to the Firebase Console -> Authentication -> Settings -> Authorized domains.");
+        alert("Domain Not Authorized: Because you are hosting on a custom domain (" + window.location.hostname + "), Google Sign-In is blocked. You must create your own Firebase project, add " + window.location.hostname + " to Authorized Domains, and replace the Firebase config.");
       }
     });
 
@@ -202,7 +202,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       if (error.code === 'auth/unauthorized-domain') {
-        alert("For security, Google Sign-In requires your domain to be authorized. Please add " + window.location.hostname + " to the Firebase Console -> Authentication -> Settings -> Authorized domains.");
+        alert("Domain Not Authorized: Because you are hosting on a custom domain (" + window.location.hostname + "), Google Sign-In is blocked. You must create your own Firebase project, add " + window.location.hostname + " to Authorized Domains, and replace the Firebase config.");
       } else if (error.code === 'auth/popup-blocked') {
         // Fallback to redirect if popup is blocked on desktop
         const provider = new GoogleAuthProvider();
