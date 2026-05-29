@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 type CartItem = Product & { 
   quantity: number; 
@@ -43,31 +43,46 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser && currentUser.email) {
-        setUser({
-          email: currentUser.email,
-          name: currentUser.displayName || 'User',
-          uid: currentUser.uid,
-        });
-        
-        // Save user into Firestore users collection for admins to see
-        try {
+    let unsubscribe: (() => void) | undefined;
+
+    const initAuth = async () => {
+      try {
+        // Explicitly set persistence to LOCAL to ensure session survives refreshes
+        await setPersistence(auth, browserLocalPersistence);
+      } catch (error) {
+        console.error("Auth persistence error:", error);
+      }
+
+      unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        console.log("Auth State Changed. Current User:", currentUser?.email);
+        if (currentUser && currentUser.email) {
+          setUser({
+            email: currentUser.email,
+            name: currentUser.displayName || 'User',
+            uid: currentUser.uid,
+          });
+          
+          // Save user into Firestore (don't await to avoid UI blocking)
           const userRef = doc(db, 'users', currentUser.uid);
           setDoc(userRef, {
             email: currentUser.email,
             name: currentUser.displayName || 'User',
             lastLogin: new Date().toISOString()
-          }, { merge: true });
-        } catch (e) {
-          console.error("Failed to save user record", e);
+          }, { merge: true }).catch(e => {
+            console.error("Failed to save user record", e);
+          });
+        } else {
+          setUser(null);
         }
-      } else {
-        setUser(null);
-      }
-      setIsAuthLoading(false);
-    });
-    return () => unsubscribe();
+        setIsAuthLoading(false);
+      });
+    };
+    
+    initAuth();
+    
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // Visitor Tracking
@@ -219,9 +234,28 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = async () => {
     try {
+      // Ensure persistence is set before login
+      await setPersistence(auth, browserLocalPersistence);
       const provider = new GoogleAuthProvider();
       // Use popup for all devices. Redirect flow often loses state or fails in embedded browsers/iframes setup.
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      console.log("Logged in user:", result.user);
+      if (result.user && result.user.email) {
+        setUser({
+          email: result.user.email,
+          name: result.user.displayName || 'User',
+          uid: result.user.uid,
+        });
+        
+        const userRef = doc(db, 'users', result.user.uid);
+        setDoc(userRef, {
+          email: result.user.email,
+          name: result.user.displayName || 'User',
+          lastLogin: new Date().toISOString()
+        }, { merge: true }).catch((e) => {
+          console.error("Failed to save user record on first login", e);
+        });
+      }
       setIsLoginOpen(false);
     } catch (error: any) {
       console.error("Error signing in with Google:", error);

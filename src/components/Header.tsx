@@ -175,7 +175,11 @@ export function Header() {
                     <LogOut className="h-5 w-5" /> Logout
                   </button>
                 </div>
-              ) : null}
+              ) : (
+                <div className="flex items-center gap-3 px-6 py-4 text-base font-bold text-gray-400 uppercase w-full text-left">
+                  Loading account...
+                </div>
+              )}
             </div>
             
             <div className="mt-auto p-6 bg-[#F5EFE6]">
@@ -293,7 +297,11 @@ export function Header() {
                    <LogOut className="h-4 w-4" /> Logout
                  </button>
                </div>
-            ) : null}
+            ) : (
+               <div className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400 cursor-wait">
+                 Loading...
+               </div>
+            )}
 
             <button 
               onClick={() => setIsSearchOpen(true)}
