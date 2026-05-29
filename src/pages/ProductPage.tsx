@@ -122,6 +122,16 @@ export function ProductPage() {
 
   const handleSizeClick = (size: string) => {
     setSelectedSize(size);
+    let text = `Hi Jersey Unicorn, I want to order this product:\n\n*${product?.name}*\nPrice: ₹${product?.price}\nSize: *${size}*`;
+    
+    if (isCustomized) {
+      text += `\nCustom Name: *${customName}*\nCustom Number: *${customNumber}*`;
+    }
+    
+    text += `\n\nLink: ${window.location.href}`;
+    
+    const waUrl = `https://wa.me/918788965436?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
   };
 
   const handleAddToCart = () => {
@@ -134,6 +144,7 @@ export function ProductPage() {
       return;
     }
     addToCart(product, selectedSize, isCustomized ? { name: customName, number: customNumber } : undefined);
+    setIsCartOpen(true);
   };
 
   const handleBuyNow = () => {

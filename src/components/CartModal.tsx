@@ -135,7 +135,7 @@ export function CartModal() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Jersey Unicorn",
-        description: "Advance Payment for Order",
+        description: "Payment for Order",
         order_id: orderData.id,
         handler: async function (response: any) {
           try {
