@@ -41,19 +41,6 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
 
   useEffect(() => {
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        setIsLoginOpen(false);
-      }
-    }).catch((error) => {
-      console.error("Redirect sign-in error:", error);
-      if (error.code === 'auth/unauthorized-domain') {
-        alert("Domain not authorized for Google Sign-In. You must add 'jerseyunicorn.com' to Firebase Console > Authentication > Settings > Authorized domains.");
-      } else {
-        alert("Failed to sign in. Please try again. (" + error.code + ")");
-      }
-    });
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser && currentUser.email) {
         setUser({
@@ -191,23 +178,12 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        // Use redirect on mobile to avoid popup blockers in in-app browsers
-        await signInWithRedirect(auth, provider);
-      } else {
-        await signInWithPopup(auth, provider);
-        setIsLoginOpen(false);
-      }
+      await signInWithPopup(auth, provider);
+      setIsLoginOpen(false);
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       if (error.code === 'auth/unauthorized-domain') {
         alert("Domain not authorized for Google Sign-In. You must add 'jerseyunicorn.com' to Firebase Console > Authentication > Settings > Authorized domains.");
-      } else if (error.code === 'auth/popup-blocked') {
-        // Fallback to redirect if popup is blocked on desktop
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
       } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         // User closed the popup, do nothing
       } else {
