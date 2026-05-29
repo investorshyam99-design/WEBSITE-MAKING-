@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, Search, Instagram, MessageCircle, X, Home, Phone, Users, MessageSquare, LogIn, LogOut, Heart, FileText, ChevronDown, Shirt } from "lucide-react";
+import { ShoppingCart, Menu, Search, Instagram, MessageCircle, X, Home, Phone, Users, MessageSquare, LogIn, LogOut, Heart, FileText, ChevronDown, Shirt, ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SearchModal } from "./SearchModal";
@@ -149,6 +149,15 @@ export function Header() {
               ) : (
                 <div className="mt-2 py-2 border-t border-gray-100">
                   <div className="px-6 py-2 text-sm font-semibold text-gray-400">{user.email}</div>
+                  {user.email === 'investorshyam99@gmail.com' && (
+                    <Link 
+                      to="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
+                    >
+                      <ShieldAlert className="h-5 w-5" /> Admin Panel
+                    </Link>
+                  )}
                   <Link 
                     to="/orders"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -262,6 +271,14 @@ export function Header() {
                </button>
             ) : (
                <div className="hidden md:flex items-center gap-4">
+                 {user.email === 'investorshyam99@gmail.com' && (
+                   <Link 
+                     to="/admin"
+                     className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+                   >
+                     Admin
+                   </Link>
+                 )}
                  <Link 
                    to="/orders"
                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"

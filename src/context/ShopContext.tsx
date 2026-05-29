@@ -60,6 +60,18 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
           name: currentUser.displayName || 'User',
           uid: currentUser.uid,
         });
+        
+        // Save user into Firestore users collection for admins to see
+        try {
+          const userRef = doc(db, 'users', currentUser.uid);
+          setDoc(userRef, {
+            email: currentUser.email,
+            name: currentUser.displayName || 'User',
+            lastLogin: new Date().toISOString()
+          }, { merge: true });
+        } catch (e) {
+          console.error("Failed to save user record", e);
+        }
       } else {
         setUser(null);
       }
