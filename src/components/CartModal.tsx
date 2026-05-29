@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useShop } from '../context/ShopContext';
 import { X, Trash2, Lock, CheckCircle2, ShieldCheck, Truck, RefreshCcw } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
@@ -28,7 +28,47 @@ export function CartModal() {
   const [deliveryEstimate, setDeliveryEstimate] = useState('');
   const [paymentMode, setPaymentMode] = useState<'full' | 'partial'>('full');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && !fullName && !phone) {
+      setFullName(user.name || '');
+    }
+  }, [user]);
+
+  // Draft Order Creation
+  useEffect(() => {
+    if (!fullName || phone.length !== 10 || cart.length === 0) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const combinedAddress = `${houseNo}, ${areaStreet}, ${city}, ${state}, Pincode: ${pincode}`;
+        const draftData: any = {
+          userId: user ? user.uid : 'guest',
+          fullName,
+          phone,
+          address: combinedAddress,
+          cartItems: cart.map(i => ({ name: i.name, quantity: i.quantity, size: i.selectedSize })),
+          status: 'draft',
+          paymentMode,
+          updatedAt: serverTimestamp()
+        };
+
+        if (draftOrderId) {
+          await updateDoc(doc(db, 'draft_orders', draftOrderId), draftData);
+        } else {
+          draftData.createdAt = serverTimestamp();
+          const docRef = await addDoc(collection(db, 'draft_orders'), draftData);
+          setDraftOrderId(docRef.id);
+        }
+      } catch (err) {
+        console.error("Failed to update draft order", err);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [fullName, phone, houseNo, areaStreet, city, state, pincode, cart, user, paymentMode, draftOrderId]);
 
   if (!isCartOpen) return null;
 
@@ -63,11 +103,6 @@ export function CartModal() {
   };
 
   const handleCheckout = async () => {
-    if (!user) {
-      alert("Please login first to place an order.");
-      loginWithGoogle();
-      return;
-    }
     if (!fullName || !phone || !pincode || !houseNo || !areaStreet || !city || !state) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
       return;
@@ -93,7 +128,7 @@ export function CartModal() {
       const createdOrderIds: string[] = [];
       for (const item of cart) {
         const docRef = await addDoc(collection(db, 'orders'), {
-          userId: user.uid,
+          userId: user ? user.uid : 'guest',
           productName: item.name,
           image: item.image,
           size: item.selectedSize || 'N/A',
@@ -154,10 +189,14 @@ export function CartModal() {
                    paymentId: response.razorpay_payment_id
                 });
               }
-              alert("Payment Successful!");
+              alert("Payment Successful! Thank you for your order.");
               setIsCartOpen(false);
               clearCart();
-              navigate('/orders');
+              if (user) {
+                navigate('/orders');
+              } else {
+                navigate('/');
+              }
             } else {
               alert("Payment verification failed. Please contact support.");
             }
@@ -167,8 +206,8 @@ export function CartModal() {
           }
         },
         prefill: {
-          name: user.name,
-          email: user.email,
+          name: user ? user.name : fullName,
+          email: user ? user.email : '',
           contact: phone
         },
         theme: {
