@@ -41,6 +41,19 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
 
   useEffect(() => {
+    getRedirectResult(auth).then((result) => {
+      if (result) {
+        setIsLoginOpen(false);
+      }
+    }).catch((error) => {
+      console.error("Redirect sign-in error:", error);
+      if (error.code === 'auth/unauthorized-domain') {
+        alert("Domain not authorized for Google Sign-In. You must add 'jerseyunicorn.com' to Firebase Console > Authentication > Settings > Authorized domains.");
+      } else {
+        alert("Failed to sign in. Please try again. (" + error.code + ")");
+      }
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser && currentUser.email) {
         setUser({
