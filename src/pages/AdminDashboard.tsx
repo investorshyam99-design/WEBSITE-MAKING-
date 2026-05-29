@@ -7,7 +7,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 
 export function AdminDashboard() {
-  const { user } = useShop();
+  const { user, isAuthLoading } = useShop();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,6 +18,7 @@ export function AdminDashboard() {
 
   useEffect(() => {
     async function fetchUsers() {
+      if (isAuthLoading) return;
       if (!user) {
         setLoading(false);
         return;
@@ -39,7 +40,7 @@ export function AdminDashboard() {
     }
     
     fetchUsers();
-  }, [user]);
+  }, [user, isAuthLoading]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -51,7 +52,11 @@ export function AdminDashboard() {
           <p className="text-gray-500 mt-2 font-medium">Manage your store and customers</p>
         </div>
 
-        {!user ? (
+        {isAuthLoading ? (
+           <div className="flex justify-center items-center h-48">
+              <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
+           </div>
+        ) : !user ? (
           <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-gray-100">
             <p className="text-gray-500 font-medium">Please log in to view the admin dashboard.</p>
           </div>

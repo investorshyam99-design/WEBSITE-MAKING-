@@ -25,6 +25,7 @@ interface ShopContextType {
   isLoginOpen: boolean;
   setIsLoginOpen: (open: boolean) => void;
   user: { email: string; name: string; uid: string } | null;
+  isAuthLoading: boolean;
   loginWithGoogle: () => void;
   logout: () => void;
   clearCart: () => void;
@@ -39,6 +40,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
     // Handle redirect result for mobile logins silently
@@ -75,6 +77,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
       }
+      setIsAuthLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -236,13 +239,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ShopContext.Provider
+      <ShopContext.Provider
       value={{
         cart,
-        wishlist,
         addToCart,
         removeFromCart,
         updateQuantity,
+        wishlist,
         toggleWishlist,
         isInWishlist,
         isCartOpen,
@@ -252,6 +255,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         isLoginOpen,
         setIsLoginOpen,
         user,
+        isAuthLoading,
         loginWithGoogle,
         logout,
         clearCart,

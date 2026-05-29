@@ -28,12 +28,14 @@ interface Order {
 }
 
 export function OrdersPage() {
-  const { user, loginWithGoogle } = useShop();
+  const { user, loginWithGoogle, isAuthLoading } = useShop();
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const fetchOrders = useCallback(async () => {
+    if (isAuthLoading) return;
     if (!user) {
       setLoading(false);
       return;
@@ -73,11 +75,23 @@ export function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isAuthLoading]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E2A44]"></div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!user) {
     return (

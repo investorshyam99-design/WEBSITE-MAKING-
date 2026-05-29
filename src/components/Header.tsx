@@ -11,7 +11,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
-  const { loginWithGoogle, logout, user, setIsCartOpen, cart } = useShop();
+  const { loginWithGoogle, logout, user, isAuthLoading, setIsCartOpen, cart } = useShop();
 
   // Calculate total cart items
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -136,7 +136,7 @@ export function Header() {
                 <FileText className="h-5 w-5" /> Our Policies
               </button>
 
-              {!user ? (
+              {!isAuthLoading && !user ? (
                 <button 
                   onClick={() => {
                     loginWithGoogle();
@@ -146,7 +146,7 @@ export function Header() {
                 >
                   <LogIn className="h-5 w-5" /> Register/Login
                 </button>
-              ) : (
+              ) : !isAuthLoading && user ? (
                 <div className="mt-2 py-2 border-t border-gray-100">
                   <div className="px-6 py-2 text-sm font-semibold text-gray-400">{user.email}</div>
                   {user.email === 'investorshyam99@gmail.com' && (
@@ -175,7 +175,7 @@ export function Header() {
                     <LogOut className="h-5 w-5" /> Logout
                   </button>
                 </div>
-              )}
+              ) : null}
             </div>
             
             <div className="mt-auto p-6 bg-[#F5EFE6]">
@@ -262,14 +262,14 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
-            {!user ? (
+            {!isAuthLoading && !user ? (
                <button 
                  onClick={loginWithGoogle}
                  className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
                >
                  <LogIn className="h-4 w-4" /> Login
                </button>
-            ) : (
+            ) : !isAuthLoading && user ? (
                <div className="hidden md:flex items-center gap-4">
                  {user.email === 'investorshyam99@gmail.com' && (
                    <Link 
@@ -293,7 +293,7 @@ export function Header() {
                    <LogOut className="h-4 w-4" /> Logout
                  </button>
                </div>
-            )}
+            ) : null}
 
             <button 
               onClick={() => setIsSearchOpen(true)}
