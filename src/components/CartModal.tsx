@@ -21,7 +21,10 @@ export function CartModal() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [pincode, setPincode] = useState('');
-  const [streetAddress, setStreetAddress] = useState('');
+  const [houseNo, setHouseNo] = useState('');
+  const [areaStreet, setAreaStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const [deliveryEstimate, setDeliveryEstimate] = useState('');
   const [paymentMode, setPaymentMode] = useState<'full' | 'partial'>('full');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -65,8 +68,8 @@ export function CartModal() {
       loginWithGoogle();
       return;
     }
-    if (!fullName || !phone || !pincode || !streetAddress) {
-      alert("Please fill in your full name, phone number, pincode and delivery address");
+    if (!fullName || !phone || !pincode || !houseNo || !areaStreet || !city || !state) {
+      alert("Please fill in your full name, phone number, pincode and complete delivery address");
       return;
     }
     
@@ -75,7 +78,7 @@ export function CartModal() {
       return;
     }
 
-    const combinedAddress = `${streetAddress}, Pincode: ${pincode}`;
+    const combinedAddress = `${houseNo}, ${areaStreet}, ${city}, ${state}, Pincode: ${pincode}`;
 
     setIsSubmitting(true);
     try {
@@ -287,58 +290,83 @@ export function CartModal() {
               <div className="space-y-4">
                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Delivery Details</h3>
                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden focus-within:border-[#1E2A44] transition-colors focus-within:ring-1 focus-within:ring-[#1E2A44]">
-                    <div className="relative border-b border-gray-100">
-                       <input
-                        type="text"
-                        placeholder="Full Name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
-                        className="w-full px-5 py-4 text-sm font-bold text-[#1B1B1B] focus:outline-none placeholder:text-gray-400 placeholder:font-medium bg-transparent"
-                      />
-                    </div>
-                    <div className="relative border-b border-gray-100">
-                       <div className="absolute left-5 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-500">+91</div>
+                    <div className="relative border-b border-gray-100 bg-white">
                       <input
-                        type="tel"
-                        maxLength={10}
-                        placeholder="Phone Number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
-                        className="w-full pl-14 pr-5 py-4 text-sm font-bold text-[#1B1B1B] focus:outline-none placeholder:text-gray-400 placeholder:font-medium bg-transparent overflow-hidden"
+                        id="fullName" type="text" placeholder="Full Name *" value={fullName}
+                        onChange={(e) => setFullName(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                        className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
+                      <label htmlFor="fullName" className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">Full Name *</label>
                     </div>
-                    <div className="relative border-b border-gray-100 flex items-center justify-between">
+                    <div className="relative border-b border-gray-100 bg-white">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 lg:translate-y-0 lg:top-4 text-sm font-bold text-gray-500 z-10 peer-focus:text-[#1E2A44]">+91</div>
                       <input
-                        type="text"
-                        placeholder="Pincode"
-                        maxLength={6}
-                        value={pincode}
-                        onChange={handlePincodeChange}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
-                        className="w-full px-5 py-4 text-sm font-bold text-[#1B1B1B] focus:outline-none placeholder:text-gray-400 placeholder:font-medium bg-transparent"
+                        id="phone" type="tel" maxLength={10} placeholder="Phone Number *" value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                        className="peer w-full pl-12 pr-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
+                      <label htmlFor="phone" className="absolute left-12 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:left-12 peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">Phone Number *</label>
+                    </div>
+                    <div className="relative border-b border-gray-100 bg-white flex items-center justify-between">
+                      <div className="relative flex-1">
+                        <input
+                          id="pincode" type="tel" maxLength={6} placeholder="Pincode *" value={pincode}
+                          onChange={handlePincodeChange} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                          className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
+                        />
+                        <label htmlFor="pincode" className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">Pincode *</label>
+                      </div>
                       {deliveryEstimate && (
-                        <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full mr-5 whitespace-nowrap animate-in fade-in duration-300">
+                        <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100 mr-4 whitespace-nowrap animate-in fade-in duration-300">
                            {deliveryEstimate}
                         </span>
                       )}
                     </div>
-                    <div className="relative">
+                    <div className="relative border-b border-gray-100 bg-white">
                       <input
-                        type="text"
-                        placeholder="House No / Street / Area"
-                        value={streetAddress}
-                        onChange={(e) => setStreetAddress(e.target.value)}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
-                        className="w-full px-5 py-4 text-sm font-bold text-[#1B1B1B] focus:outline-none placeholder:text-gray-400 placeholder:font-medium bg-transparent"
+                        id="houseNo" type="text" placeholder="House No / Flat No *" value={houseNo}
+                        onChange={(e) => setHouseNo(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                        className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
+                      <label htmlFor="houseNo" className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">House No / Flat No *</label>
                     </div>
+                    <div className="relative border-b border-gray-100 bg-white">
+                      <input
+                        id="areaStreet" type="text" placeholder="Area / Street *" value={areaStreet}
+                        onChange={(e) => setAreaStreet(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                        className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
+                      />
+                      <label htmlFor="areaStreet" className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">Area / Street *</label>
+                    </div>
+                    <div className="flex bg-white">
+                      <div className="relative flex-1 border-r border-gray-100">
+                        <input
+                          id="city" type="text" placeholder="City *" value={city}
+                          onChange={(e) => setCity(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                          className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
+                        />
+                        <label htmlFor="city" className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">City *</label>
+                      </div>
+                      <div className="relative flex-1">
+                        <input
+                          id="state" type="text" placeholder="State *" value={state}
+                          onChange={(e) => setState(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
+                          className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
+                        />
+                        <label htmlFor="state" className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none">State *</label>
+                      </div>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-2 mt-4 px-1">
+                   <div className="flex flex-col gap-1.5 text-xs text-gray-500 font-medium">
+                     <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Delivery in 3–10 Days</span>
+                     <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Tracking Number Provided</span>
+                   </div>
+                   <div className="flex flex-col gap-1.5 text-xs text-gray-500 font-medium">
+                     <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Secure Payments</span>
+                     <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> WhatsApp Support Available</span>
+                   </div>
                  </div>
               </div>
 
@@ -358,18 +386,25 @@ export function CartModal() {
                               <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMode === 'full' ? 'border-white' : 'border-gray-300'}`}>
                                  {paymentMode === 'full' && <div className="w-2.5 h-2.5 rounded-full bg-white"></div>}
                               </span>
-                              <span className={`text-sm font-black uppercase tracking-wider ${paymentMode === 'full' ? 'text-white' : 'text-[#1B1B1B]'}`}>Full Prepaid</span>
+                              <span className={`text-sm font-black uppercase tracking-wider ${paymentMode === 'full' ? 'text-white' : 'text-[#1B1B1B]'}`}>Full Payment</span>
                            </div>
-                           <div className={`text-xs font-medium ml-7 ${paymentMode === 'full' ? 'text-white/80' : 'text-gray-500'}`}>Free Delivery + Extra ₹50 OFF</div>
+                           <div className={`text-xs font-medium ml-8 space-y-1 pt-1 ${paymentMode === 'full' ? 'text-white/90' : 'text-gray-500'}`}>
+                              <p className="flex items-center gap-1.5 text-green-400 font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Free Delivery</p>
+                              <p className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Faster Processing</p>
+                              <p className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Priority Support</p>
+                           </div>
                         </div>
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm ${paymentMode === 'full' ? 'bg-[#E6C9A8] text-[#1E2A44]' : 'bg-green-100 text-green-800'}`}>Recommended</span>
+                        <div className="flex flex-col items-end">
+                           <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm mb-1 ${paymentMode === 'full' ? 'bg-[#E6C9A8] text-[#1E2A44]' : 'bg-green-100 text-green-800'}`}>Recommended</span>
+                           <span className={`text-sm font-black ${paymentMode === 'full' ? 'text-white' : 'text-[#1B1B1B]'}`}>₹{total}</span>
+                        </div>
                      </div>
                   </label>
 
                   <label className={
                      `relative block p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden
                      ${paymentMode === 'partial' 
-                        ? 'border-[#1E2A44] bg-blue-50/50 shadow-md scale-[1.02]' 
+                        ? 'border-[#1E2A44] bg-[#1E2A44]/5 shadow-md scale-[1.02]' 
                         : 'border-gray-200 bg-white hover:border-[#1E2A44]/50'}`
                   }>
                      <input type="radio" value="partial" checked={paymentMode === 'partial'} onChange={() => setPaymentMode('partial')} className="hidden" />
@@ -381,20 +416,27 @@ export function CartModal() {
                               </span>
                               <span className="text-sm font-black text-[#1B1B1B] uppercase tracking-wider">Partial COD</span>
                            </div>
-                           <div className="text-xs font-medium text-gray-500 ml-7">
-                              Pay ₹{advanceAmount} now. Pay ₹{(total - advanceAmount) + codExtra} on delivery.
+                           <div className="text-xs font-bold text-[#1E2A44] ml-8 mt-1">
+                              ₹{advanceAmount} Confirmation Amount
                            </div>
+                           <div className="text-xs font-medium text-gray-500 ml-8 mt-2 leading-relaxed">
+                              To prevent fake orders, a <span className="font-bold">₹{advanceAmount}</span> confirmation payment is required. Remaining amount of <span className="font-bold">₹{(total - advanceAmount) + codExtra}</span> payable on delivery.
+                           </div>
+                        </div>
+                        <div className="flex flex-col items-end">
+                           <span className="text-sm font-black text-[#1B1B1B]">₹{total + codExtra}</span>
                         </div>
                      </div>
                   </label>
                 </div>
               </div>
 
-              {/* Trust Signals Row */}
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 pt-6 border-t border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                 <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#1E2A44]" /> Secure</div>
-                 <div className="flex items-center gap-1.5"><Truck className="w-4 h-4 text-[#1E2A44]" /> Fast Delivery</div>
-                 <div className="flex items-center gap-1.5"><RefreshCcw className="w-4 h-4 text-[#1E2A44]" /> Easy Exch.</div>
+              {/* Conversion Boosters Row */}
+              <div className="grid grid-cols-2 gap-y-3 pt-6 border-t border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                 <div className="flex items-center gap-1.5"><Truck className="w-4 h-4 text-[#1E2A44]" /> Delivery: 3-10 Days</div>
+                 <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#1E2A44]" /> Secure Checkout</div>
+                 <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#1E2A44]" /> Tracking Provided</div>
+                 <div className="flex items-center gap-1.5 text-[10px] leading-tight"><img src="/favicon.svg" alt="Premium" className="w-4 h-4 opacity-70 filter invert grayscale opacity-100 brightness-0" onError={(e) => e.currentTarget.style.display = 'none'} /> Premium Football Jerseys</div>
               </div>
 
             </div>
