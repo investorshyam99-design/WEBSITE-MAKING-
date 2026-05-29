@@ -9,6 +9,7 @@ import { Footer } from '../components/Footer';
 export function AdminDashboard() {
   const { user, isAuthLoading } = useShop();
   const [users, setUsers] = useState<any[]>([]);
+  const [visitors, setVisitors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,12 +26,23 @@ export function AdminDashboard() {
       }
       
       try {
-        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const [usersSnapshot, visitorsSnapshot] = await Promise.all([
+          getDocs(collection(db, 'users')),
+          getDocs(collection(db, 'visitors'))
+        ]);
+        
         const usersData = usersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
+        
+        const visitorsData = visitorsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
         setUsers(usersData);
+        setVisitors(visitorsData);
       } catch (err: any) {
         console.error("Error fetching users:", err);
         setError('Failed to fetch users. ' + err.message);
@@ -86,6 +98,53 @@ export function AdminDashboard() {
                 <Users className="w-8 h-8 text-[#1E2A44] mb-4" />
                 <h3 className="text-gray-500 font-medium text-sm">Total Logged-in Users</h3>
                 <p className="text-4xl font-black text-[#1B1B1B] mt-2">{users.length}</p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
+                  <Calendar className="w-24 h-24" />
+                </div>
+                <Calendar className="w-8 h-8 text-indigo-600 mb-4" />
+                <h3 className="text-gray-500 font-medium text-sm">Total Website Visitors</h3>
+                <p className="text-4xl font-black text-[#1B1B1B] mt-2">{visitors.length}</p>
+              </div>
+            </div>
+
+            {/* Visitors List */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-8">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#1B1B1B]">Recent Website Visitors</h3>
+                <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">{visitors.length} Unique Devices</span>
+              </div>
+              <div className="overflow-x-auto h-64">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100 sticky top-0">
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Device ID</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Language</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Browser/OS</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Visit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {visitors.slice(0, 100).map((v) => (
+                      <tr key={v.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-mono">{v.id.substring(0, 8)}...</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1B1B1B]">{v.language}</td>
+                        <td className="px-6 py-4 text-xs text-gray-600 max-w-xs truncate" title={v.userAgent}>{v.userAgent}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {v.lastVisit ? new Date(v.lastVisit).toLocaleString() : 'N/A'}
+                        </td>
+                      </tr>
+                    ))}
+                    {visitors.length === 0 && (
+                       <tr>
+                          <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
+                             No visitors tracked yet.
+                          </td>
+                       </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
 

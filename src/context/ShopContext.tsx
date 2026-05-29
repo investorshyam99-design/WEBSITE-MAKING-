@@ -82,6 +82,33 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  // Visitor Tracking
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        let visitorId = localStorage.getItem('visitor_id');
+        const isNewVisitor = !visitorId;
+        if (!visitorId) {
+          visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+          localStorage.setItem('visitor_id', visitorId);
+        }
+        
+        const visitorRef = doc(db, 'visitors', visitorId);
+        await setDoc(visitorRef, {
+          userAgent: navigator.userAgent,
+          lastVisit: new Date().toISOString(),
+          isNewVisitor: isNewVisitor,
+          language: navigator.language || 'Unknown'
+        }, { merge: true });
+      } catch (e) {
+        console.error("Failed to track visitor", e);
+      }
+    };
+    
+    // Slight delay to not block main thread on load
+    setTimeout(trackVisitor, 1500);
+  }, []);
+
   // Load from LocalStorage
   useEffect(() => {
     try {
