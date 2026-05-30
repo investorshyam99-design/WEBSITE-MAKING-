@@ -39,7 +39,11 @@ export function AdminDashboard() {
         const visitorsData = visitorsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
+        })).sort((a: any, b: any) => {
+          const timeA = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
+          const timeB = b.lastVisit ? new Date(b.lastVisit).getTime() : 0;
+          return timeB - timeA;
+        });
         
         setUsers(usersData);
         setVisitors(visitorsData);
