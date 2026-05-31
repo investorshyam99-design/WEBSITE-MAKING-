@@ -494,12 +494,6 @@ function AdminOrderCard({
                 >
                   <RefreshCw className="h-4 w-4" /> Reorder Reminder
                 </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                  className="w-full py-2.5 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 border border-red-200"
-                >
-                  <Trash2 className="h-4 w-4" /> Delete Delivered
-                </button>
               </>
             )}
           </div>
