@@ -212,9 +212,14 @@ function OrderCard({ order, user }: { order: Order; user: any }) {
             <p className="font-semibold text-[#1B1B1B]">
               ₹{(order.price || 0).toLocaleString("en-IN")}
             </p>
-            {(order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance')) && (
+            {(order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance')) ? (
+              <>
+               <p className="text-[10px] font-bold text-green-600 mt-1 uppercase">Paid: ₹{(150 * effectiveQuantity).toLocaleString("en-IN")}</p>
                <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">COD: ₹{((order.price || 0) + (50 * effectiveQuantity) - (150 * effectiveQuantity)).toLocaleString("en-IN")}</p>
-            )}
+              </>
+            ) : order.paymentMode === 'full' ? (
+               <p className="text-[10px] font-bold text-green-600 mt-1 uppercase">Paid: ₹{(order.price || 0).toLocaleString("en-IN")}</p>
+            ) : null}
           </div>
         </div>
         <div className="text-left md:text-right">

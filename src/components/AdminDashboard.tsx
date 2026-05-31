@@ -6,6 +6,7 @@ import {
   MessageCircle, Truck, Check, Trash2, ChevronDown, RefreshCw, Star, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AdminProfitsDashboard } from './AdminProfitsDashboard';
 
 interface Order {
   id: string;
@@ -32,7 +33,8 @@ const TABS = [
   { id: 'new', label: 'New Orders' },
   { id: 'drafts', label: 'Draft Orders' },
   { id: 'abandoned', label: 'Abandoned Carts' },
-  { id: 'delivered', label: 'Delivered' }
+  { id: 'delivered', label: 'Delivered' },
+  { id: 'profits', label: '📊 My Profits' }
 ];
 
 function generateWhatsAppLink(phone: string, text: string) {
@@ -75,6 +77,16 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
     } catch (e) {
       console.error(e);
       alert("Failed to update tracking");
+    }
+  };
+
+  const handleUpdateOrderCost = async (orderId: string, costs: { productCost: number; shippingCost: number; additionalCost: number }) => {
+    try {
+      await updateDoc(doc(db, 'orders', orderId), costs);
+      refreshOrders();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update costs");
     }
   };
 
@@ -162,22 +174,26 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
 
       {/* Order List */}
       <div className="p-4 space-y-4 max-w-3xl mx-auto">
-        {currentOrders.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
-             <Package className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-             <p className="text-gray-500 font-medium">No {activeTab} orders found.</p>
-          </div>
+        {activeTab === 'profits' ? (
+          <AdminProfitsDashboard orders={orders} updateOrderCost={handleUpdateOrderCost} />
         ) : (
-          currentOrders.map(order => (
-            <AdminOrderCard 
-              key={order.id} 
-              order={order} 
-              activeTab={activeTab}
-              onUpdateStatus={(s) => handleUpdateStatus(order.id, s)}
-              onDelete={() => handleDelete(order.id)}
-              onUpdateTracking={(t, c) => handleUpdateTracking(order.id, t, c)}
-            />
-          ))
+          currentOrders.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
+              <Package className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500 font-medium">No {activeTab} orders found.</p>
+            </div>
+          ) : (
+            currentOrders.map(order => (
+              <AdminOrderCard 
+                key={order.id} 
+                order={order} 
+                activeTab={activeTab}
+                onUpdateStatus={(s) => handleUpdateStatus(order.id, s)}
+                onDelete={() => handleDelete(order.id)}
+                onUpdateTracking={(t, c) => handleUpdateTracking(order.id, t, c)}
+              />
+            ))
+          )
         )}
       </div>
     </div>
@@ -294,6 +310,10 @@ function AdminOrderCard({
                 <p className="font-semibold text-gray-800 uppercase text-[10px]">
                   {order.paymentMode === 'full' ? 'Prepaid (Full)' : (order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance') ? 'Advance Paid (Partial)' : order.paymentMode || 'Unknown')}
                 </p>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">Paid</p>
+                <p className="font-black text-green-600 text-sm">₹{(order.paymentMode === 'full' ? (order.price || 0) : (order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance') ? (150 * effectiveQuantity) : 0)).toLocaleString("en-IN")}</p>
               </div>
               {(order.paymentMode === 'partial' || String(order.status).toLowerCase().includes('advance')) && (
                  <div className="text-right">
@@ -473,6 +493,12 @@ function AdminOrderCard({
                   className="w-full py-2.5 bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm"
                 >
                   <RefreshCw className="h-4 w-4" /> Reorder Reminder
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                  className="w-full py-2.5 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 border border-red-200"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete Delivered
                 </button>
               </>
             )}
