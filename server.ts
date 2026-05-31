@@ -31,12 +31,15 @@ async function startServer() {
       const razorpay = getRazorpay();
       
       let amount = 0;
-      const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+      let itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+      const discount = Number(req.body.discount) || 0;
+      itemsTotal = Math.max(0, itemsTotal - discount);
 
       if (paymentMode === 'partial') {
-        amount = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0); // 150 advance per item
+        // Advance remains the same, discount will apply to the COD balance
+        amount = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
       } else {
-        amount = itemsTotal; // free delivery
+        amount = itemsTotal;
       }
 
       const options = {

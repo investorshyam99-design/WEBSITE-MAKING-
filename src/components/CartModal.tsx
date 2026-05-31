@@ -4,6 +4,7 @@ import { X, Trash2, Lock, CheckCircle2, ShieldCheck, Truck, RefreshCcw } from 'l
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -29,6 +30,9 @@ export function CartModal() {
   const [paymentMode, setPaymentMode] = useState<'full' | 'partial'>('full');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +40,21 @@ export function CartModal() {
       setFullName(user.name || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    if (discount > 0) {
+      const isInvalid = cart.some(item => {
+        const name = item.name.toLowerCase();
+        const isF1 = name.includes('f1') || name.includes('formula');
+        return !isF1;
+      });
+
+      if (isInvalid) {
+        setDiscount(0);
+        setCouponMessage({ type: 'error', text: '❌ UNICORN100 is valid only for Formula 1 Jerseys.' });
+      }
+    }
+  }, [cart]);
 
   // Draft Order Creation
   useEffect(() => {
@@ -52,6 +71,8 @@ export function CartModal() {
           cartItems: cart.map(i => ({ name: i.name, quantity: i.quantity, size: i.selectedSize })),
           status: 'draft',
           paymentMode,
+          discount,
+          couponCode: discount > 0 ? 'UNICORN100' : null,
           updatedAt: serverTimestamp()
         };
 
@@ -70,9 +91,10 @@ export function CartModal() {
     return () => clearTimeout(timeoutId);
   }, [fullName, phone, houseNo, areaStreet, city, state, pincode, cart, user, paymentMode, draftOrderId]);
 
-  if (!isCartOpen) return null;
+  // removed early return to allow AnimatePresence to work
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = Math.max(0, subtotal - discount);
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const advanceAmount = 150 * itemsCount;
   const codExtra = 50 * itemsCount;
@@ -100,6 +122,32 @@ export function CartModal() {
         setIsKeyboardOpen(false);
       }
     }, 100);
+  };
+
+  const handleApplyCoupon = () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    
+    if (code !== 'UNICORN100') {
+      setCouponMessage({ type: 'error', text: '❌ Invalid coupon code.' });
+      setDiscount(0);
+      return;
+    }
+
+    const isInvalid = cart.some(item => {
+      const name = item.name.toLowerCase();
+      const isF1 = name.includes('f1') || name.includes('formula');
+      return !isF1;
+    });
+
+    if (isInvalid) {
+      setCouponMessage({ type: 'error', text: '❌ UNICORN100 is valid only for Formula 1 Jerseys.' });
+      setDiscount(0);
+      return;
+    }
+
+    setDiscount(100);
+    setCouponMessage({ type: 'success', text: '🎉 UNICORN100 Applied Successfully! ₹100 Discount Added.' });
   };
 
   const handleCheckout = async () => {
@@ -134,7 +182,9 @@ export function CartModal() {
           size: item.selectedSize || 'N/A',
           quantity: item.quantity || 1,
           customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
-          price: item.price * item.quantity,
+          price: (item.price * item.quantity) - (discount > 0 ? (discount / cart.length) : 0),
+          discountApplied: discount > 0 ? (discount / cart.length) : 0,
+          couponCode: discount > 0 ? 'UNICORN100' : null,
           status: paymentMode === 'full' ? 'pending full payment' : 'pending advance payment',
           paymentMode,
           createdAt: serverTimestamp(),
@@ -154,7 +204,8 @@ export function CartModal() {
           fullName,
           address: combinedAddress,
           phone,
-          paymentMode // Send 'full' or 'partial'
+          paymentMode, // Send 'full' or 'partial'
+          discount
         }),
       });
 
@@ -231,8 +282,21 @@ export function CartModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50 transition-opacity">
-      <div className="w-full max-w-md bg-white h-[100dvh] relative shadow-2xl flex flex-col md:rounded-l-2xl overflow-hidden">
+    <AnimatePresence>
+      {isCartOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex justify-end bg-black/50"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="w-full max-w-md bg-white h-[100dvh] relative shadow-2xl flex flex-col md:rounded-l-2xl overflow-hidden"
+          >
         <div className="flex flex-col border-b border-gray-100 bg-[#1E2A44] text-white">
           <div className="flex items-center justify-between p-5 md:p-6 pb-2">
             <div className="flex items-center gap-2">
@@ -306,11 +370,43 @@ export function CartModal() {
             </div>
 
             <div className="bg-white border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] px-4 md:px-6 py-8 space-y-8">
+              
+              {/* Coupon Section */}
+              <div className="space-y-3">
+                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Apply Coupon</h3>
+                 <div className="flex gap-2">
+                    <input 
+                      type="text"
+                      placeholder="Enter Coupon Code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] transition-colors"
+                    />
+                    <button 
+                      onClick={handleApplyCoupon}
+                      className="bg-[#1E2A44] text-white px-6 rounded-xl font-bold uppercase text-xs tracking-widest shadow-sm hover:bg-[#223A5E] transition-colors"
+                    >
+                      Apply
+                    </button>
+                 </div>
+                 {couponMessage && (
+                   <p className={`text-[10px] font-bold uppercase tracking-wider ml-1 mt-1 ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                     {couponMessage.text}
+                   </p>
+                 )}
+              </div>
+
               <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
                 <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest">
                   <span>Subtotal</span>
-                  <span>₹{total.toLocaleString()}</span>
+                  <span>₹{subtotal.toLocaleString()}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-green-600 uppercase tracking-widest">
+                    <span>Discount ({couponCode})</span>
+                    <span>-₹{discount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest">
                   <span>Shipping</span>
                   <span className="text-green-600">FREE</span>
@@ -507,7 +603,9 @@ export function CartModal() {
             )}
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+    )}
+    </AnimatePresence>
   );
 }

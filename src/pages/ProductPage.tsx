@@ -355,7 +355,7 @@ export function ProductPage() {
               </div>
 
               {/* Jersey Customization */}
-              {['player', 'fan', 'master'].includes(product.category?.toLowerCase() || '') && (
+              {['player', 'fan', 'master'].includes(product.category?.toLowerCase() || '') && !product.name.toLowerCase().includes('f1') && !product.name.toLowerCase().includes('formula') && (
               <div className="pt-8 border-t border-gray-100">
                   <div className="mb-4">
                      <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
