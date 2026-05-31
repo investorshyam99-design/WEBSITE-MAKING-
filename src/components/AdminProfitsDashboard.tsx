@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { IndianRupee, TrendingUp, Package, Trophy, Loader2, Edit3 } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 
 export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any[]; updateOrderCost: (id: string, costs: any) => Promise<void> }) {
   const [dateFilter, setDateFilter] = useState('all'); // 'today', 'week', 'month', 'all'
@@ -14,8 +14,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
   const [isSaving, setIsSaving] = useState(false);
 
   // Manual Adjustments
-  const [manualRevenue, setManualRevenue] = useState(0);
-  const [manualCost, setManualCost] = useState(0);
+  const [manualEntries, setManualEntries] = useState<Record<string, {revenue: number, cost: number}>>({});
   const [isEditingManual, setIsEditingManual] = useState(false);
   const [manualRevInput, setManualRevInput] = useState('');
   const [manualCostInput, setManualCostInput] = useState('');
@@ -24,11 +23,12 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
   useEffect(() => {
     async function fetchManualStats() {
       try {
-        const d = await getDoc(doc(db, 'admin_settings', 'manual_profits'));
-        if (d.exists()) {
-          setManualRevenue(d.data().revenue || 0);
-          setManualCost(d.data().cost || 0);
-        }
+        const querySnapshot = await getDocs(collection(db, 'manual_profits_daily'));
+        const entries: Record<string, {revenue: number, cost: number}> = {};
+        querySnapshot.forEach(doc => {
+          entries[doc.id] = doc.data() as {revenue: number, cost: number};
+        });
+        setManualEntries(entries);
       } catch (err) {
          console.error('Failed to fetch manual stats', err);
       }
@@ -36,17 +36,49 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
     fetchManualStats();
   }, []);
 
+  const { manualRevenue, manualCost } = useMemo(() => {
+    let mRev = 0;
+    let mCost = 0;
+    const now = new Date();
+    Object.entries(manualEntries).forEach(([dateStr, data]) => {
+      const date = new Date(dateStr); 
+      
+      let include = false;
+      if (dateFilter === 'all') {
+        include = true;
+      } else if (dateFilter === 'today') {
+        include = date.toDateString() === now.toDateString();
+      } else if (dateFilter === 'week') {
+         const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+         include = date >= lastWeek;
+      } else if (dateFilter === 'month') {
+         include = date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      }
+      
+      if (include) {
+         mRev += data.revenue || 0;
+         mCost += data.cost || 0;
+      }
+    });
+    return { manualRevenue: mRev, manualCost: mCost };
+  }, [manualEntries, dateFilter]);
+
   const handleSaveManualStats = async () => {
     setIsSavingManual(true);
     try {
       const rev = Number(manualRevInput) || 0;
       const cst = Number(manualCostInput) || 0;
-      await setDoc(doc(db, 'admin_settings', 'manual_profits'), {
+      const dateStr = new Date().toDateString(); // e.g. "Sun May 31 2026"
+      await setDoc(doc(db, 'manual_profits_daily', dateStr), {
         revenue: rev,
-        cost: cst
+        cost: cst,
       }, { merge: true });
-      setManualRevenue(rev);
-      setManualCost(cst);
+      
+      setManualEntries(prev => ({
+        ...prev,
+        [dateStr]: { ...prev[dateStr], revenue: rev, cost: cst }
+      }));
+      
       setIsEditingManual(false);
     } catch (err) {
       console.error(err);
@@ -267,17 +299,20 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
         {/* Manual Adjustments Section */}
         <div className="mt-6 pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between mb-4">
-             <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Manual Adjustments (Total)</h4>
+             <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Manual Adjustments ({dateFilter === 'today' ? 'Today' : 'Filtered Period'})</h4>
              {!isEditingManual && (
                <button 
                  onClick={() => {
-                   setManualRevInput(String(manualRevenue));
-                   setManualCostInput(String(manualCost));
+                   // When editing, default the input to *today's* existing manual values, not the filtered sum
+                   const todayStr = new Date().toDateString();
+                   const todayEntry = manualEntries[todayStr] || { revenue: 0, cost: 0 };
+                   setManualRevInput(String(todayEntry.revenue));
+                   setManualCostInput(String(todayEntry.cost));
                    setIsEditingManual(true);
                  }}
                  className="flex items-center gap-1 text-[10px] font-bold uppercase text-blue-600 hover:text-blue-800"
                >
-                 <Edit3 className="w-3 h-3" /> Edit Totals
+                 <Edit3 className="w-3 h-3" /> Edit Today's Totals
                </button>
              )}
           </div>
@@ -285,18 +320,18 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
-                   <label className="text-[10px] font-bold uppercase text-gray-500">Add to Manual Revenue (+)</label>
+                   <label className="text-[10px] font-bold uppercase text-gray-500">Today's Manual Revenue (+)</label>
                    <input type="number" value={manualRevInput} onChange={e => setManualRevInput(e.target.value)} className="w-full mt-1 px-3 py-2 border border-gray-200 rounded font-semibold" placeholder="0" />
                  </div>
                  <div>
-                   <label className="text-[10px] font-bold uppercase text-gray-500">Add to Manual Cost (+)</label>
+                   <label className="text-[10px] font-bold uppercase text-gray-500">Today's Manual Cost (+)</label>
                    <input type="number" value={manualCostInput} onChange={e => setManualCostInput(e.target.value)} className="w-full mt-1 px-3 py-2 border border-gray-200 rounded font-semibold" placeholder="0" />
                  </div>
                </div>
                <div className="flex justify-end gap-2 mt-4 text-xs">
                   <button onClick={() => setIsEditingManual(false)} className="px-4 py-2 uppercase font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
                   <button onClick={handleSaveManualStats} disabled={isSavingManual} className="px-6 py-2 uppercase font-bold text-white bg-[#1E2A44] hover:bg-[#2A3A5A] rounded shadow flex items-center justify-center">
-                    {isSavingManual ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null} Save
+                    {isSavingManual ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null} Save Today's Adjustments
                   </button>
                </div>
              </div>
