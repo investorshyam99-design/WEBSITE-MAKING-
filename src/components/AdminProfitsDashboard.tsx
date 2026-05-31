@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { IndianRupee, TrendingUp, Package, Trophy, Loader2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { IndianRupee, TrendingUp, Package, Trophy, Loader2, Edit3 } from 'lucide-react';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any[]; updateOrderCost: (id: string, costs: any) => Promise<void> }) {
   const [dateFilter, setDateFilter] = useState('all'); // 'today', 'week', 'month', 'all'
@@ -10,6 +12,49 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
   const [shippingCost, setShippingCost] = useState('');
   const [additionalCost, setAdditionalCost] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Manual Adjustments
+  const [manualRevenue, setManualRevenue] = useState(0);
+  const [manualCost, setManualCost] = useState(0);
+  const [isEditingManual, setIsEditingManual] = useState(false);
+  const [manualRevInput, setManualRevInput] = useState('');
+  const [manualCostInput, setManualCostInput] = useState('');
+  const [isSavingManual, setIsSavingManual] = useState(false);
+
+  useEffect(() => {
+    async function fetchManualStats() {
+      try {
+        const d = await getDoc(doc(db, 'admin_settings', 'manual_profits'));
+        if (d.exists()) {
+          setManualRevenue(d.data().revenue || 0);
+          setManualCost(d.data().cost || 0);
+        }
+      } catch (err) {
+         console.error('Failed to fetch manual stats', err);
+      }
+    }
+    fetchManualStats();
+  }, []);
+
+  const handleSaveManualStats = async () => {
+    setIsSavingManual(true);
+    try {
+      const rev = Number(manualRevInput) || 0;
+      const cst = Number(manualCostInput) || 0;
+      await setDoc(doc(db, 'admin_settings', 'manual_profits'), {
+        revenue: rev,
+        cost: cst
+      }, { merge: true });
+      setManualRevenue(rev);
+      setManualCost(cst);
+      setIsEditingManual(false);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save manual adjustments');
+    }
+    setIsSavingManual(false);
+  };
+
 
   const getEffectiveQuantity = (order: any) => {
     let effectiveQuantity = order.quantity;
@@ -102,16 +147,16 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
     });
 
     return {
-      totalRevenue,
-      totalCosts,
+      totalRevenue: totalRevenue + manualRevenue,
+      totalCosts: totalCosts + manualCost,
       totalRazorpayCharges,
-      netProfit,
+      netProfit: netProfit + manualRevenue - manualCost,
       totalOrders: filteredOrders.length,
-      averageProfit: filteredOrders.length > 0 ? netProfit / filteredOrders.length : 0,
-      margin: totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0,
+      averageProfit: filteredOrders.length > 0 ? (netProfit + manualRevenue - manualCost) / filteredOrders.length : 0,
+      margin: (totalRevenue + manualRevenue) > 0 ? ((netProfit + manualRevenue - manualCost) / (totalRevenue + manualRevenue)) * 100 : 0,
       bestSellingProduct
     };
-  }, [filteredOrders]);
+  }, [filteredOrders, manualRevenue, manualCost]);
 
   const handleSaveCosts = async (orderId: string) => {
     setIsSaving(true);
@@ -218,6 +263,57 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
            <span className="text-gray-500 uppercase font-bold tracking-wider">Best Selling Product:</span>
            <span className="text-[#1B1B1B] font-bold truncate max-w-[200px] text-right">{stats.bestSellingProduct}</span>
         </div>
+        
+        {/* Manual Adjustments Section */}
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+             <h4 className="text-xs font-black uppercase tracking-wider text-gray-500">Manual Adjustments (Total)</h4>
+             {!isEditingManual && (
+               <button 
+                 onClick={() => {
+                   setManualRevInput(String(manualRevenue));
+                   setManualCostInput(String(manualCost));
+                   setIsEditingManual(true);
+                 }}
+                 className="flex items-center gap-1 text-[10px] font-bold uppercase text-blue-600 hover:text-blue-800"
+               >
+                 <Edit3 className="w-3 h-3" /> Edit Totals
+               </button>
+             )}
+          </div>
+          {isEditingManual ? (
+             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                   <label className="text-[10px] font-bold uppercase text-gray-500">Add to Manual Revenue (+)</label>
+                   <input type="number" value={manualRevInput} onChange={e => setManualRevInput(e.target.value)} className="w-full mt-1 px-3 py-2 border border-gray-200 rounded font-semibold" placeholder="0" />
+                 </div>
+                 <div>
+                   <label className="text-[10px] font-bold uppercase text-gray-500">Add to Manual Cost (+)</label>
+                   <input type="number" value={manualCostInput} onChange={e => setManualCostInput(e.target.value)} className="w-full mt-1 px-3 py-2 border border-gray-200 rounded font-semibold" placeholder="0" />
+                 </div>
+               </div>
+               <div className="flex justify-end gap-2 mt-4 text-xs">
+                  <button onClick={() => setIsEditingManual(false)} className="px-4 py-2 uppercase font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
+                  <button onClick={handleSaveManualStats} disabled={isSavingManual} className="px-6 py-2 uppercase font-bold text-white bg-[#1E2A44] hover:bg-[#2A3A5A] rounded shadow flex items-center justify-center">
+                    {isSavingManual ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null} Save
+                  </button>
+               </div>
+             </div>
+          ) : (
+             <div className="flex gap-6 text-xs">
+                <div>
+                  <span className="text-gray-500 uppercase font-bold tracking-wider">Manual Revenue: </span>
+                  <span className="font-bold text-green-600 ml-1">+₹{manualRevenue.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500 uppercase font-bold tracking-wider">Manual Cost: </span>
+                  <span className="font-bold text-red-600 ml-1">+₹{manualCost.toLocaleString()}</span>
+                </div>
+             </div>
+          )}
+        </div>
+
       </div>
 
       {/* Order List */}
