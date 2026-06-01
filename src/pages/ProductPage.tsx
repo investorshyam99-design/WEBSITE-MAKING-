@@ -333,13 +333,17 @@ export function ProductPage() {
                  <p className="text-xs text-gray-500 mb-3 font-medium">Standard Fit. Order your usual size.</p>
                 <div className="flex flex-wrap md:flex-nowrap gap-3">
                   {SIZES.map((size) => {
+                    const isUnavailable = product.name.toLowerCase().includes('arsenal 3rd') && product.name.toLowerCase().includes('full sleeve') && (size === 'S' || size === 'M');
                     return (
                       <button
                         key={size}
-                        onClick={() => handleSizeClick(size)}
+                        onClick={() => { if (!isUnavailable) handleSizeClick(size); }}
+                        disabled={isUnavailable}
                         className={cn(
                           "group flex-1 py-4 px-2 border-2 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 min-w-[60px] shadow-sm transform active:scale-95",
-                          selectedSize === size
+                          isUnavailable
+                            ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 relative overflow-hidden" 
+                            : selectedSize === size
                             ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
                             : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md"
                         )}
@@ -348,6 +352,9 @@ export function ProductPage() {
                           "text-lg md:text-xl font-black tracking-tight",
                           selectedSize === size ? "text-white" : "text-[#1B1B1B]"
                         )}>{size}</span>
+                        {isUnavailable && (
+                           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
+                        )}
                       </button>
                     );
                   })}
