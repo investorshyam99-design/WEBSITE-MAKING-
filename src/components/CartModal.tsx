@@ -29,6 +29,7 @@ export function CartModal() {
   const [deliveryEstimate, setDeliveryEstimate] = useState('');
   const [paymentMode, setPaymentMode] = useState<'full' | 'partial'>('full');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [autoCheckoutPending, setAutoCheckoutPending] = useState(false);
   
   // Auto-fill phone if logged in with phone number
   useEffect(() => {
@@ -42,6 +43,13 @@ export function CartModal() {
   const [discount, setDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && autoCheckoutPending) {
+      setAutoCheckoutPending(false);
+      handleCheckout();
+    }
+  }, [user, autoCheckoutPending]);
 
   // Custom Hook or logic to save abandoned carts
   useEffect(() => {
@@ -125,11 +133,24 @@ export function CartModal() {
   const advanceAmount = 150 * itemsCount;
   const codExtra = 50 * itemsCount;
 
-  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
     setPincode(value);
     if (value.length === 6) {
       setDeliveryEstimate('Delivery in 4–7 days');
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+        const data = await res.json();
+        if (data && data[0] && data[0].Status === 'Success') {
+          const postOffice = data[0].PostOffice[0];
+          if (postOffice) {
+            setCity(postOffice.District);
+            setState(postOffice.State);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching pincode details:', err);
+      }
     } else {
       setDeliveryEstimate('');
     }
@@ -455,6 +476,7 @@ export function CartModal() {
                     <div className="relative border-b border-gray-100 bg-white">
                       <input
                         id="fullName" type="text" placeholder="Full Name *" value={fullName}
+                        autoComplete="name"
                         onChange={(e) => setFullName(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
                         className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
@@ -464,6 +486,7 @@ export function CartModal() {
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 lg:translate-y-0 lg:top-4 text-sm font-bold text-gray-500 z-10 peer-focus:text-[#1E2A44]">+91</div>
                       <input
                         id="phone" type="tel" maxLength={10} placeholder="Phone Number *" value={phone}
+                        autoComplete="tel"
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} onFocus={handleInputFocus} onBlur={handleInputBlur}
                         className="peer w-full pl-12 pr-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
@@ -473,6 +496,7 @@ export function CartModal() {
                       <div className="relative flex-1">
                         <input
                           id="pincode" type="tel" maxLength={6} placeholder="Pincode *" value={pincode}
+                          autoComplete="postal-code"
                           onChange={handlePincodeChange} onFocus={handleInputFocus} onBlur={handleInputBlur}
                           className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                         />
@@ -487,6 +511,7 @@ export function CartModal() {
                     <div className="relative border-b border-gray-100 bg-white">
                       <input
                         id="houseNo" type="text" placeholder="House No / Flat No *" value={houseNo}
+                        autoComplete="address-line1"
                         onChange={(e) => setHouseNo(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
                         className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
@@ -495,6 +520,7 @@ export function CartModal() {
                     <div className="relative border-b border-gray-100 bg-white">
                       <input
                         id="areaStreet" type="text" placeholder="Area / Street *" value={areaStreet}
+                        autoComplete="address-line2"
                         onChange={(e) => setAreaStreet(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
                         className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                       />
@@ -504,6 +530,7 @@ export function CartModal() {
                       <div className="relative flex-1 border-r border-gray-100">
                         <input
                           id="city" type="text" placeholder="City *" value={city}
+                          autoComplete="address-level2"
                           onChange={(e) => setCity(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
                           className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                         />
@@ -512,6 +539,7 @@ export function CartModal() {
                       <div className="relative flex-1">
                         <input
                           id="state" type="text" placeholder="State *" value={state}
+                          autoComplete="address-level1"
                           onChange={(e) => setState(e.target.value)} onFocus={handleInputFocus} onBlur={handleInputBlur}
                           className="peer w-full px-4 pt-6 pb-2 text-sm font-bold text-[#1B1B1B] bg-transparent focus:outline-none placeholder-transparent"
                         />
@@ -529,6 +557,11 @@ export function CartModal() {
                      <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Secure Payments</span>
                      <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> WhatsApp Support Available</span>
                    </div>
+                 </div>
+
+                 <div className="bg-green-50/50 border border-green-100 rounded-xl p-3 flex items-center justify-center gap-2 mt-4">
+                     <ShieldCheck className="w-4 h-4 text-green-600" />
+                     <span className="text-xs font-bold text-green-800 uppercase tracking-wider">Trusted by 10,000+ Football Fans</span>
                  </div>
               </div>
 
@@ -611,7 +644,12 @@ export function CartModal() {
           <div className="shrink-0 p-4 md:p-6 bg-white border-t border-gray-100 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
             {!user ? (
               <button
-                onClick={() => setIsLoginOpen(true)}
+                onClick={() => {
+                  if (fullName && phone.length === 10 && pincode && houseNo && areaStreet && city && state) {
+                     setAutoCheckoutPending(true);
+                  }
+                  setIsLoginOpen(true);
+                }}
                 className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all flex items-center justify-center gap-2"
               >
                 <Lock className="w-4 h-4" />

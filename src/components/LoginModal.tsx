@@ -109,7 +109,47 @@ export function LoginModal() {
     await sendOTP(false);
   };
 
+  useEffect(() => {
+    if (confirmationResult && 'OTPCredential' in window) {
+      const ac = new AbortController();
+      navigator.credentials.get({
+        otp: { transport: ['sms'] },
+        signal: ac.signal
+      }).then((otpProvider: any) => {
+        if (otpProvider && otpProvider.code) {
+          const codeString = otpProvider.code.toString();
+          const newOtp = codeString.padEnd(6, '').split('').slice(0, 6);
+          setOtp(newOtp);
+          // Wait for state to settle then verify
+          setTimeout(() => verifyOtp(codeString), 100);
+        }
+      }).catch(err => {
+        console.log('Web OTP error or canceled', err);
+      });
+
+      return () => {
+        ac.abort();
+      };
+    }
+  }, [confirmationResult]);
+
   const handleOtpChange = (index: number, value: string) => {
+    // Handle paste / autocomplete of 6 digits
+    if (value.length > 1) {
+       const digits = value.replace(/\D/g, '').split('').slice(0, 6);
+       if (digits.length > 0) {
+          const newOtp = [...otp];
+          digits.forEach((d, i) => {
+             if (index + i < 6) newOtp[index + i] = d;
+          });
+          setOtp(newOtp);
+          // Focus the next empty or the last input
+          const nextIndex = Math.min(index + digits.length, 5);
+          otpRefs.current[nextIndex]?.focus();
+       }
+       return;
+    }
+
     if (isNaN(Number(value))) return;
 
     const newOtp = [...otp];
@@ -267,10 +307,11 @@ export function LoginModal() {
                       {otp.map((digit, index) => (
                         <input
                           key={index}
-                          ref={(el) => (otpRefs.current[index] = el)}
+                          ref={(el) => { otpRefs.current[index] = el; }}
                           type="text"
                           inputMode="numeric"
-                          maxLength={1}
+                          maxLength={6}
+                          autoComplete={index === 0 ? "one-time-code" : undefined}
                           value={digit}
                           onChange={(e) => handleOtpChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
