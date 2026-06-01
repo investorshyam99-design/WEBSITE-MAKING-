@@ -30,7 +30,7 @@ interface Order {
 }
 
 export function OrdersPage() {
-  const { user, loginWithGoogle, isAuthLoading } = useShop();
+  const { user, setIsLoginOpen, isAuthLoading } = useShop();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,10 +109,10 @@ export function OrdersPage() {
               Please sign in to view your orders.
             </p>
             <button
-              onClick={loginWithGoogle}
-              className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full hover:bg-[#223A5E] transition-colors"
+              onClick={() => setIsLoginOpen(true)}
+              className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full hover:bg-[#223A5E] transition-colors rounded-xl"
             >
-              Sign In with Google
+              Log in to view orders
             </button>
           </div>
         </main>

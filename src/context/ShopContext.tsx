@@ -54,19 +54,20 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       }
 
       unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        console.log("Auth State Changed. Current User:", currentUser?.email);
-        if (currentUser && currentUser.email) {
+        console.log("Auth State Changed. Current User:", currentUser);
+        if (currentUser && (currentUser.email || currentUser.phoneNumber)) {
+          const identifier = currentUser.email || currentUser.phoneNumber || '';
           setUser({
-            email: currentUser.email,
-            name: currentUser.displayName || 'User',
+            email: identifier,
+            name: currentUser.displayName || identifier,
             uid: currentUser.uid,
           });
           
           // Save user into Firestore (don't await to avoid UI blocking)
           const userRef = doc(db, 'users', currentUser.uid);
           setDoc(userRef, {
-            email: currentUser.email,
-            name: currentUser.displayName || 'User',
+            email: identifier,
+            name: currentUser.displayName || identifier,
             lastLogin: new Date().toISOString()
           }, { merge: true }).catch(e => {
             console.error("Failed to save user record", e);

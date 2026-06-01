@@ -11,7 +11,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
-  const { loginWithGoogle, logout, user, isAuthLoading, setIsCartOpen, cart } = useShop();
+  const { setIsLoginOpen, logout, user, isAuthLoading, setIsCartOpen, cart } = useShop();
 
   // Calculate total cart items
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -139,7 +139,7 @@ export function Header() {
               {!isAuthLoading && !user ? (
                 <button 
                   onClick={() => {
-                    loginWithGoogle();
+                    setIsLoginOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
                   className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
@@ -268,7 +268,7 @@ export function Header() {
           <div className="flex items-center gap-4">
             {!isAuthLoading && !user ? (
                <button 
-                 onClick={loginWithGoogle}
+                 onClick={() => setIsLoginOpen(true)}
                  className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
                >
                  <LogIn className="h-4 w-4" /> Login

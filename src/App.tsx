@@ -11,6 +11,7 @@ import { OrdersPage } from "./pages/OrdersPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { ShopProvider } from "./context/ShopContext";
 import { CartModal } from "./components/CartModal";
+import { LoginModal } from "./components/LoginModal";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         </Routes>
         <AIAssistant />
         <CartModal />
+        <LoginModal />
       </Router>
     </ShopProvider>
   );

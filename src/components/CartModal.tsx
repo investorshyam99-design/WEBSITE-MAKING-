@@ -17,7 +17,7 @@ const loadRazorpayScript = () => {
 };
 
 export function CartModal() {
-  const { cart, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, user, clearCart, loginWithGoogle } = useShop();
+  const { cart, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, user, clearCart, setIsLoginOpen } = useShop();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -585,7 +585,7 @@ export function CartModal() {
           <div className="shrink-0 p-4 md:p-6 bg-white border-t border-gray-100 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
             {!user ? (
               <button
-                onClick={loginWithGoogle}
+                onClick={() => setIsLoginOpen(true)}
                 className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all flex items-center justify-center gap-2"
               >
                 <Lock className="w-4 h-4" />
