@@ -248,19 +248,6 @@ export function LoginModal() {
           {loginMethod === 'selection' && (
             <div className="space-y-4">
               <button
-                onClick={() => setLoginMethod('phone')}
-                className="w-full h-14 bg-[#1E2A44] text-white rounded-2xl flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-wider hover:bg-[#2A3A5A] transition-all shadow-xl shadow-[#1E2A44]/20 active:scale-[0.98]"
-              >
-                <Phone className="w-5 h-5" />
-                Continue with Phone
-              </button>
-
-              <div className="relative flex items-center justify-center py-2">
-                <div className="absolute border-t border-gray-200 w-full"></div>
-                <span className="bg-white px-4 text-xs font-bold text-gray-400 relative uppercase tracking-wider">or</span>
-              </div>
-
-              <button
                 onClick={loginWithGoogle}
                 className="w-full h-14 bg-white border-2 border-gray-200 rounded-2xl flex items-center justify-center gap-3 text-sm font-bold text-gray-700 hover:border-gray-300 transition-all active:scale-[0.98]"
               >
