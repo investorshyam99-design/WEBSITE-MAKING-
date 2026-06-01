@@ -49,6 +49,14 @@ export function LoginModal() {
     setIsLoading(false);
     setConfirmationResult(null);
     setCountdown(30);
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.error(e);
+      }
+      window.recaptchaVerifier = null;
+    }
   };
 
   const handleClose = () => {
@@ -59,7 +67,7 @@ export function LoginModal() {
   const setupRecaptcha = () => {
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
+        size: 'invisible'
       });
     }
   };
