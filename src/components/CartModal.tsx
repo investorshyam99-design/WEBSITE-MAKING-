@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useShop } from '../context/ShopContext';
 import { X, Trash2, Lock, CheckCircle2, ShieldCheck, Truck, RefreshCcw } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -29,11 +29,37 @@ export function CartModal() {
   const [deliveryEstimate, setDeliveryEstimate] = useState('');
   const [paymentMode, setPaymentMode] = useState<'full' | 'partial'>('full');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  
+  // Auto-fill phone if logged in with phone number
+  useEffect(() => {
+    if (user && user.email?.startsWith('+')) {
+       setPhone(user.email.replace('+91', ''));
+    }
+  }, [user]);
+
   const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const navigate = useNavigate();
+
+  // Custom Hook or logic to save abandoned carts
+  useEffect(() => {
+    if (user && cart.length > 0) {
+      const abandonedTimer = setTimeout(() => {
+         const cartRef = doc(db, 'abandoned_carts', user.uid);
+         setDoc(cartRef, {
+            uid: user.uid,
+            phone: user.email?.startsWith('+') ? user.email : null,
+            name: user.name,
+            cartItems: cart.map(i => ({ name: i.name, quantity: i.quantity, size: i.selectedSize, price: i.price, customization: i.customization || null })),
+            totalValue: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+            updatedAt: new Date().toISOString()
+         }, { merge: true }).catch(err => console.error("Failed to save abandoned cart:", err));
+      }, 3000); // Save after 3 seconds of inactvity
+      return () => clearTimeout(abandonedTimer);
+    }
+  }, [cart, user]);
 
   useEffect(() => {
     if (user && !fullName && !phone) {
