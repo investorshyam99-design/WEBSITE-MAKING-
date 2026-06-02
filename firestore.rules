@@ -30,5 +30,19 @@ service cloud.firestore {
     match /draft_orders/{draftId} {
       allow read, create, update: if true;
     }
+
+    match /manual_profits_daily/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /login_sessions/{sessionId} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null;
+    }
+
+    match /abandoned_carts/{cartId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if request.auth != null && request.auth.uid == cartId;
+    }
   }
 }
