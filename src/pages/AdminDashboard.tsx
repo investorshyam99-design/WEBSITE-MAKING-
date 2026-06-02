@@ -34,7 +34,11 @@ export function AdminDashboard() {
         const usersData = usersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
+        })).sort((a: any, b: any) => {
+          const timeA = a.lastLogin ? new Date(a.lastLogin).getTime() : 0;
+          const timeB = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
+          return timeB - timeA;
+        });
         
         const visitorsData = visitorsSnapshot.docs.map(doc => ({
           id: doc.id,
