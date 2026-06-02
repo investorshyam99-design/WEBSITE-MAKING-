@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AdminProfitsDashboard } from './AdminProfitsDashboard';
+import { useProducts } from '../data/products';
 
 interface Order {
   id: string;
@@ -217,6 +218,17 @@ function AdminOrderCard({
   const [trackingId, setTrackingId] = useState(order.trackingId || '');
   const [courierName, setCourierName] = useState(order.courierName || '');
   const [showTrackingForm, setShowTrackingForm] = useState(false);
+  const navigate = useNavigate();
+  const { products } = useProducts();
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const product = products.find(p => p.name === order.productName);
+    const pid = (order as any).productId || product?.id;
+    if (pid) {
+      navigate(`/product/${encodeURIComponent(pid)}`);
+    }
+  };
 
   const orderDate = order.createdAt?.toDate?.()
     ? order.createdAt.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
@@ -266,9 +278,12 @@ function AdminOrderCard({
         className="p-4 flex gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="h-16 w-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+        <div 
+          className="h-16 w-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+          onClick={handleImageClick}
+        >
           {order.image ? (
-            <img src={order.image} alt="Product" className="w-full h-full object-cover" />
+            <img src={order.image} alt="Product" className="w-full h-full object-cover hover:scale-105 transition-transform" />
           ) : (
             <Package className="h-6 w-6 m-auto text-gray-400 mt-5" />
           )}

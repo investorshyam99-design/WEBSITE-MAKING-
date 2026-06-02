@@ -7,6 +7,7 @@ import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/fire
 import { Package, Truck, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AdminDashboard } from "../components/AdminDashboard";
+import { useProducts } from "../data/products";
 
 interface Order {
   id: string;
@@ -35,6 +36,17 @@ export function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const { products } = useProducts();
+
+  const handleImageClick = (order: Order) => {
+    // If order saves productId, use it. Else find by name.
+    const product = products.find(p => p.name === order.productName);
+    const pid = (order as any).productId || product?.id;
+    if (pid) {
+      navigate(`/product/${encodeURIComponent(pid)}`);
+    }
+  };
 
   const fetchOrders = useCallback(async () => {
     if (isAuthLoading) return;
@@ -233,9 +245,12 @@ function OrderCard({ order, user }: { order: Order; user: any }) {
       </div>
       <div className="p-6">
         <div className="flex items-start gap-4">
-          <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
+          <div 
+            className={`h-16 w-16 bg-gray-100 flex items-center justify-center rounded overflow-hidden ${order.image ? 'cursor-pointer' : ''}`}
+            onClick={() => handleImageClick(order)}
+          >
             {order.image ? (
-              <img src={order.image} alt={order.productName} className="h-full w-full object-cover" />
+              <img src={order.image} alt={order.productName} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
             ) : (
               <Package className="h-8 w-8 text-gray-400" />
             )}

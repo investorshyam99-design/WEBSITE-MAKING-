@@ -60,7 +60,7 @@ export function CartModal() {
             uid: user.uid,
             phone: user.email?.startsWith('+') ? user.email : null,
             name: user.name,
-            cartItems: cart.map(i => ({ name: i.name, quantity: i.quantity, size: i.selectedSize, price: i.price, customization: i.customization || null })),
+            cartItems: cart.map(i => ({ productId: i.id, name: i.name, quantity: i.quantity, size: i.selectedSize, price: i.price, customization: i.customization || null })),
             totalValue: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
             updatedAt: new Date().toISOString()
          }, { merge: true }).catch(err => console.error("Failed to save abandoned cart:", err));
@@ -102,7 +102,7 @@ export function CartModal() {
           fullName,
           phone,
           address: combinedAddress,
-          cartItems: cart.map(i => ({ name: i.name, quantity: i.quantity, size: i.selectedSize })),
+          cartItems: cart.map(i => ({ productId: i.id, name: i.name, quantity: i.quantity, size: i.selectedSize })),
           status: 'draft',
           paymentMode,
           discount,
@@ -224,6 +224,7 @@ export function CartModal() {
       for (const item of cart) {
         const docRef = await addDoc(collection(db, 'orders'), {
           userId: user ? user.uid : 'guest',
+          productId: item.id,
           productName: item.name,
           image: item.image,
           size: item.selectedSize || 'N/A',
