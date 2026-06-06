@@ -115,7 +115,7 @@ export function LoginModal() {
       navigator.credentials.get({
         otp: { transport: ['sms'] },
         signal: ac.signal
-      }).then((otpProvider: any) => {
+      } as any).then((otpProvider: any) => {
         if (otpProvider && otpProvider.code) {
           const codeString = otpProvider.code.toString();
           const newOtp = codeString.padEnd(6, '').split('').slice(0, 6);

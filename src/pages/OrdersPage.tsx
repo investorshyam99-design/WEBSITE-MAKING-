@@ -174,7 +174,7 @@ export function OrdersPage() {
              <AdminDashboard orders={orders} refreshOrders={fetchOrders} />
           ) : (
             <div className="space-y-6 max-w-3xl mx-auto">
-              {orders.map((order) => <OrderCard key={order.id} order={order} user={user} />)}
+              {orders.map((order) => <OrderCard key={order.id} order={order} user={user} handleImageClick={handleImageClick} />)}
             </div>
           )
         )}
@@ -184,7 +184,7 @@ export function OrdersPage() {
   );
 }
 
-function OrderCard({ order, user }: { order: Order; user: any }) {
+function OrderCard({ order, user, handleImageClick }: { order: Order; user: any; handleImageClick: (order: Order) => void }) {
   const orderDate = order.createdAt?.toDate?.()
     ? order.createdAt.toDate().toLocaleDateString("en-US", {
         year: "numeric",
