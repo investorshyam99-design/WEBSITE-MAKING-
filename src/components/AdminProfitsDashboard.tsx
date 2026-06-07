@@ -380,15 +380,22 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
           return (
             <div key={order.id} className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
               <div className="p-4 flex flex-col md:flex-row justify-between gap-4 bg-gray-50/50">
-                <div>
-                  <p className="font-bold text-[#1E2A44] text-sm">{order.fullName || "Guest Customer"}</p>
-                  <p className="text-xs text-gray-500 mb-2 truncate max-w-sm">{order.productName}</p>
-                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-200 text-gray-700">
-                    {order.paymentMode === 'full' ? 'Prepaid (Full)' : 'COD (Partial)'}
-                  </span>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm ml-2 ${isDelivered ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {order.status || 'Received'}
-                  </span>
+                <div className="flex gap-4 items-start">
+                  {order.image && (
+                    <div className="w-16 h-16 bg-white rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 mt-1">
+                      <img src={order.image} alt={order.productName || 'Product'} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-bold text-[#1E2A44] text-sm">{order.fullName || "Guest Customer"}</p>
+                    <p className="text-xs text-gray-500 mb-2 truncate max-w-xs md:max-w-sm">{order.productName}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-200 text-gray-700">
+                      {order.paymentMode === 'full' ? 'Prepaid (Full)' : 'COD (Partial)'}
+                    </span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm ml-2 ${isDelivered ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {order.status || 'Received'}
+                    </span>
+                  </div>
                 </div>
                 <div className="text-left md:text-right mt-2 md:mt-0">
                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">Net Profit</p>

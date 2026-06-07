@@ -393,25 +393,22 @@ function AdminOrderCard({
           <div className="space-y-2">
             
             {activeTab === 'new' && (
-              <button 
-                onClick={() => onUpdateStatus("Order Placed")}
-                className="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
-              >
-                <Check className="h-4 w-4" /> Move to Order Placed
-              </button>
-            )}
-
-            {(activeTab === 'new' || activeTab === 'placed') && (
               <>
                 <button 
+                  onClick={() => onUpdateStatus("Order Placed")}
+                  className="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
+                >
+                  <Check className="h-4 w-4" /> Move to Order Placed
+                </button>
+                <button 
                   onClick={(e) => handleWhatsApp(e, templates.orderReceived)}
-                  className="w-full py-2.5 bg-[#25D366] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full py-2.5 bg-[#25D366] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
                 >
                   <MessageCircle className="h-4 w-4" /> Order Received
                 </button>
                 
                 {showTrackingForm ? (
-                  <div className="bg-white p-3 rounded-lg border border-blue-200 shadow-sm space-y-3">
+                  <div className="bg-white p-3 rounded-lg border border-blue-200 shadow-sm space-y-3 mb-2">
                     <select 
                       value={courierName}
                       onChange={e => setCourierName(e.target.value)}
@@ -456,7 +453,7 @@ function AdminOrderCard({
                 ) : (
                   <button 
                     onClick={() => setShowTrackingForm(true)}
-                    className="w-full py-2.5 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 border border-blue-200"
+                    className="w-full py-2.5 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 border border-blue-200 mb-2"
                   >
                     <Truck className="h-4 w-4" /> Add Tracking
                   </button>
@@ -465,6 +462,23 @@ function AdminOrderCard({
                 <button 
                   onClick={() => onUpdateStatus("Delivered")}
                   className="w-full py-2.5 bg-gray-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Check className="h-4 w-4" /> Mark Delivered
+                </button>
+              </>
+            )}
+
+            {activeTab === 'placed' && (
+              <>
+                <button 
+                  onClick={() => onUpdateStatus("Received")}
+                  className="w-full py-2.5 bg-gray-100 text-gray-800 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm border border-gray-200 mb-2 hover:bg-gray-200"
+                >
+                  <ChevronDown className="h-4 w-4 rotate-90" /> Move to New Orders
+                </button>
+                <button 
+                  onClick={() => onUpdateStatus("Delivered")}
+                  className="w-full py-2.5 bg-gray-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm hover:bg-gray-900"
                 >
                   <Check className="h-4 w-4" /> Mark Delivered
                 </button>
