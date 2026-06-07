@@ -34,6 +34,7 @@ const TABS = [
   { id: 'new', label: 'New Orders' },
   { id: 'drafts', label: 'Draft Orders' },
   { id: 'abandoned', label: 'Abandoned Carts' },
+  { id: 'placed', label: 'Order Placed' },
   { id: 'delivered', label: 'Delivered' },
   { id: 'profits', label: '📊 My Profits' }
 ];
@@ -95,6 +96,7 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
   const newOrders = orders.filter(o => 
     !o.status?.toLowerCase().includes("pending") && 
     o.status?.toLowerCase() !== "delivered" && 
+    o.status?.toLowerCase() !== "order placed" && 
     o.address
   );
 
@@ -106,6 +108,10 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
     o.status?.toLowerCase().includes("pending") && !o.address
   );
 
+  const placedOrders = orders.filter(o => 
+    o.status?.toLowerCase() === "order placed"
+  );
+
   const deliveredOrders = orders.filter(o => 
     o.status?.toLowerCase() === "delivered"
   );
@@ -114,6 +120,7 @@ export function AdminDashboard({ orders, refreshOrders }: { orders: Order[], ref
   if (activeTab === 'new') currentOrders = newOrders;
   if (activeTab === 'drafts') currentOrders = draftOrders;
   if (activeTab === 'abandoned') currentOrders = abandonedCarts;
+  if (activeTab === 'placed') currentOrders = placedOrders;
   if (activeTab === 'delivered') currentOrders = deliveredOrders;
 
   // Apply search
@@ -386,6 +393,15 @@ function AdminOrderCard({
           <div className="space-y-2">
             
             {activeTab === 'new' && (
+              <button 
+                onClick={() => onUpdateStatus("Order Placed")}
+                className="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
+              >
+                <Check className="h-4 w-4" /> Move to Order Placed
+              </button>
+            )}
+
+            {(activeTab === 'new' || activeTab === 'placed') && (
               <>
                 <button 
                   onClick={(e) => handleWhatsApp(e, templates.orderReceived)}
