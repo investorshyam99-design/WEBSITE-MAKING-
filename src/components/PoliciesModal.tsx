@@ -73,6 +73,13 @@ export function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
               </ul>
             </div>
           </section>
+
+          <section>
+            <h3 className="text-lg font-bold uppercase tracking-wide border-b-2 border-[#F5EFE6] pb-2 mb-4">About Our Products</h3>
+            <div className="space-y-3 text-sm md:text-base text-gray-700 leading-relaxed">
+              <p>We deal in re-circulated football wear sourced from collectors and fan communities.</p>
+            </div>
+          </section>
         </div>
       </div>
     </div>
