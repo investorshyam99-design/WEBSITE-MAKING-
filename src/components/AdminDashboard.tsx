@@ -559,6 +559,12 @@ function AdminOrderCard({
             {activeTab === "new" && (
               <>
                 <button
+                  onClick={() => onUpdateStatus("Advance Paid (Fampay)")}
+                  className="w-full py-2.5 bg-[#1E2A44] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
+                >
+                  <Check className="h-4 w-4" /> Received via Fampay
+                </button>
+                <button
                   onClick={() => onUpdateStatus("Order Placed")}
                   className="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
                 >

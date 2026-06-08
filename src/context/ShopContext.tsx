@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
+import { useProducts } from '../data/products';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User, setPersistence, browserLocalPersistence } from 'firebase/auth';
@@ -126,6 +127,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
+  const { products, isLoading: isProductsLoading } = useProducts();
+
   // Load from LocalStorage
   useEffect(() => {
     try {
@@ -137,6 +140,27 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to load from local storage', e);
     }
   }, []);
+
+  // Sync Cart prices with fresh products from Shopify
+  useEffect(() => {
+    if (isProductsLoading || products.length === 0 || cart.length === 0) return;
+    setCart(prev => {
+      let changed = false;
+      const newCart = prev.map(item => {
+        const freshProduct = products.find(p => p.id === item.id);
+        if (freshProduct) {
+          const customPrice = item.customization ? 199 : 0;
+          const freshPrice = freshProduct.price + customPrice;
+          if (item.price !== freshPrice) {
+            changed = true;
+            return { ...item, price: freshPrice };
+          }
+        }
+        return item;
+      });
+      return changed ? newCart : prev;
+    });
+  }, [products, isProductsLoading]);
 
   // Save to LocalStorage and Sync Abandoned Carts to Firestore
   useEffect(() => {
