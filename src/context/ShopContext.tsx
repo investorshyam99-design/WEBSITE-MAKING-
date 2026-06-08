@@ -88,21 +88,25 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   // Visitor Tracking
   useEffect(() => {
+    let visitorId = localStorage.getItem('visitor_id');
+    const isNewVisitor = !visitorId;
+    if (!visitorId) {
+      visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('visitor_id', visitorId);
+    }
+
     const trackVisitor = async () => {
       try {
-        let visitorId = localStorage.getItem('visitor_id');
-        const isNewVisitor = !visitorId;
-        if (!visitorId) {
-          visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-          localStorage.setItem('visitor_id', visitorId);
-        }
+        if (!visitorId) return;
+        let cumulativeTime = parseInt(localStorage.getItem('cumulative_time_spent') || '0', 10);
         
         const visitorRef = doc(db, 'visitors', visitorId);
         await setDoc(visitorRef, {
           userAgent: navigator.userAgent,
           lastVisit: new Date().toISOString(),
           isNewVisitor: isNewVisitor,
-          language: navigator.language || 'Unknown'
+          language: navigator.language || 'Unknown',
+          timeSpent: cumulativeTime
         }, { merge: true });
       } catch (e) {
         console.error("Failed to track visitor", e);
@@ -111,6 +115,15 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     
     // Slight delay to not block main thread on load
     setTimeout(trackVisitor, 1500);
+
+    const interval = setInterval(() => {
+       let cumulativeTime = parseInt(localStorage.getItem('cumulative_time_spent') || '0', 10);
+       cumulativeTime += 10; // add 10 seconds tracking
+       localStorage.setItem('cumulative_time_spent', cumulativeTime.toString());
+       trackVisitor(); // update firestore
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Load from LocalStorage

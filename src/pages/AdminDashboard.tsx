@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useShop } from '../context/ShopContext';
-import { ShieldAlert, Users, Calendar, Loader2 } from 'lucide-react';
+import { ShieldAlert, Users, Calendar, Loader2, Clock } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+
+function formatTime(seconds: number) {
+  if (!seconds) return '0s';
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
 
 export function AdminDashboard() {
   const { user, isAuthLoading } = useShop();
   const [users, setUsers] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
+  const [avgTimeSpent, setAvgTimeSpent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,20 +27,18 @@ export function AdminDashboard() {
   const isAdmin = user?.email === 'investorshyam99@gmail.com';
 
   useEffect(() => {
-    async function fetchUsers() {
-      if (isAuthLoading) return;
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        const [usersSnapshot, visitorsSnapshot] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'visitors'))
-        ]);
-        
-        const usersData = usersSnapshot.docs.map(doc => ({
+    if (isAuthLoading) return;
+    if (!user || user.email !== 'investorshyam99@gmail.com') {
+      setLoading(false);
+      return;
+    }
+
+    let unsubscribeUsers: () => void;
+    let unsubscribeVisitors: () => void;
+
+    try {
+      unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+        const usersData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })).sort((a: any, b: any) => {
@@ -39,8 +46,14 @@ export function AdminDashboard() {
           const timeB = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
           return timeB - timeA;
         });
-        
-        const visitorsData = visitorsSnapshot.docs.map(doc => ({
+        setUsers(usersData);
+      }, (err) => {
+        console.error("Error fetching users:", err);
+        setError('Failed to fetch users. ' + err.message);
+      });
+
+      unsubscribeVisitors = onSnapshot(collection(db, 'visitors'), (snapshot) => {
+        const visitorsData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })).sort((a: any, b: any) => {
@@ -49,17 +62,32 @@ export function AdminDashboard() {
           return timeB - timeA;
         });
         
-        setUsers(usersData);
         setVisitors(visitorsData);
-      } catch (err: any) {
-        console.error("Error fetching users:", err);
-        setError('Failed to fetch users. ' + err.message);
-      } finally {
+
+        const visitorsWithTime = visitorsData.filter(v => typeof v.timeSpent === 'number' && v.timeSpent > 0);
+        if (visitorsWithTime.length > 0) {
+          const totalTime = visitorsWithTime.reduce((acc, v) => acc + v.timeSpent, 0);
+          setAvgTimeSpent(totalTime / visitorsWithTime.length);
+        } else {
+          setAvgTimeSpent(0);
+        }
         setLoading(false);
-      }
+      }, (err) => {
+        console.error("Error fetching visitors:", err);
+        setError('Failed to fetch visitors. ' + err.message);
+        setLoading(false);
+      });
+      
+    } catch (err: any) {
+       console.error("Error setting up listeners:", err);
+       setError('Failed to fetch data. ' + err.message);
+       setLoading(false);
     }
-    
-    fetchUsers();
+
+    return () => {
+      if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeVisitors) unsubscribeVisitors();
+    };
   }, [user, isAuthLoading]);
 
   return (
@@ -98,7 +126,7 @@ export function AdminDashboard() {
         ) : (
           <div className="space-y-6">
             {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
                   <Users className="w-24 h-24" />
@@ -115,6 +143,14 @@ export function AdminDashboard() {
                 <h3 className="text-gray-500 font-medium text-sm">Total Website Visitors</h3>
                 <p className="text-4xl font-black text-[#1B1B1B] mt-2">{visitors.length}</p>
               </div>
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
+                  <Clock className="w-24 h-24" />
+                </div>
+                <Clock className="w-8 h-8 text-amber-500 mb-4" />
+                <h3 className="text-gray-500 font-medium text-sm">Avg Time Spent</h3>
+                <p className="text-4xl font-black text-[#1B1B1B] mt-2">{formatTime(avgTimeSpent)}</p>
+              </div>
             </div>
 
             {/* Visitors List */}
@@ -130,6 +166,7 @@ export function AdminDashboard() {
                       <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Device ID</th>
                       <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Language</th>
                       <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Browser/OS</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Time Spent</th>
                       <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Last Visit</th>
                     </tr>
                   </thead>
@@ -139,6 +176,7 @@ export function AdminDashboard() {
                         <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-mono">{v.id.substring(0, 8)}...</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1B1B1B]">{v.language}</td>
                         <td className="px-6 py-4 text-xs text-gray-600 max-w-xs truncate" title={v.userAgent}>{v.userAgent}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-amber-600">{formatTime(v.timeSpent || 0)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {v.lastVisit ? new Date(v.lastVisit).toLocaleString() : 'N/A'}
                         </td>
@@ -146,7 +184,7 @@ export function AdminDashboard() {
                     ))}
                     {visitors.length === 0 && (
                        <tr>
-                          <td colSpan={4} className="px-6 py-12 text-center text-gray-500 font-medium">
+                          <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">
                              No visitors tracked yet.
                           </td>
                        </tr>
