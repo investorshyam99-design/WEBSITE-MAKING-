@@ -628,11 +628,16 @@ export function CartModal() {
               </div>
 
               {/* Conversion Boosters Row */}
-              <div className="grid grid-cols-2 gap-y-3 pt-6 border-t border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                 <div className="flex items-center gap-1.5"><Truck className="w-4 h-4 text-[#1E2A44]" /> Delivery: 3-10 Days</div>
-                 <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#1E2A44]" /> Secure Checkout</div>
-                 <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#1E2A44]" /> Tracking Provided</div>
-                 <div className="flex items-center gap-1.5 text-[10px] leading-tight"><img src="/favicon.svg" alt="Premium" className="w-4 h-4 opacity-70 filter invert grayscale opacity-100 brightness-0" onError={(e) => e.currentTarget.style.display = 'none'} /> Premium Football Jerseys</div>
+              <div className="flex flex-col gap-y-3 pt-6 border-t border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                 <div className="grid grid-cols-2 gap-y-3">
+                   <div className="flex items-center gap-1.5"><Truck className="w-4 h-4 text-[#1E2A44]" /> Delivery: 3-10 Days</div>
+                   <div className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#1E2A44]" /> Secure Checkout</div>
+                   <div className="flex items-center gap-1.5 text-[10px] leading-tight"><img src="/favicon.svg" alt="Premium" className="w-4 h-4 opacity-70 filter invert grayscale opacity-100 brightness-0" onError={(e) => e.currentTarget.style.display = 'none'} /> Premium Football Jerseys</div>
+                 </div>
+                 <div className="flex flex-col gap-2 mt-1">
+                   <div className="flex items-center gap-1.5 text-[#25D366]"><CheckCircle2 className="w-4 h-4 text-[#25D366]" /> We will send tracking number through whatsapp</div>
+                   <div className="flex items-center gap-1.5 text-red-500"><X className="w-4 h-4 text-red-500" /> Exchanges can be made only when mistake is done by our side</div>
+                 </div>
               </div>
 
             </div>

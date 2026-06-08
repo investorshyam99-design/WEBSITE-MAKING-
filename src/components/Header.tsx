@@ -126,15 +126,6 @@ export function Header() {
               >
                 <MessageSquare className="h-5 w-5" /> Chat with Us
               </a>
-              <button 
-                onClick={() => {
-                  setIsPoliciesOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] border-b border-gray-100 transition-colors uppercase w-full text-left"
-              >
-                <FileText className="h-5 w-5" /> Our Policies
-              </button>
 
               {!isAuthLoading && !user ? (
                 <button 
