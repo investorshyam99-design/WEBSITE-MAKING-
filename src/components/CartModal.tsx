@@ -247,7 +247,7 @@ export function CartModal() {
   );
   const total = Math.max(0, subtotal - discount);
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = 150 * itemsCount;
+  const advanceAmount = Math.max(0, 150 * itemsCount - discount);
   const codExtra = 50 * itemsCount;
 
   const handlePincodeChange = async (

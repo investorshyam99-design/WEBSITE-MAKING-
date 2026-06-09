@@ -36,8 +36,9 @@ async function startServer() {
       itemsTotal = Math.max(0, itemsTotal - discount);
 
       if (paymentMode === 'partial') {
-        // Advance remains the same, discount will apply to the COD balance
-        amount = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+        // Advance amount is reduced by the discount
+        const baseAdvance = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+        amount = Math.max(0, baseAdvance - discount);
       } else {
         amount = itemsTotal;
       }
