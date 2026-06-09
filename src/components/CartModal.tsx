@@ -31,64 +31,6 @@ const loadRazorpayScript = () => {
   });
 };
 
-const validateCouponForCart = (items: any[]) => {
-  if (items.length === 0) {
-    return { isValid: false, message: "Your cart is empty." };
-  }
-
-  // Check if there are any excluded items: sublimation and Indian embroidery jerseys
-  const hasExcluded = items.some((item) => {
-    const name = (item.name || "").toLowerCase();
-    const category = (item.category || "").toLowerCase();
-    return (
-      category === "sublimation" ||
-      category === "indian" ||
-      name.includes("sublimation") ||
-      name.includes("sublimition") ||
-      name.includes("indian embroidery") ||
-      name.includes("embroidery")
-    );
-  });
-
-  if (hasExcluded) {
-    return {
-      isValid: false,
-      message:
-        "❌ UNICORN100 is not applicable on sublimation or Indian embroidery jerseys.",
-    };
-  }
-
-  // Check if there is at least one eligible item: player version, fan version, or master version
-  const hasEligible = items.some((item) => {
-    const name = (item.name || "").toLowerCase();
-    const category = (item.category || "").toLowerCase();
-    return (
-      category === "player" ||
-      category === "fan" ||
-      category === "master" ||
-      name.includes("player version") ||
-      name.includes("fan version") ||
-      name.includes("master version") ||
-      name.includes("player") ||
-      name.includes("fan") ||
-      name.includes("master")
-    );
-  });
-
-  if (!hasEligible) {
-    return {
-      isValid: false,
-      message:
-        "❌ UNICORN100 is only valid for Player, Fan, or Master version jerseys.",
-    };
-  }
-
-  return {
-    isValid: true,
-    message: "🎉 UNICORN100 Applied Successfully! ₹100 Discount Added.",
-  };
-};
-
 export function CartModal() {
   const {
     cart,
@@ -121,12 +63,7 @@ export function CartModal() {
   }, [user]);
 
   const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
-  const [couponCode, setCouponCode] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const [couponMessage, setCouponMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -174,16 +111,6 @@ export function CartModal() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (discount > 0) {
-      const validation = validateCouponForCart(cart);
-      if (!validation.isValid) {
-        setDiscount(0);
-        setCouponMessage({ type: "error", text: validation.message });
-      }
-    }
-  }, [cart]);
-
   // Draft Order Creation
   useEffect(() => {
     if (!fullName || phone.length !== 10 || cart.length === 0) return;
@@ -204,8 +131,6 @@ export function CartModal() {
           })),
           status: "draft",
           paymentMode,
-          discount,
-          couponCode: discount > 0 ? "UNICORN100" : null,
           updatedAt: serverTimestamp(),
         };
 
@@ -245,7 +170,7 @@ export function CartModal() {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = Math.max(0, subtotal - discount);
+  const total = subtotal;
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const advanceAmount = 150 * itemsCount;
   const codExtra = 50 * itemsCount;
@@ -292,28 +217,6 @@ export function CartModal() {
     }, 100);
   };
 
-  const handleApplyCoupon = () => {
-    const code = couponCode.trim().toUpperCase();
-    if (!code) return;
-
-    if (code !== "UNICORN100") {
-      setCouponMessage({ type: "error", text: "❌ Invalid coupon code." });
-      setDiscount(0);
-      return;
-    }
-
-    const validation = validateCouponForCart(cart);
-
-    if (!validation.isValid) {
-      setCouponMessage({ type: "error", text: validation.message });
-      setDiscount(0);
-      return;
-    }
-
-    setDiscount(100);
-    setCouponMessage({ type: "success", text: validation.message });
-  };
-
   const handleCheckout = async () => {
     if (
       !fullName ||
@@ -351,8 +254,7 @@ export function CartModal() {
       // 1. Create order in Firestore as Pending
       const createdOrderIds: string[] = [];
       for (const item of cart) {
-        const itemDiscount = discount > 0 ? discount / cart.length : 0;
-        const itemFinalPrice = item.price * item.quantity - itemDiscount;
+        const itemFinalPrice = item.price * item.quantity;
         const itemCodExtra = paymentMode === "partial" ? 50 * item.quantity : 0;
         const itemAdvance =
           paymentMode === "partial" ? 150 * item.quantity : itemFinalPrice;
@@ -377,8 +279,6 @@ export function CartModal() {
           advancePaid: itemAdvance,
           remainingCodAmount: itemRemainingCod,
           finalTotal: itemFinalPrice + itemCodExtra,
-          discountApplied: itemDiscount,
-          couponCode: discount > 0 ? couponCode || "UNICORN100" : null,
           status:
             paymentMode === "full"
               ? "pending full payment"
@@ -392,8 +292,7 @@ export function CartModal() {
         createdOrderIds.push(docRef.id);
       }
 
-      const finalAmountAfterDiscount =
-        paymentMode === "full" ? total : advanceAmount;
+      const finalAmountToPay = paymentMode === "full" ? total : advanceAmount;
 
       // 2. Create Razorpay order on server
       const response = await fetch("/api/create-razorpay-order", {
@@ -405,8 +304,7 @@ export function CartModal() {
           address: combinedAddress,
           phone,
           paymentMode, // Send 'full' or 'partial'
-          discount,
-          finalAmount: finalAmountAfterDiscount,
+          finalAmount: finalAmountToPay,
         }),
       });
 
@@ -639,48 +537,11 @@ export function CartModal() {
                   </div>
 
                   <div className="bg-white border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] px-4 md:px-6 py-8 space-y-8">
-                    {/* Coupon Section */}
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
-                        Apply Coupon
-                      </h3>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Enter Coupon Code"
-                          value={couponCode}
-                          onChange={(e) =>
-                            setCouponCode(e.target.value.toUpperCase())
-                          }
-                          className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] transition-colors"
-                        />
-                        <button
-                          onClick={handleApplyCoupon}
-                          className="bg-[#1E2A44] text-white px-6 rounded-xl font-bold uppercase text-xs tracking-widest shadow-sm hover:bg-[#223A5E] transition-colors"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                      {couponMessage && (
-                        <p
-                          className={`text-[10px] font-bold uppercase tracking-wider ml-1 mt-1 ${couponMessage.type === "success" ? "text-green-600" : "text-red-500"}`}
-                        >
-                          {couponMessage.text}
-                        </p>
-                      )}
-                    </div>
-
                     <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
                       <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest">
                         <span>Subtotal</span>
                         <span>₹{subtotal.toLocaleString()}</span>
                       </div>
-                      {discount > 0 && (
-                        <div className="flex justify-between text-xs font-bold text-green-600 uppercase tracking-widest">
-                          <span>Discount ({couponCode})</span>
-                          <span>-₹{discount.toLocaleString()}</span>
-                        </div>
-                      )}
                       <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest">
                         <span>Shipping</span>
                         <span className="text-green-600">FREE</span>

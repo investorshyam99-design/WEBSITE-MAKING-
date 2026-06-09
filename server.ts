@@ -41,8 +41,6 @@ async function startServer() {
           (sum: any, item: any) => sum + item.price * item.quantity,
           0,
         );
-        const discount = Number(req.body.discount) || 0;
-        itemsTotal = Math.max(0, itemsTotal - discount);
 
         if (paymentMode === "partial") {
           const baseAdvance =
