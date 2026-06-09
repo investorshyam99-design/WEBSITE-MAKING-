@@ -379,6 +379,9 @@ export function CartModal() {
         createdOrderIds.push(docRef.id);
       }
 
+      const finalAmountAfterDiscount =
+        paymentMode === "full" ? total : advanceAmount;
+
       // 2. Create Razorpay order on server
       const response = await fetch("/api/create-razorpay-order", {
         method: "POST",
@@ -390,6 +393,7 @@ export function CartModal() {
           phone,
           paymentMode, // Send 'full' or 'partial'
           discount,
+          finalAmount: finalAmountAfterDiscount,
         }),
       });
 

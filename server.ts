@@ -2,8 +2,8 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 let razorpayClient: Razorpay | null = null;
 export function getRazorpay(): Razorpay {
@@ -11,7 +11,9 @@ export function getRazorpay(): Razorpay {
     const key_id = process.env.RAZORPAY_KEY_ID;
     const key_secret = process.env.RAZORPAY_KEY_SECRET;
     if (!key_id || !key_secret) {
-      throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET variables are required');
+      throw new Error(
+        "RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET variables are required",
+      );
     }
     razorpayClient = new Razorpay({ key_id, key_secret });
   }
@@ -25,61 +27,80 @@ async function startServer() {
   app.use(express.json());
 
   // Razorpay Order API
-  app.post('/api/create-razorpay-order', async (req, res) => {
+  app.post("/api/create-razorpay-order", async (req, res) => {
     try {
-      const { items, paymentMode } = req.body;
+      const { items, paymentMode, finalAmount } = req.body;
       const razorpay = getRazorpay();
-      
-      let amount = 0;
-      let itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
-      const discount = Number(req.body.discount) || 0;
-      itemsTotal = Math.max(0, itemsTotal - discount);
 
-      if (paymentMode === 'partial') {
-        // Advance amount is reduced by the discount
-        const baseAdvance = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
-        amount = Math.max(0, baseAdvance - discount);
+      let amount = 0;
+      if (finalAmount !== undefined) {
+        amount = Number(finalAmount);
       } else {
-        amount = itemsTotal;
+        // Fallback calculation just in case
+        let itemsTotal = items.reduce(
+          (sum: any, item: any) => sum + item.price * item.quantity,
+          0,
+        );
+        const discount = Number(req.body.discount) || 0;
+        itemsTotal = Math.max(0, itemsTotal - discount);
+
+        if (paymentMode === "partial") {
+          const baseAdvance =
+            150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+          amount = Math.max(0, baseAdvance - discount);
+        } else {
+          amount = itemsTotal;
+        }
       }
 
       const options = {
-        amount: amount * 100, // amount in the smallest currency unit
+        amount: Math.round(amount * 100), // amount in the smallest currency unit
         currency: "INR",
         receipt: "receipt_order_" + Date.now(),
       };
 
       const order = await razorpay.orders.create(options);
-      res.json({ id: order.id, amount: order.amount, currency: order.currency, key_id: process.env.RAZORPAY_KEY_ID });
+      res.json({
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        key_id: process.env.RAZORPAY_KEY_ID,
+      });
     } catch (error: any) {
-      console.error('Error creating razorpay order:', error);
+      console.error("Error creating razorpay order:", error);
       res.status(500).json({ error: error.message });
     }
   });
 
   // Razorpay Verify API
-  app.post('/api/verify-razorpay-payment', (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const key_secret = process.env.RAZORPAY_KEY_SECRET || '';
+  app.post("/api/verify-razorpay-payment", (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET || "";
 
     const generated_signature = crypto
-      .createHmac('sha256', key_secret)
+      .createHmac("sha256", key_secret)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest('hex');
+      .digest("hex");
 
     if (generated_signature === razorpay_signature) {
       res.json({ success: true, message: "Payment verified successfully" });
     } else {
-      res.status(400).json({ success: false, message: "Payment verification failed" });
+      res
+        .status(400)
+        .json({ success: false, message: "Payment verification failed" });
     }
   });
 
   app.post("/api/shopify", async (req, res) => {
     try {
       const { query } = req.body;
-      const domain = process.env.VITE_SHOPIFY_DOMAIN || "https://0qtwuu-br.myshopify.com";
-      const token = process.env.VITE_SHOPIFY_STOREFRONT_TOKEN || "e711ef4603f75af0b8370a9b8ebeb2e5";
-      
+      const domain =
+        process.env.VITE_SHOPIFY_DOMAIN || "https://0qtwuu-br.myshopify.com";
+      const token =
+        process.env.VITE_SHOPIFY_STOREFRONT_TOKEN ||
+        "e711ef4603f75af0b8370a9b8ebeb2e5";
+
       const response = await fetch(`${domain}/api/2024-01/graphql.json`, {
         method: "POST",
         headers: {
@@ -101,21 +122,23 @@ async function startServer() {
   app.post("/api/gemini/chat", async (req, res) => {
     try {
       const { messages } = req.body;
-      
+
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        return res.status(500).json({ error: "Missing GEMINI_API_KEY on the server." });
+        return res
+          .status(500)
+          .json({ error: "Missing GEMINI_API_KEY on the server." });
       }
 
       const ai = new GoogleGenAI({
         apiKey: apiKey,
         httpOptions: {
           headers: {
-            'User-Agent': 'aistudio-build',
-          }
-        }
+            "User-Agent": "aistudio-build",
+          },
+        },
       });
-      
+
       const systemInstruction = `You are a real-time human-like Voice AI Assistant for a modern website, based in India.
 
 Your job is to talk naturally like two humans having a real conversation — not like a robotic chatbot.
@@ -239,24 +262,29 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
       let history = messages.slice(0, -1);
       const currentMessage = messages[messages.length - 1];
 
-      // Restore history if this is a continued conversation. 
+      // Restore history if this is a continued conversation.
       // The GenAI SDK supports multiple turns. However, it's easier to reconstruct chat history manually or use the multi-turn API.
       // But let's build the full context into a single string for simpler logic, or just send recent exchanges.
-      
-      let contextStr = history.map((m: any) => `${m.role === 'user' ? 'User' : 'Jersey Unicorn AI'}: ${m.content}`).join('\\n');
-      
+
+      let contextStr = history
+        .map(
+          (m: any) =>
+            `${m.role === "user" ? "User" : "Jersey Unicorn AI"}: ${m.content}`,
+        )
+        .join("\\n");
+
       let prompt = `Conversation History:\n${contextStr}\n\nUser: ${currentMessage.content}\n\nPlease reply as Jersey Unicorn AI.`;
-      
-      if(history.length === 0){
+
+      if (history.length === 0) {
         prompt = currentMessage.content;
       }
 
       const response = await chat.sendMessage({ message: prompt });
       const responseText = response.text;
-      
+
       let audioData = null;
       // Disabling Gemini TTS to allow the client to use the browser's native SpeechSynthesis.
-      // The browser's native Google voices (e.g. Google हिन्दी and en-IN accents) sound significantly 
+      // The browser's native Google voices (e.g. Google हिन्दी and en-IN accents) sound significantly
       // more like a real Indian speaker for Hindi and Indian English than current generic Gemini AI voices.
       /*
       if (req.body.voice === true) {
@@ -283,12 +311,13 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
         }
       }
       */
-      
+
       res.json({ text: responseText, audio: audioData });
-      
     } catch (error: any) {
       console.error("AI Error: ", error);
-      res.status(500).json({ error: error.message || "Failed to generate AI response" });
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to generate AI response" });
     }
   });
 
@@ -300,10 +329,10 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    app.get("*all", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
