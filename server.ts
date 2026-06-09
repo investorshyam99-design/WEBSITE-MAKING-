@@ -47,7 +47,7 @@ async function startServer() {
         if (paymentMode === "partial") {
           const baseAdvance =
             150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
-          amount = Math.max(0, baseAdvance - discount);
+          amount = baseAdvance;
         } else {
           amount = itemsTotal;
         }

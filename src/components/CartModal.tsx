@@ -247,7 +247,7 @@ export function CartModal() {
   );
   const total = Math.max(0, subtotal - discount);
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = Math.max(0, 150 * itemsCount - discount);
+  const advanceAmount = 150 * itemsCount;
   const codExtra = 50 * itemsCount;
 
   const handlePincodeChange = async (
@@ -351,6 +351,16 @@ export function CartModal() {
       // 1. Create order in Firestore as Pending
       const createdOrderIds: string[] = [];
       for (const item of cart) {
+        const itemDiscount = discount > 0 ? discount / cart.length : 0;
+        const itemFinalPrice = item.price * item.quantity - itemDiscount;
+        const itemCodExtra = paymentMode === "partial" ? 50 * item.quantity : 0;
+        const itemAdvance =
+          paymentMode === "partial" ? 150 * item.quantity : itemFinalPrice;
+        const itemRemainingCod =
+          paymentMode === "partial"
+            ? itemFinalPrice + itemCodExtra - itemAdvance
+            : 0;
+
         const docRef = await addDoc(collection(db, "orders"), {
           userId: user ? user.uid : "guest",
           productId: item.id,
@@ -361,11 +371,14 @@ export function CartModal() {
           customization: item.customization
             ? `${item.customization.name} (${item.customization.number})`
             : null,
-          price:
-            item.price * item.quantity -
-            (discount > 0 ? discount / cart.length : 0),
-          discountApplied: discount > 0 ? discount / cart.length : 0,
-          couponCode: discount > 0 ? "UNICORN100" : null,
+          price: itemFinalPrice,
+          originalPrice: item.price * item.quantity,
+          codCharges: itemCodExtra,
+          advancePaid: itemAdvance,
+          remainingCodAmount: itemRemainingCod,
+          finalTotal: itemFinalPrice + itemCodExtra,
+          discountApplied: itemDiscount,
+          couponCode: discount > 0 ? couponCode || "UNICORN100" : null,
           status:
             paymentMode === "full"
               ? "pending full payment"
@@ -432,7 +445,15 @@ export function CartModal() {
                   paymentId: response.razorpay_payment_id,
                 });
               }
-              alert("Payment Successful! Thank you for your order.");
+              if (paymentMode === "full") {
+                alert(
+                  `Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order.`,
+                );
+              } else {
+                alert(
+                  `Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nRemaining COD Amount: ₹${total - advanceAmount + codExtra}\nPay remaining amount during delivery.`,
+                );
+              }
               setIsCartOpen(false);
               clearCart();
               if (user) {
@@ -676,6 +697,18 @@ export function CartModal() {
                           ₹{paymentMode === "full" ? total : total + codExtra}
                         </span>
                       </div>
+                      {paymentMode === "partial" && (
+                        <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 mt-3">
+                          <div className="flex justify-between text-xs font-bold text-[#1E2A44] uppercase tracking-widest">
+                            <span>Advance Paid Now</span>
+                            <span>₹{advanceAmount}</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <span>Remaining COD Amount</span>
+                            <span>₹{total - advanceAmount + codExtra}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-4">
