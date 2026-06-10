@@ -7,7 +7,7 @@ import { useShop } from "../context/ShopContext";
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   return (
     <div className="group cursor-pointer">
-      <Link to={`/product/${encodeURIComponent(product.id)}`} className="block">
+      <Link to={`/products/${product.slug}`} className="block">
         <div className="aspect-[3/4] bg-[#F5EFE6] relative flex items-center justify-center overflow-hidden rounded-xl">
           <img 
             src={product.image || undefined} 

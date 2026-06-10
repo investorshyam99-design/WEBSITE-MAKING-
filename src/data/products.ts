@@ -10,6 +10,7 @@ export type Product = {
   category: string;
   description?: string;
   variantId?: string;
+  slug: string;
 };
 
 export const categories = [
@@ -47,6 +48,13 @@ const mockImages = [
   "https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2070&auto=format&fit=crop"
 ];
 
+export function generateProductSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
 // Global store for parsed products
 let shopifyProductsStore: Product[] = [];
 
@@ -77,7 +85,8 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       galleryImages: images.length > 0 ? images : [mainImage],
       category: category,
       description: sp.description || "Premium quality football jersey. Express your passion for the game.",
-      variantId: rawVariantId
+      variantId: rawVariantId,
+      slug: generateProductSlug(title)
     };
   });
 }
@@ -148,5 +157,13 @@ export function useProducts() {
 
 // For accessing products outside of components if immediately needed, 
 // but it is recommended to use the hook or wait for shopifyProductsStore to populate.
-export const getProductById = (id: string, currentProducts: Product[]) => currentProducts.find(p => p.id === id);
+export const getProductById = (idOrSlug: string, currentProducts: Product[]) => {
+  const decoded = decodeURIComponent(idOrSlug || "");
+  return currentProducts.find(
+    p =>
+      p.id === decoded ||
+      p.id.replace("gid://shopify/Product/", "") === decoded ||
+      p.slug === decoded
+  );
+};
 export const getProductsByCategory = (categoryId: string, currentProducts: Product[]) => currentProducts.filter(p => p.category === categoryId);

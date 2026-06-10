@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   useProducts,
   getProductById,
@@ -39,15 +39,25 @@ import { useShop } from "../context/ShopContext";
 const SIZES = ["S", "M", "L", "XL", "XXL"];
 
 export function ProductPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, slug } = useParams<{ id?: string; slug?: string }>();
+  const navigate = useNavigate();
   const { products, isLoading } = useProducts();
   const { addToCart, setIsCartOpen } = useShop();
-  const decodedId = useMemo(() => (id ? decodeURIComponent(id) : ""), [id]);
+
+  const activeKey = slug || id || "";
+  const decodedKey = useMemo(() => (activeKey ? decodeURIComponent(activeKey) : ""), [activeKey]);
 
   const product = useMemo(
-    () => getProductById(decodedId, products),
-    [decodedId, products],
+    () => getProductById(decodedKey, products),
+    [decodedKey, products],
   );
+
+  // If visited via legacy ID route /product/:id, redirect to custom slug route /products/:slug
+  useEffect(() => {
+    if (id && product && !isLoading) {
+      navigate(`/products/${product.slug}`, { replace: true });
+    }
+  }, [id, product, isLoading, navigate]);
 
   const stats = useMemo(() => {
     if (!product) return { avgRating: "4.9", reviewCount: 120 };
@@ -77,7 +87,7 @@ export function ProductPage() {
 
   const handleCopyLink = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const shareUrl = `${window.location.origin}/products/${product.slug}`;
     navigator.clipboard
       .writeText(shareUrl)
       .then(() => {
@@ -92,7 +102,7 @@ export function ProductPage() {
 
   const shareWhatsApp = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const shareUrl = `${window.location.origin}/products/${product.slug}`;
     const text = `Check out this premium jersey: ${product.name} at ${shareUrl}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, "_blank");
@@ -100,7 +110,7 @@ export function ProductPage() {
 
   const shareInstagram = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const shareUrl = `${window.location.origin}/products/${product.slug}`;
     navigator.clipboard
       .writeText(shareUrl)
       .then(() => {
@@ -116,7 +126,7 @@ export function ProductPage() {
 
   const shareTelegram = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const shareUrl = `${window.location.origin}/products/${product.slug}`;
     const text = `Check out this premium Jersey: ${product.name}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
     window.open(telegramUrl, "_blank");
@@ -124,7 +134,7 @@ export function ProductPage() {
 
   const shareSnapchat = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const shareUrl = `${window.location.origin}/products/${product.slug}`;
     const snapchatUrl = `https://www.snapchat.com/share?url=${encodeURIComponent(shareUrl)}`;
     window.open(snapchatUrl, "_blank");
   };
@@ -179,7 +189,7 @@ export function ProductPage() {
     if (product) {
       setActiveImage(product.image);
     }
-  }, [decodedId, product]);
+  }, [decodedKey, product]);
 
   if (isLoading) {
     return (

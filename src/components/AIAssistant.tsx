@@ -61,7 +61,7 @@ export function AIAssistant() {
   useEffect(() => {
     if (location.pathname !== lastLocationRef.current) {
       lastLocationRef.current = location.pathname;
-      if (location.pathname.includes('/product/')) {
+      if (location.pathname.includes('/product/') || location.pathname.includes('/products/')) {
         setTimeout(() => {
           setMessages(prev => {
             const lastMsg = prev[prev.length - 1];

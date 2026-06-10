@@ -116,7 +116,7 @@ async function startServer() {
     }
   });
 
-  // Meta Catalog RSS/XML Feed for Dynamic Instagram Ads
+  // Meta Catalog CSV Feed for Dynamic Instagram/Meta Ads
   app.get("/api/meta-catalog", async (req, res) => {
     try {
       const domain =
@@ -175,56 +175,76 @@ async function startServer() {
 
       const products = json.data.products.edges.map((edge: any) => edge.node) || [];
 
-      // Reconstruct dynamic store base URL
-      const host = req.get("host") || "jerseyunicorn.com";
-      const protocol = req.secure ? "https" : "http";
-      const baseUrl = `${protocol}://${host}`;
+      // Force the base URL to be the custom production URL as requested: jerseyunicorn.com
+      const baseUrl = "https://jerseyunicorn.com";
 
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      xml += `<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">\n`;
-      xml += `  <channel>\n`;
-      xml += `    <title>Jersey Unicorn Products</title>\n`;
-      xml += `    <link>${baseUrl}</link>\n`;
-      xml += `    <description>Premium quality football jerseys from Jersey Unicorn</description>\n`;
+      const escapeCSV = (val: string): string => {
+        if (val === null || val === undefined) return "";
+        let str = String(val).trim();
+        // Compact single spaces instead of complex whitespace
+        str = str.replace(/\s+/g, ' ');
+        if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+          str = '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+      };
+
+      const headers = [
+        "id",
+        "title",
+        "description",
+        "link",
+        "image_link",
+        "brand",
+        "condition",
+        "availability",
+        "price",
+        "google_product_category"
+      ];
+
+      const rows = [headers.join(",")];
 
       for (const item of products) {
         const id = item.id.replace("gid://shopify/Product/", "");
         const title = item.title;
-        // Escape special XML characters for safety
-        const descEscaped = (item.description || "Premium quality football jersey. Express your passion for the game.")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
+        // Generate clean URL slug matching frontend behavior
+        const slug = title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
 
-        const link = `${baseUrl}/product/${id}`;
+        const description = item.description || "Premium quality football jersey. Express your passion for the game.";
+        const link = `${baseUrl}/products/${slug}`;
         
         const images = item.images?.edges.map((e: any) => e.node.url) || [];
         const mainImage = images[0] || "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop";
         const price = item.variants?.edges[0]?.node?.price?.amount || "1199";
         const currency = item.variants?.edges[0]?.node?.price?.currencyCode || "INR";
 
-        xml += `    <item>\n`;
-        xml += `      <g:id>${id}</g:id>\n`;
-        xml += `      <g:title><![CDATA[${title}]]></g:title>\n`;
-        xml += `      <g:description><![CDATA[${descEscaped}]]></g:description>\n`;
-        xml += `      <g:link>${link}</g:link>\n`;
-        xml += `      <g:image_link>${mainImage}</g:image_link>\n`;
-        xml += `      <g:brand>Jersey Unicorn</g:brand>\n`;
-        xml += `      <g:condition>new</g:condition>\n`;
-        xml += `      <g:availability>in stock</g:availability>\n`;
-        xml += `      <g:price>${price} ${currency}</g:price>\n`;
-        xml += `      <g:google_product_category>Apparel &amp; Accessories &gt; Clothing &gt; Activewear &gt; Athletic Jerseys &gt; Football Jerseys</g:google_product_category>\n`;
-        xml += `    </item>\n`;
+        const googleProductCategory = "Apparel & Accessories > Clothing > Activewear > Athletic Jerseys > Football Jerseys";
+
+        const row = [
+          escapeCSV(id),
+          escapeCSV(title),
+          escapeCSV(description),
+          escapeCSV(link),
+          escapeCSV(mainImage),
+          escapeCSV("Jersey Unicorn"),
+          escapeCSV("new"),
+          escapeCSV("in stock"),
+          escapeCSV(`${price} ${currency}`),
+          escapeCSV(googleProductCategory)
+        ];
+
+        rows.push(row.join(","));
       }
 
-      xml += `  </channel>\n`;
-      xml += `</rss>\n`;
-
-      res.header("Content-Type", "application/xml");
-      res.status(200).send(xml);
+      res.header("Content-Type", "text/csv");
+      res.attachment("meta_catalog_feed.csv");
+      res.status(200).send(rows.join("\n"));
     } catch (error: any) {
       console.error("Error creating Meta catalog feed:", error);
-      res.status(500).send(`<error>Failed to generate catalog feed: ${error.message}</error>`);
+      res.status(500).send(`Failed to generate catalog feed: ${error.message}`);
     }
   });
 

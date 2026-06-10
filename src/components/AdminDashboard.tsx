@@ -300,10 +300,14 @@ function AdminOrderCard({
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const product = products.find((p) => p.name === order.productName);
-    const pid = (order as any).productId || product?.id;
-    if (pid) {
-      navigate(`/product/${encodeURIComponent(pid)}`);
+    const product = products.find((p) => p.name === order.productName || p.id === (order as any).productId);
+    if (product) {
+      navigate(`/products/${product.slug}`);
+    } else {
+      const pid = (order as any).productId;
+      if (pid) {
+        navigate(`/products/${encodeURIComponent(pid)}`);
+      }
     }
   };
 
