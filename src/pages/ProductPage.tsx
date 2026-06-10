@@ -1,15 +1,38 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useProducts, getProductById, getProductsByCategory } from "../data/products";
+import {
+  useProducts,
+  getProductById,
+  getProductsByCategory,
+} from "../data/products";
 import { ProductCard } from "../components/ProductCard";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { TrustSection } from "../components/TrustSection";
 import { InstagramSection } from "../components/InstagramSection";
 import { SizeGuideModal } from "../components/SizeGuideModal";
-import { ReviewsSection, getProductReviewsInfo } from "../components/ReviewsSection";
+import {
+  ReviewsSection,
+  getProductReviewsInfo,
+} from "../components/ReviewsSection";
 import { FAQ } from "../components/FAQ";
-import { ChevronRight, ChevronLeft, ShieldCheck, Truck, RefreshCcw, Star, CheckCircle2, Lock, Shirt } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  ShieldCheck,
+  Truck,
+  RefreshCcw,
+  Star,
+  CheckCircle2,
+  Lock,
+  Shirt,
+  Share2,
+  Copy,
+  Check,
+  MessageCircle,
+  Instagram,
+  Send,
+} from "lucide-react";
 import { cn } from "../lib/utils";
 import { useShop } from "../context/ShopContext";
 
@@ -19,15 +42,18 @@ export function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const { products, isLoading } = useProducts();
   const { addToCart, setIsCartOpen } = useShop();
-  const decodedId = useMemo(() => id ? decodeURIComponent(id) : "", [id]);
-  
-  const product = useMemo(() => getProductById(decodedId, products), [decodedId, products]);
-  
+  const decodedId = useMemo(() => (id ? decodeURIComponent(id) : ""), [id]);
+
+  const product = useMemo(
+    () => getProductById(decodedId, products),
+    [decodedId, products],
+  );
+
   const stats = useMemo(() => {
     if (!product) return { avgRating: "4.9", reviewCount: 120 };
     return getProductReviewsInfo(product.id);
   }, [product]);
-  
+
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [isCustomized, setIsCustomized] = useState(false);
   const [customName, setCustomName] = useState("");
@@ -36,21 +62,83 @@ export function ProductPage() {
   const [activeImage, setActiveImage] = useState<string>("");
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({});
-  
+
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleCopyLink = () => {
+    if (!product) return;
+    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        setIsCopied(true);
+        showToast("Link copied to clipboard!");
+        setTimeout(() => setIsCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy link: ", err);
+      });
+  };
+
+  const shareWhatsApp = () => {
+    if (!product) return;
+    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const text = `Check out this premium jersey: ${product.name} at ${shareUrl}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const shareInstagram = () => {
+    if (!product) return;
+    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        showToast("Link copied! Paste it in Instagram.");
+        setTimeout(() => {
+          window.open("https://instagram.com", "_blank");
+        }, 800);
+      })
+      .catch(() => {
+        window.open("https://instagram.com", "_blank");
+      });
+  };
+
+  const shareTelegram = () => {
+    if (!product) return;
+    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const text = `Check out this premium Jersey: ${product.name}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(telegramUrl, "_blank");
+  };
+
+  const shareSnapchat = () => {
+    if (!product) return;
+    const shareUrl = `${window.location.origin}/product/${encodeURIComponent(product.id)}`;
+    const snapchatUrl = `https://www.snapchat.com/share?url=${encodeURIComponent(shareUrl)}`;
+    window.open(snapchatUrl, "_blank");
+  };
 
   const minSwipeDistance = 50;
 
   useEffect(() => {
     const handleScroll = () => {
-      const isBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 800;
+      const isBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 800;
       setIsScrolledToBottom(isBottom);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -62,23 +150,25 @@ export function ProductPage() {
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const galleryImages = product?.galleryImages || (product ? [product.image] : []);
+  const galleryImages =
+    product?.galleryImages || (product ? [product.image] : []);
 
   const onTouchEndHandler = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-    
+
     if (isLeftSwipe || isRightSwipe) {
       const currentIndex = galleryImages.indexOf(activeImage);
       if (currentIndex === -1) return;
-      
+
       if (isLeftSwipe) {
         const nextIndex = (currentIndex + 1) % galleryImages.length;
         setActiveImage(galleryImages[nextIndex]);
       } else if (isRightSwipe) {
-        const prevIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+        const prevIndex =
+          (currentIndex - 1 + galleryImages.length) % galleryImages.length;
         setActiveImage(galleryImages[prevIndex]);
       }
     }
@@ -87,7 +177,7 @@ export function ProductPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     if (product) {
-       setActiveImage(product.image);
+      setActiveImage(product.image);
     }
   }, [decodedId, product]);
 
@@ -96,9 +186,7 @@ export function ProductPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center text-[#F5EFE6]0">
-            Loading...
-          </div>
+          <div className="text-center text-[#F5EFE6]0">Loading...</div>
         </div>
         <Footer />
       </div>
@@ -112,7 +200,12 @@ export function ProductPage() {
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">Product not found</h2>
-            <Link to="/" className="text-[#1E2A44] underline font-bold uppercase tracking-widest">Return to shop</Link>
+            <Link
+              to="/"
+              className="text-[#1E2A44] underline font-bold uppercase tracking-widest"
+            >
+              Return to shop
+            </Link>
           </div>
         </div>
         <Footer />
@@ -133,7 +226,11 @@ export function ProductPage() {
       alert("Please enter a name for customization");
       return;
     }
-    addToCart(product, selectedSize, isCustomized ? { name: customName, number: customNumber } : undefined);
+    addToCart(
+      product,
+      selectedSize,
+      isCustomized ? { name: customName, number: customNumber } : undefined,
+    );
     setIsCartOpen(true);
   };
 
@@ -146,24 +243,29 @@ export function ProductPage() {
       alert("Please enter a name for customization");
       return;
     }
-    addToCart(product, selectedSize, isCustomized ? { name: customName, number: customNumber } : undefined);
+    addToCart(
+      product,
+      selectedSize,
+      isCustomized ? { name: customName, number: customNumber } : undefined,
+    );
     setIsCartOpen(true);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isZoomed) return;
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const { left, top, width, height } =
+      e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
-    
+
     setZoomStyle({
       transformOrigin: `${x}% ${y}%`,
-      transform: "scale(2.5)"
+      transform: "scale(2.5)",
     });
   };
 
   const handleMouseEnter = () => setIsZoomed(true);
-  
+
   const handleMouseLeave = () => {
     setIsZoomed(false);
     setZoomStyle({ transform: "scale(1)", transformOrigin: "center center" });
@@ -181,33 +283,51 @@ export function ProductPage() {
     e.stopPropagation();
     const currentIndex = galleryImages.indexOf(activeImage);
     if (currentIndex === -1) return;
-    const prevIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+    const prevIndex =
+      (currentIndex - 1 + galleryImages.length) % galleryImages.length;
     setActiveImage(galleryImages[prevIndex]);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white relative">
+      {toastMessage && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-[#1E2A44] border border-[#1E2A44]/20 text-white px-6 py-3.5 rounded-full font-black uppercase text-xs tracking-widest flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <CheckCircle2 className="w-4.5 h-4.5 text-green-400 flex-shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="border-b border-gray-100 bg-[#F5EFE6]/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-[#F5EFE6]0">
-          <Link to="/" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Home</Link>
+          <Link
+            to="/"
+            className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"
+          >
+            Home
+          </Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
-          <Link to="/" className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider">Shop</Link>
+          <Link
+            to="/"
+            className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"
+          >
+            Shop
+          </Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
-          <span className="text-[#1B1B1B] font-black uppercase tracking-wider truncate">{product.name}</span>
+          <span className="text-[#1B1B1B] font-black uppercase tracking-wider truncate">
+            {product.name}
+          </span>
         </div>
       </div>
 
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 w-full relative">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-20">
-          
           {/* Image Gallery */}
           <div className="flex-1">
             <div className="sticky top-24 space-y-4">
               {/* Main Image with Zoom and Swipe */}
-              <div 
+              <div
                 className="aspect-[4/5] bg-gray-100 rounded-xl flex items-center justify-center p-0 overflow-hidden cursor-crosshair relative group shadow-sm"
                 onMouseMove={handleMouseMove}
                 onMouseEnter={handleMouseEnter}
@@ -216,39 +336,41 @@ export function ProductPage() {
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEndHandler}
               >
-                <img 
-                  src={activeImage || undefined} 
-                  alt={product.name} 
+                <img
+                  src={activeImage || undefined}
+                  alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-200 ease-out pointer-events-none md:pointer-events-auto"
                   style={zoomStyle}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none z-10" />
-                
+
                 {/* Overlay Controls */}
                 {galleryImages.length > 1 && (
                   <>
-                    <button 
+                    <button
                       onClick={handlePrevImage}
                       className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:flex hidden"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                       onClick={handleNextImage}
                       className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:flex hidden"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
-                    
+
                     {/* Dots for mobile */}
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-1.5 md:hidden">
                       {galleryImages.map((img, idx) => (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           className={cn(
                             "w-1.5 h-1.5 rounded-full transition-all",
-                            activeImage === img ? "bg-black w-3" : "bg-black/30"
-                          )} 
+                            activeImage === img
+                              ? "bg-black w-3"
+                              : "bg-black/30",
+                          )}
                         />
                       ))}
                     </div>
@@ -257,59 +379,69 @@ export function ProductPage() {
 
                 {/* Zoom Hint */}
                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#1B1B1B] rounded shadow-sm opacity-100 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none hidden md:block">
-                   Hover to Zoom
+                  Hover to Zoom
                 </div>
               </div>
-              
+
               {/* Thumbnails */}
               <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                 {galleryImages.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImage(img)}
-                      className={cn(
-                        "flex-shrink-0 w-20 h-24 rounded-lg border-2 transition-all overflow-hidden",
-                        activeImage === img ? "border-[#1E2A44]" : "border-transparent hover:border-gray-200"
-                      )}
-                    >
-                       <img src={img || undefined} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                 ))}
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImage(img)}
+                    className={cn(
+                      "flex-shrink-0 w-20 h-24 rounded-lg border-2 transition-all overflow-hidden",
+                      activeImage === img
+                        ? "border-[#1E2A44]"
+                        : "border-transparent hover:border-gray-200",
+                    )}
+                  >
+                    <img
+                      src={img || undefined}
+                      alt={`${product.name} thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Product Details */}
           <div className="flex-1 flex flex-col pb-8 md:pb-0">
-            
             <div className="mb-6">
-               <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center text-yellow-400">
-                     <Star className="h-4 w-4 fill-current" />
-                     <Star className="h-4 w-4 fill-current" />
-                     <Star className="h-4 w-4 fill-current" />
-                     <Star className="h-4 w-4 fill-current" />
-                     <Star className="h-4 w-4 fill-current" />
-                  </div>
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{stats.avgRating} ({stats.reviewCount} Reviews)</span>
-               </div>
-               
-               <h1 className="text-3xl md:text-5xl font-black text-[#1B1B1B] tracking-tight mb-2 uppercase leading-none">
-                 {product.name.replace(/\s*\(.*\)\s*/g, '')}
-               </h1>
-               {product.name.includes('(') && (
-                 <p className="text-lg md:text-xl font-bold text-gray-500 uppercase tracking-wide">
-                   {product.name.substring(product.name.indexOf('(') + 1, product.name.indexOf(')'))}
-                 </p>
-               )}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center text-yellow-400">
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                  <Star className="h-4 w-4 fill-current" />
+                </div>
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  {stats.avgRating} ({stats.reviewCount} Reviews)
+                </span>
+              </div>
+
+              <h1 className="text-3xl md:text-5xl font-black text-[#1B1B1B] tracking-tight mb-2 uppercase leading-none">
+                {product.name.replace(/\s*\(.*\)\s*/g, "")}
+              </h1>
+              {product.name.includes("(") && (
+                <p className="text-lg md:text-xl font-bold text-gray-500 uppercase tracking-wide">
+                  {product.name.substring(
+                    product.name.indexOf("(") + 1,
+                    product.name.indexOf(")"),
+                  )}
+                </p>
+              )}
             </div>
-            
+
             <div className="flex items-end gap-3 mb-8">
               <span className="text-3xl md:text-4xl font-black text-[#1E2A44]">
-                ₹{product.price.toLocaleString('en-IN')}
+                ₹{product.price.toLocaleString("en-IN")}
               </span>
               <span className="text-xl md:text-2xl font-bold text-gray-400 line-through mb-1">
-                ₹{Math.floor(product.price * 1.4).toLocaleString('en-IN')}
+                ₹{Math.floor(product.price * 1.4).toLocaleString("en-IN")}
               </span>
               <span className="bg-green-100 text-green-800 text-[10px] font-black tracking-widest px-2 py-1 rounded uppercase mb-2 ml-2">
                 Sale
@@ -323,37 +455,50 @@ export function ProductPage() {
                   <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
                     Select Size
                   </h3>
-                  <button 
+                  <button
                     onClick={() => setIsSizeGuideOpen(true)}
                     className="text-xs text-gray-500 font-bold uppercase underline tracking-wider hover:text-[#1E2A44] transition-colors"
                   >
                     Size Guide
                   </button>
-                 </div>
-                 <p className="text-xs text-gray-500 mb-3 font-medium">Standard Fit. Order your usual size.</p>
+                </div>
+                <p className="text-xs text-gray-500 mb-3 font-medium">
+                  Standard Fit. Order your usual size.
+                </p>
                 <div className="flex flex-wrap md:flex-nowrap gap-3">
                   {SIZES.map((size) => {
-                    const isUnavailable = product.name.toLowerCase().includes('arsenal 3rd') && product.name.toLowerCase().includes('full sleeve') && (size === 'S' || size === 'M');
+                    const isUnavailable =
+                      product.name.toLowerCase().includes("arsenal 3rd") &&
+                      product.name.toLowerCase().includes("full sleeve") &&
+                      (size === "S" || size === "M");
                     return (
                       <button
                         key={size}
-                        onClick={() => { if (!isUnavailable) handleSizeClick(size); }}
+                        onClick={() => {
+                          if (!isUnavailable) handleSizeClick(size);
+                        }}
                         disabled={isUnavailable}
                         className={cn(
                           "group flex-1 py-4 px-2 border-2 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 min-w-[60px] shadow-sm transform active:scale-95",
                           isUnavailable
-                            ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 relative overflow-hidden" 
+                            ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 relative overflow-hidden"
                             : selectedSize === size
-                            ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
-                            : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md"
+                              ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
+                              : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md",
                         )}
                       >
-                        <span className={cn(
-                          "text-lg md:text-xl font-black tracking-tight",
-                          selectedSize === size ? "text-white" : "text-[#1B1B1B]"
-                        )}>{size}</span>
+                        <span
+                          className={cn(
+                            "text-lg md:text-xl font-black tracking-tight",
+                            selectedSize === size
+                              ? "text-white"
+                              : "text-[#1B1B1B]",
+                          )}
+                        >
+                          {size}
+                        </span>
                         {isUnavailable && (
-                           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
+                          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
                         )}
                       </button>
                     );
@@ -362,103 +507,216 @@ export function ProductPage() {
               </div>
 
               {/* Jersey Customization */}
-              {['player', 'fan', 'master'].includes(product.category?.toLowerCase() || '') && !product.name.toLowerCase().includes('f1') && !product.name.toLowerCase().includes('formula') && (
-              <div className="pt-8 border-t border-gray-100">
-                  <div className="mb-4">
-                     <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+              {["player", "fan", "master"].includes(
+                product.category?.toLowerCase() || "",
+              ) &&
+                !product.name.toLowerCase().includes("f1") &&
+                !product.name.toLowerCase().includes("formula") && (
+                  <div className="pt-8 border-t border-gray-100">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#1E2A44]"></span>
                         Personalize Your Kit
-                     </h3>
-                     <p className="text-xs text-gray-500 font-medium mt-1">Add your favorite player name & number.</p>
-                  </div>
-                  
-                  <div 
-                     onClick={() => setIsCustomized(!isCustomized)}
-                     className={cn(
-                        "relative overflow-hidden group p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2",
-                        isCustomized 
-                           ? "border-[#1E2A44] bg-[#1E2A44] shadow-lg shadow-[#1E2A44]/20" 
-                           : "border-gray-100 bg-gray-50 hover:bg-gray-100/80 hover:border-gray-200"
-                     )}
-                  >
-                     <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-3">
-                           <div className={cn(
-                              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
-                              isCustomized ? "bg-white/10" : "bg-white shadow-sm border border-gray-200"
-                           )}>
-                              <CheckCircle2 className={cn("w-5 h-5", isCustomized ? "text-white" : "text-transparent")} />
-                           </div>
-                           <span className={cn(
-                              "text-sm font-bold uppercase tracking-wider transition-colors",
-                              isCustomized ? "text-white" : "text-[#1B1B1B]"
-                           )}>
-                              🎽 Add Name & Number
-                           </span>
-                        </div>
-                        <div className={cn(
-                           "text-sm md:text-base font-black tracking-widest px-3 py-1.5 rounded-lg uppercase transition-all shadow-sm",
-                           isCustomized 
-                              ? "bg-white text-[#1E2A44]" 
-                              : "bg-white text-[#E6C9A8] border border-[#E6C9A8]/20"
-                        )}>
-                           +₹199
-                        </div>
-                     </div>
-                  </div>
+                      </h3>
+                      <p className="text-xs text-gray-500 font-medium mt-1">
+                        Add your favorite player name & number.
+                      </p>
+                    </div>
 
-                  {isCustomized && (
-                     <div className="mt-4 p-5 md:p-6 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2 fade-in duration-300 shadow-inner">
-                        <div className="flex flex-col md:flex-row gap-6">
-                           {/* Inputs */}
-                           <div className="flex-1 space-y-4">
-                              <div>
-                                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Name on Jersey</label>
-                                 <input 
-                                    type="text" 
-                                    maxLength={15}
-                                    value={customName}
-                                    onChange={(e) => setCustomName(e.target.value.toUpperCase())}
-                                    placeholder="e.g. RONALDO" 
-                                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44] transition-all placeholder:text-gray-300 shadow-sm"
-                                 />
-                              </div>
-                              <div>
-                                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Number</label>
-                                 <input 
-                                    type="text" 
-                                    maxLength={2}
-                                    value={customNumber}
-                                    onChange={(e) => setCustomNumber(e.target.value.replace(/\D/g, ''))}
-                                    placeholder="e.g. 7" 
-                                    className="w-full max-w-[120px] bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44] transition-all placeholder:text-gray-300 shadow-sm text-center"
-                                 />
-                              </div>
-                           </div>
+                    <div
+                      onClick={() => setIsCustomized(!isCustomized)}
+                      className={cn(
+                        "relative overflow-hidden group p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2",
+                        isCustomized
+                          ? "border-[#1E2A44] bg-[#1E2A44] shadow-lg shadow-[#1E2A44]/20"
+                          : "border-gray-100 bg-gray-50 hover:bg-gray-100/80 hover:border-gray-200",
+                      )}
+                    >
+                      <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={cn(
+                              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                              isCustomized
+                                ? "bg-white/10"
+                                : "bg-white shadow-sm border border-gray-200",
+                            )}
+                          >
+                            <CheckCircle2
+                              className={cn(
+                                "w-5 h-5",
+                                isCustomized
+                                  ? "text-white"
+                                  : "text-transparent",
+                              )}
+                            />
+                          </div>
+                          <span
+                            className={cn(
+                              "text-sm font-bold uppercase tracking-wider transition-colors",
+                              isCustomized ? "text-white" : "text-[#1B1B1B]",
+                            )}
+                          >
+                            🎽 Add Name & Number
+                          </span>
                         </div>
-                     </div>
-                  )}
-              </div>
-              )}
+                        <div
+                          className={cn(
+                            "text-sm md:text-base font-black tracking-widest px-3 py-1.5 rounded-lg uppercase transition-all shadow-sm",
+                            isCustomized
+                              ? "bg-white text-[#1E2A44]"
+                              : "bg-white text-[#E6C9A8] border border-[#E6C9A8]/20",
+                          )}
+                        >
+                          +₹199
+                        </div>
+                      </div>
+                    </div>
+
+                    {isCustomized && (
+                      <div className="mt-4 p-5 md:p-6 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2 fade-in duration-300 shadow-inner">
+                        <div className="flex flex-col md:flex-row gap-6">
+                          {/* Inputs */}
+                          <div className="flex-1 space-y-4">
+                            <div>
+                              <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                Name on Jersey
+                              </label>
+                              <input
+                                type="text"
+                                maxLength={15}
+                                value={customName}
+                                onChange={(e) =>
+                                  setCustomName(e.target.value.toUpperCase())
+                                }
+                                placeholder="e.g. RONALDO"
+                                className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44] transition-all placeholder:text-gray-300 shadow-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">
+                                Number
+                              </label>
+                              <input
+                                type="text"
+                                maxLength={2}
+                                value={customNumber}
+                                onChange={(e) =>
+                                  setCustomNumber(
+                                    e.target.value.replace(/\D/g, ""),
+                                  )
+                                }
+                                placeholder="e.g. 7"
+                                className="w-full max-w-[120px] bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44] transition-all placeholder:text-gray-300 shadow-sm text-center"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
               {/* COD Trust Box */}
               <div className="bg-[#1E2A44]/5 border border-[#1E2A44]/10 rounded-xl p-4 flex items-start gap-3">
-                 <CheckCircle2 className="h-5 w-5 text-[#1E2A44] flex-shrink-0 mt-0.5" />
-                 <div>
-                    <h4 className="text-sm font-bold text-[#1E2A44] uppercase tracking-wider mb-1">Cash on Delivery Available</h4>
-                    <p className="text-xs font-medium text-gray-600 leading-relaxed">₹150 confirmation amount required for COD orders. Remaining payment payable at delivery. Free delivery on full prepaid orders.</p>
-                 </div>
+                <CheckCircle2 className="h-5 w-5 text-[#1E2A44] flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-[#1E2A44] uppercase tracking-wider mb-1">
+                    Cash on Delivery Available
+                  </h4>
+                  <p className="text-xs font-medium text-gray-600 leading-relaxed">
+                    ₹150 confirmation amount required for COD orders. Remaining
+                    payment payable at delivery. Free delivery on full prepaid
+                    orders.
+                  </p>
+                </div>
               </div>
 
               {/* Prepaid Benefits */}
               <div className="bg-[#1B1B1B] text-white rounded-xl p-5 relative overflow-hidden shadow-lg mt-4">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
-                 <h4 className="text-xs font-black uppercase tracking-widest text-[#E6C9A8] mb-3">Prepaid Benefits</h4>
-                 <ul className="space-y-2 relative z-10">
-                   <li className="flex items-center gap-2 text-sm font-medium text-gray-300"><CheckCircle2 className="w-4 h-4 text-green-400" /> Extra ₹50 OFF</li>
-                   <li className="flex items-center gap-2 text-sm font-medium text-gray-300"><Truck className="w-4 h-4 text-green-400" /> Faster Dispatch</li>
-                   <li className="flex items-center gap-2 text-sm font-medium text-gray-300"><Star className="w-4 h-4 text-green-400" /> Priority Processing</li>
-                 </ul>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10 pointer-events-none" />
+                <h4 className="text-xs font-black uppercase tracking-widest text-[#E6C9A8] mb-3">
+                  Prepaid Benefits
+                </h4>
+                <ul className="space-y-2 relative z-10">
+                  <li className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <CheckCircle2 className="w-4 h-4 text-green-400" /> Extra
+                    ₹50 OFF
+                  </li>
+                  <li className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <Truck className="w-4 h-4 text-green-400" /> Faster Dispatch
+                  </li>
+                  <li className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <Star className="w-4 h-4 text-green-400" /> Priority
+                    Processing
+                  </li>
+                </ul>
+              </div>
+
+              {/* Share Jersey Panel */}
+              <div className="border-t border-b border-gray-100 py-6 my-6">
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Share2 className="w-3.5 h-3.5 text-gray-400" />
+                  Share This Jersey
+                </h3>
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Copy Link Button */}
+                  <button
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-2 h-11 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all border border-gray-200/50 hover:border-gray-300 active:scale-95 cursor-pointer"
+                    title="Copy Link"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-green-600">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 text-gray-500" />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* WhatsApp */}
+                  <button
+                    onClick={shareWhatsApp}
+                    className="flex items-center justify-center w-11 h-11 bg-[#25D366] hover:opacity-90 text-white rounded-xl shadow-md shadow-[#25D366]/10 active:scale-95 transition-all cursor-pointer"
+                    title="Share on WhatsApp"
+                  >
+                    <MessageCircle className="w-5 h-5 fill-current" />
+                  </button>
+
+                  {/* Instagram */}
+                  <button
+                    onClick={shareInstagram}
+                    className="flex items-center justify-center w-11 h-11 bg-gradient-to-tr from-yellow-500 via-[#E1306C] to-[#833AB4] hover:opacity-90 text-white rounded-xl shadow-md shadow-[#E1306C]/10 active:scale-95 transition-all cursor-pointer"
+                    title="Share on Instagram"
+                  >
+                    <Instagram className="w-5 h-5" />
+                  </button>
+
+                  {/* Telegram */}
+                  <button
+                    onClick={shareTelegram}
+                    className="flex items-center justify-center w-11 h-11 bg-[#0088cc] hover:opacity-90 text-white rounded-xl shadow-md shadow-[#0088cc]/10 active:scale-95 transition-all cursor-pointer"
+                    title="Share on Telegram"
+                  >
+                    <Send className="w-5 h-5 -rotate-12 translate-x-[-1px] translate-y-[1px]" />
+                  </button>
+
+                  {/* Snapchat */}
+                  <button
+                    onClick={shareSnapchat}
+                    className="flex items-center justify-center w-11 h-11 bg-[#FFFC00] hover:bg-[#FFFC00]/90 text-black rounded-xl shadow-md shadow-yellow-500/5 active:scale-95 transition-all border border-yellow-400 cursor-pointer"
+                    title="Share on Snapchat"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2.82c-.87.03-1.52.12-2.32.32-2.02.5-3.3 1.95-3.64 4.14-.14.93-.16 1.87.1 2.76.12.43.34.8.46 1.23.08.3-.01.55-.26.74-.63.47-1.16 1.07-1.39 1.83-.2.67.06 1.34.61 1.7.54.36 1.18.42 1.83.2.3-.1.52-.02.68.25.1.18.25.33.32.54.12.35.12.72.06 1.13-.08.5-.42.92-.64 1.39-.17.37-.2.73.04 1.06.27.38.74.52 1.2.37.56-.18.96-.58 1.4-.95.23-.2.43-.2.71-.1.8.31 1.63.38 2.47.38s1.67-.07 2.47-.38c.28-.1.48-.1.71.1.44.37.84.77 1.4.95.46.15.93 0 1.2-.37.24-.33.21-.69.04-1.06-.22-.47-.56-.89-.64-1.39-.06-.41-.06-.78.06-1.13.07-.21.22-.36.32-.54.16-.27.38-.35.68-.25.65.22 1.29.16 1.83-.2.55-.36.81-1.03.61-1.7-.23-.76-.76-1.36-1.39-1.83-.25-.19-.34-.44-.26-.74.12-.43.34-.8.46-1.23.26-.89.24-1.83.1-2.76-.34-2.19-1.62-3.64-3.64-4.14-.8-.2-1.45-.29-2.32-.32z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {/* Desktop CTA Buttons */}
@@ -478,30 +736,31 @@ export function ProductPage() {
                   </button>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       </main>
 
       {/* Mobile Sticky CTA Bar */}
-      <div className={cn(
-        "fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-gray-200 z-50 md:hidden transition-transform duration-300 ease-in-out flex gap-3",
-        // Only show if we haven't scrolled to the absolute bottom (footer)
-        isScrolledToBottom ? "translate-y-full" : "translate-y-0"
-      )}>
-         <button
-            onClick={handleAddToCart}
-            className="flex-1 flex items-center justify-center text-center border-2 border-[#1E2A44] text-[#1E2A44] py-3.5 rounded-xl font-black uppercase tracking-widest bg-white shadow-sm transition-colors text-xs"
-          >
-            Add to Cart
-          </button>
-          <button
-            onClick={handleBuyNow}
-            className="flex-1 flex items-center justify-center text-center bg-[#1E2A44] border-2 border-[#1E2A44] text-white py-3.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-colors text-xs"
-          >
-            Buy Now
-          </button>
+      <div
+        className={cn(
+          "fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-gray-200 z-50 md:hidden transition-transform duration-300 ease-in-out flex gap-3",
+          // Only show if we haven't scrolled to the absolute bottom (footer)
+          isScrolledToBottom ? "translate-y-full" : "translate-y-0",
+        )}
+      >
+        <button
+          onClick={handleAddToCart}
+          className="flex-1 flex items-center justify-center text-center border-2 border-[#1E2A44] text-[#1E2A44] py-3.5 rounded-xl font-black uppercase tracking-widest bg-white shadow-sm transition-colors text-xs"
+        >
+          Add to Cart
+        </button>
+        <button
+          onClick={handleBuyNow}
+          className="flex-1 flex items-center justify-center text-center bg-[#1E2A44] border-2 border-[#1E2A44] text-white py-3.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-colors text-xs"
+        >
+          Buy Now
+        </button>
       </div>
 
       {/* Similar Products */}
@@ -519,7 +778,10 @@ export function ProductPage() {
                 .filter((p) => p.id !== product.id)
                 .slice(0, 12)
                 .map((similarProduct) => (
-                  <div key={similarProduct.id} className="w-[140px] md:w-[220px] flex-shrink-0 snap-start">
+                  <div
+                    key={similarProduct.id}
+                    className="w-[140px] md:w-[220px] flex-shrink-0 snap-start"
+                  >
                     <ProductCard product={similarProduct} />
                   </div>
                 ))}
@@ -533,8 +795,11 @@ export function ProductPage() {
       <InstagramSection />
       <TrustSection />
       <Footer />
-      
-      <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
+
+      <SizeGuideModal
+        isOpen={isSizeGuideOpen}
+        onClose={() => setIsSizeGuideOpen(false)}
+      />
     </div>
   );
 }

@@ -116,6 +116,118 @@ async function startServer() {
     }
   });
 
+  // Meta Catalog RSS/XML Feed for Dynamic Instagram Ads
+  app.get("/api/meta-catalog", async (req, res) => {
+    try {
+      const domain =
+        process.env.VITE_SHOPIFY_DOMAIN || "https://0qtwuu-br.myshopify.com";
+      const token =
+        process.env.VITE_SHOPIFY_STOREFRONT_TOKEN ||
+        "e711ef4603f75af0b8370a9b8ebeb2e5";
+
+      const query = `
+        {
+          products(first: 250, sortKey: CREATED_AT, reverse: true) {
+            edges {
+              node {
+                id
+                title
+                description
+                productType
+                tags
+                variants(first: 1) {
+                  edges {
+                    node {
+                      id
+                      price {
+                        amount
+                        currencyCode
+                      }
+                    }
+                  }
+                }
+                images(first: 5) {
+                  edges {
+                    node {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const shopifyRes = await fetch(`${domain}/api/2024-01/graphql.json`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": token,
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      const json = await shopifyRes.json();
+      if (!json.data || !json.data.products) {
+        throw new Error("Invalid response from Shopify store");
+      }
+
+      const products = json.data.products.edges.map((edge: any) => edge.node) || [];
+
+      // Reconstruct dynamic store base URL
+      const host = req.get("host") || "jerseyunicorn.com";
+      const protocol = req.secure ? "https" : "http";
+      const baseUrl = `${protocol}://${host}`;
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">\n`;
+      xml += `  <channel>\n`;
+      xml += `    <title>Jersey Unicorn Products</title>\n`;
+      xml += `    <link>${baseUrl}</link>\n`;
+      xml += `    <description>Premium quality football jerseys from Jersey Unicorn</description>\n`;
+
+      for (const item of products) {
+        const id = item.id.replace("gid://shopify/Product/", "");
+        const title = item.title;
+        // Escape special XML characters for safety
+        const descEscaped = (item.description || "Premium quality football jersey. Express your passion for the game.")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+        const link = `${baseUrl}/product/${id}`;
+        
+        const images = item.images?.edges.map((e: any) => e.node.url) || [];
+        const mainImage = images[0] || "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop";
+        const price = item.variants?.edges[0]?.node?.price?.amount || "1199";
+        const currency = item.variants?.edges[0]?.node?.price?.currencyCode || "INR";
+
+        xml += `    <item>\n`;
+        xml += `      <g:id>${id}</g:id>\n`;
+        xml += `      <g:title><![CDATA[${title}]]></g:title>\n`;
+        xml += `      <g:description><![CDATA[${descEscaped}]]></g:description>\n`;
+        xml += `      <g:link>${link}</g:link>\n`;
+        xml += `      <g:image_link>${mainImage}</g:image_link>\n`;
+        xml += `      <g:brand>Jersey Unicorn</g:brand>\n`;
+        xml += `      <g:condition>new</g:condition>\n`;
+        xml += `      <g:availability>in stock</g:availability>\n`;
+        xml += `      <g:price>${price} ${currency}</g:price>\n`;
+        xml += `      <g:google_product_category>Apparel &amp; Accessories &gt; Clothing &gt; Activewear &gt; Athletic Jerseys &gt; Football Jerseys</g:google_product_category>\n`;
+        xml += `    </item>\n`;
+      }
+
+      xml += `  </channel>\n`;
+      xml += `</rss>\n`;
+
+      res.header("Content-Type", "application/xml");
+      res.status(200).send(xml);
+    } catch (error: any) {
+      console.error("Error creating Meta catalog feed:", error);
+      res.status(500).send(`<error>Failed to generate catalog feed: ${error.message}</error>`);
+    }
+  });
+
   // AI Assistant API Route
   app.post("/api/gemini/chat", async (req, res) => {
     try {

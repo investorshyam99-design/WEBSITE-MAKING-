@@ -308,18 +308,16 @@ function AdminOrderCard({
   };
 
   const orderDate = order.createdAt?.toDate?.()
-    ? order.createdAt
-        .toDate()
-        .toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+    ? order.createdAt.toDate().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : "Just now";
 
   const customerName = order.fullName || "Guest Customer";
-  const paymentLink = `https://jerseyunicorn.com/#/checkout?order=${order.id}`;
+  const paymentLink = `https://jerseyunicorn.com/checkout?order=${order.id}`;
 
   // Heuristic for older orders that missed the quantity field
   let effectiveQuantity = order.quantity;
