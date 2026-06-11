@@ -74,22 +74,21 @@ export function CategoryNav() {
   return (
     <div id="category-nav" className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm">
       <div className="max-w-7xl mx-auto px-1 sm:px-4">
-        <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1" style={{ height: "190.08px" }}>
-          {categories.map((cat, index) => {
+        <div className="grid grid-cols-4 w-full gap-2 p-2">
+          {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
                 key={`nav-${cat.id}`}
                 onClick={() => scrollToCategory(cat.id)}
-                style={index === 0 ? { width: "182.075px" } : undefined}
-                className={`w-full aspect-square flex flex-col items-center justify-center p-1 md:p-2 text-[11px] sm:text-sm md:text-base lg:text-xl font-black uppercase text-center transition-colors leading-tight ${
+                className={`w-full py-5 md:py-8 flex flex-col items-center justify-center p-2 text-xs sm:text-sm md:text-base lg:text-lg font-black uppercase text-center transition-all leading-tight rounded-xl shadow-sm border-2 ${
                   isActive 
-                    ? "bg-[#1E2A44] text-[#EDE3D8]" 
-                    : "text-[#1E2A44] bg-[#EDE3D8] hover:bg-[#1E2A44] hover:text-[#EDE3D8]"
+                    ? "bg-[#1E2A44] text-[#EDE3D8] border-[#1E2A44]" 
+                    : "bg-[#EDE3D8] text-[#1E2A44] border-transparent hover:border-[#1E2A44] hover:bg-[#EAE0D3] active:scale-95"
                 }`}
               >
                 <span className="leading-tight">
-                  {cat.name.split(' ').map((word, wIndex) => (
+                  {cat.name.split(/[\s\n]+/).map((word, wIndex) => (
                     <span key={wIndex} className="block">{word}</span>
                   ))}
                 </span>

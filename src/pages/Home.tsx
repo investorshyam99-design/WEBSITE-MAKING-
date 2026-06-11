@@ -1,4 +1,5 @@
 import { Header } from "../components/Header";
+import { CategoryNav } from "../components/CategoryNav";
 import { Hero } from "../components/Hero";
 import { CategoriesSection } from "../components/CategoriesSection";
 import { TrustSection } from "../components/TrustSection";
@@ -12,6 +13,7 @@ export function Home() {
       <Header />
       <main className="flex-grow">
         <Hero />
+        <CategoryNav />
         <InstagramSection />
         <CategoriesSection />
         <FAQ />

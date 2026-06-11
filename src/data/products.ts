@@ -16,8 +16,23 @@ export type Product = {
 export const categories = [
   {
     id: "tshirts",
-    name: "T-SHIRTS",
+    name: "TSHIRTS/\nHOODIES",
     description: "Premium quality t-shirts, comfortable and stylish.",
+  },
+  {
+    id: "fan",
+    name: "FAN VERSION",
+    description: "Embroidered logos, comes with shorts, made in Thailand.",
+  },
+  {
+    id: "player",
+    name: "PLAYER VERSION",
+    description: "Jersey that players wear, heat-pressed logos, made in Thailand.",
+  },
+  {
+    id: "master",
+    name: "MASTER VERSION",
+    description: "Upgraded version of fan version, premium finishing, made in Thailand.",
   }
 ];
 
@@ -39,11 +54,16 @@ export function generateProductSlug(name: string): string {
 let shopifyProductsStore: Product[] = [];
 
 export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
-  return shopifyProducts.map(sp => {
+  const parsed = shopifyProducts.map(sp => {
     const title = sp.title || '';
     
     // Auto-categorize based on title
     let category = "tshirts"; // default
+    if (title.toLowerCase().includes("player")) category = "player";
+    else if (title.toLowerCase().includes("master")) category = "master";
+    else if (title.toLowerCase().includes("fan") || title.toLowerCase().includes("jersey") || title.toLowerCase().includes("kit")) category = "fan";
+    
+    if (title.toLowerCase().includes("tshirt") || title.toLowerCase().includes("t-shirt") || title.toLowerCase().includes("tee")) category = "tshirts";
 
     const price = parseFloat(sp.variants?.edges[0]?.node?.price?.amount || "0");
     const variantId = sp.variants?.edges[0]?.node?.id || "";
@@ -63,6 +83,14 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       variantId: rawVariantId,
       slug: generateProductSlug(title)
     };
+  });
+
+  return parsed.sort((a, b) => {
+    const aIsSpain = a.name.toLowerCase().includes("spain") && a.name.toLowerCase().includes("away");
+    const bIsSpain = b.name.toLowerCase().includes("spain") && b.name.toLowerCase().includes("away");
+    if (aIsSpain && !bIsSpain) return -1;
+    if (!aIsSpain && bIsSpain) return 1;
+    return 0;
   });
 }
 

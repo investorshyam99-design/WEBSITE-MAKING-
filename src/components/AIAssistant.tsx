@@ -21,7 +21,7 @@ export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: "Yo 👋 I'm Jersey Unicorn AI. Looking for a new t-shirt or want to know your perfect size?" }
+    { role: 'ai', content: "Yo 👋 I'm Jersey Unicorn AI. Looking for a new kit or t-shirt, or want to know your perfect size?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
