@@ -103,7 +103,7 @@ export function ProductPage() {
   const shareWhatsApp = () => {
     if (!product) return;
     const shareUrl = `${window.location.origin}/products/${product.slug}`;
-    const text = `Check out this premium jersey: ${product.name} at ${shareUrl}`;
+    const text = `Check out this premium t-shirt: ${product.name} at ${shareUrl}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, "_blank");
   };
@@ -127,7 +127,7 @@ export function ProductPage() {
   const shareTelegram = () => {
     if (!product) return;
     const shareUrl = `${window.location.origin}/products/${product.slug}`;
-    const text = `Check out this premium Jersey: ${product.name}`;
+    const text = `Check out this premium t-shirt: ${product.name}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
     window.open(telegramUrl, "_blank");
   };
@@ -516,116 +516,7 @@ export function ProductPage() {
                 </div>
               </div>
 
-              {/* Jersey Customization */}
-              {["player", "fan", "master"].includes(
-                product.category?.toLowerCase() || "",
-              ) &&
-                !product.name.toLowerCase().includes("f1") &&
-                !product.name.toLowerCase().includes("formula") && (
-                  <div className="pt-8 border-t border-gray-100">
-                    <div className="mb-4">
-                      <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#1E2A44]"></span>
-                        Personalize Your Kit
-                      </h3>
-                      <p className="text-xs text-gray-500 font-medium mt-1">
-                        Add your favorite player name & number.
-                      </p>
-                    </div>
 
-                    <div
-                      onClick={() => setIsCustomized(!isCustomized)}
-                      className={cn(
-                        "relative overflow-hidden group p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2",
-                        isCustomized
-                          ? "border-[#1E2A44] bg-[#1E2A44] shadow-lg shadow-[#1E2A44]/20"
-                          : "border-gray-100 bg-gray-50 hover:bg-gray-100/80 hover:border-gray-200",
-                      )}
-                    >
-                      <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
-                              isCustomized
-                                ? "bg-white/10"
-                                : "bg-white shadow-sm border border-gray-200",
-                            )}
-                          >
-                            <CheckCircle2
-                              className={cn(
-                                "w-5 h-5",
-                                isCustomized
-                                  ? "text-white"
-                                  : "text-transparent",
-                              )}
-                            />
-                          </div>
-                          <span
-                            className={cn(
-                              "text-sm font-bold uppercase tracking-wider transition-colors",
-                              isCustomized ? "text-white" : "text-[#1B1B1B]",
-                            )}
-                          >
-                            🎽 Add Name & Number
-                          </span>
-                        </div>
-                        <div
-                          className={cn(
-                            "text-sm md:text-base font-black tracking-widest px-3 py-1.5 rounded-lg uppercase transition-all shadow-sm",
-                            isCustomized
-                              ? "bg-white text-[#1E2A44]"
-                              : "bg-white text-[#E6C9A8] border border-[#E6C9A8]/20",
-                          )}
-                        >
-                          +₹199
-                        </div>
-                      </div>
-                    </div>
-
-                    {isCustomized && (
-                      <div className="mt-4 p-5 md:p-6 bg-gray-50 rounded-2xl border border-gray-100 animate-in slide-in-from-top-2 fade-in duration-300 shadow-inner">
-                        <div className="flex flex-col md:flex-row gap-6">
-                          {/* Inputs */}
-                          <div className="flex-1 space-y-4">
-                            <div>
-                              <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                                Name on Jersey
-                              </label>
-                              <input
-                                type="text"
-                                maxLength={15}
-                                value={customName}
-                                onChange={(e) =>
-                                  setCustomName(e.target.value.toUpperCase())
-                                }
-                                placeholder="e.g. RONALDO"
-                                className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44] transition-all placeholder:text-gray-300 shadow-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                                Number
-                              </label>
-                              <input
-                                type="text"
-                                maxLength={2}
-                                value={customNumber}
-                                onChange={(e) =>
-                                  setCustomNumber(
-                                    e.target.value.replace(/\D/g, ""),
-                                  )
-                                }
-                                placeholder="e.g. 7"
-                                className="w-full max-w-[120px] bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-[#1B1B1B] uppercase tracking-wider focus:outline-none focus:border-[#1E2A44] focus:ring-1 focus:ring-[#1E2A44] transition-all placeholder:text-gray-300 shadow-sm text-center"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
 
               {/* COD Trust Box */}
               <div className="bg-[#1E2A44]/5 border border-[#1E2A44]/10 rounded-xl p-4 flex items-start gap-3">
@@ -663,11 +554,11 @@ export function ProductPage() {
                 </ul>
               </div>
 
-              {/* Share Jersey Panel */}
+              {/* Share T-Shirt Panel */}
               <div className="border-t border-b border-gray-100 py-6 my-6">
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <Share2 className="w-3.5 h-3.5 text-gray-400" />
-                  Share This Jersey
+                  Share This T-Shirt
                 </h3>
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Copy Link Button */}

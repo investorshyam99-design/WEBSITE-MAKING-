@@ -805,7 +805,7 @@ function AdminOrderCard({
                   onClick={(e) =>
                     handleWhatsApp(
                       e,
-                      `Hey ${customerName} 👋\n\nIt's been a while!\n\nReady for your next jersey? Check out our new arrivals ⚽\n\nJersey Unicorn`,
+                      `Hey ${customerName} 👋\n\nIt's been a while!\n\nReady for your next t-shirt? Check out our new arrivals ⚽\n\nJersey Unicorn`,
                     )
                   }
                   className="w-full py-2.5 bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm"

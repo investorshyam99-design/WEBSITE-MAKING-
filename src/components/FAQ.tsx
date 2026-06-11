@@ -19,19 +19,9 @@ const faqData = [
       "Orders are usually delivered within 3–10 days depending on your location.\n\nOnce your order is shipped, we will share the tracking details.",
   },
   {
-    question: "Can I Customize My Jersey With Name & Number?",
+    question: "What Is The Quality Of The T-Shirts?",
     answer:
-      "Yes! You can personalize your jersey with your favorite player name and number directly from the product page.",
-  },
-  {
-    question: "What Is The Quality Of The Jerseys?",
-    answer:
-      "We offer multiple jersey qualities depending on the version selected.\n\nPlayer Version, Fan Version, and Master Version jerseys are made in Thailand with premium-quality fabric and finishing.",
-  },
-  {
-    question: "What Is The Difference Between Fan Version And Player Version?",
-    answer:
-      "Fan Version:\nRegular comfortable fit with embroidered logos.\n\nPlayer Version:\nSlim athletic fit with heat-pressed logos, similar to what players wear on the pitch.\n\nMaster Version:\nPremium upgraded version with enhanced detailing and finishing.",
+      "We offer premium-quality fabric and finishing for all our t-shirts.",
   },
   {
     question: "How Do I Choose The Right Size?",

@@ -3,17 +3,17 @@ import { Star, CheckCircle2 } from "lucide-react";
 
 export const getProductReviewsInfo = (productId: string) => {
   const reviewsPool = [
-    { name: "Rahul S.", rating: 5, comment: "Quality is insane! The detailing on the crest and the material feel exactly like the ₹5000 ones. Highly recommend.", verified: true },
+    { name: "Rahul S.", rating: 5, comment: "Quality is insane! The detailing and the material feel exactly like the ₹5000 ones. Highly recommend.", verified: true },
     { name: "Aryan M.", rating: 4, comment: "Fast delivery to Mumbai. Fits perfectly. Make sure to buy one size up if you want a loose fit.", verified: true },
-    { name: "Vikrant K.", rating: 5, comment: "Best jersey site in India hands down. Customer support is also very helpful on WhatsApp.", verified: true },
-    { name: "Siddharth J.", rating: 5, comment: "Amazing fabric. Delivery took 1 extra day but the product is faultless. Will order the away kit soon.", verified: true },
+    { name: "Vikrant K.", rating: 5, comment: "Best t-shirt site in India hands down. Customer support is also very helpful on WhatsApp.", verified: true },
+    { name: "Siddharth J.", rating: 5, comment: "Amazing fabric. Delivery took 1 extra day but the product is faultless. Will order again soon.", verified: true },
     { name: "Akhil P.", rating: 5, comment: "Fabric is super breathable. Wore it to my turf match and it absorbed sweat perfectly.", verified: true },
-    { name: "Rohan D.", rating: 4, comment: "Bought this for a friend's birthday and he loved it. The club crest is stitched so nicely.", verified: true },
+    { name: "Rohan D.", rating: 4, comment: "Bought this for a friend's birthday and he loved it. The stitching is so nice.", verified: true },
     { name: "Kabir T.", rating: 5, comment: "Worth the price! The prints look solid and don't peel off easily. Delivery was within a week.", verified: true },
     { name: "Jay S.", rating: 4, comment: "Fits a little snug but the overall quality is surprisingly good for the price.", verified: true },
     { name: "Varun N.", rating: 5, comment: "Very premium feel. Even the packaging was nice. Happy with the purchase.", verified: true },
-    { name: "Karan B.", rating: 5, comment: "I've ordered 3 jerseys from here, this one is by far my favorite. The fit is top notch.", verified: true },
-    { name: "Neil C.", rating: 5, comment: "Beautiful kit! Definitely looks just like the matchday version. Highly satisfied.", verified: true }
+    { name: "Karan B.", rating: 5, comment: "I've ordered 3 t-shirts from here, this one is by far my favorite. The fit is top notch.", verified: true },
+    { name: "Neil C.", rating: 5, comment: "Beautiful t-shirt! Definitely looks just like the premium version. Highly satisfied.", verified: true }
   ];
 
   const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);

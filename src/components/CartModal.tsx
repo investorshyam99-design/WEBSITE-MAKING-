@@ -907,7 +907,7 @@ export function CartModal() {
                               (e.currentTarget.style.display = "none")
                             }
                           />{" "}
-                          Premium Football Jerseys
+                          Premium T-Shirts
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 mt-1">

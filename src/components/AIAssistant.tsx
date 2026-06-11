@@ -21,7 +21,7 @@ export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: "Yo 👋 I'm Jersey Unicorn AI. Looking for a new kit or want to know your perfect size?" }
+    { role: 'ai', content: "Yo 👋 I'm Jersey Unicorn AI. Looking for a new t-shirt or want to know your perfect size?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +52,7 @@ export function AIAssistant() {
     const timeoutId = setTimeout(() => {
       // If idle for 10 seconds and has only the first message
       if (messages.length === 1 && !isLoading && isOpen) {
-        setMessages(prev => [...prev, { role: 'ai', content: "Need help finding your team jersey? Football or cricket?" }]);
+        setMessages(prev => [...prev, { role: 'ai', content: "Need help finding a t-shirt? Tell me what you're looking for!" }]);
       }
     }, 10000);
     return () => clearTimeout(timeoutId);

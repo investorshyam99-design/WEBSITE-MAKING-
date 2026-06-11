@@ -15,30 +15,10 @@ export type Product = {
 
 export const categories = [
   {
-    id: "fan",
-    name: "FAN VERSION",
-    description: "Embroidered logos, comes with shorts, made in Thailand.",
-  },
-  {
-    id: "player",
-    name: "PLAYER VERSION",
-    description: "Jersey that players wear, heat-pressed logos, made in Thailand.",
-  },
-  {
-    id: "master",
-    name: "MASTER VERSION",
-    description: "Upgraded version of fan version, premium finishing, made in Thailand.",
-  },
-  {
-    id: "indian",
-    name: "INDIAN EMBROIDERY",
-    description: "Made in India, embroidered finish, budget-friendly.",
-  },
-  {
-    id: "sublimation",
-    name: "SUBLIMATION JERSEY",
-    description: "Printed logos, lightweight, affordable pricing.",
-  },
+    id: "tshirts",
+    name: "T-SHIRTS",
+    description: "Premium quality t-shirts, comfortable and stylish.",
+  }
 ];
 
 const mockImages = [
@@ -63,12 +43,7 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
     const title = sp.title || '';
     
     // Auto-categorize based on title
-    let category = "fan"; // default
-    if (title.toLowerCase().includes("player")) category = "player";
-    if (title.toLowerCase().includes("master")) category = "master";
-    if (title.toLowerCase().includes("sublimation") || title.toLowerCase().includes("sublimition")) category = "sublimation";
-    if (title.toLowerCase().includes("indian") || title.toLowerCase().includes("embroidery")) category = "indian";
-    if (title.toLowerCase().includes("tshirt") || title.toLowerCase().includes("tee")) category = "tshirts";
+    let category = "tshirts"; // default
 
     const price = parseFloat(sp.variants?.edges[0]?.node?.price?.amount || "0");
     const variantId = sp.variants?.edges[0]?.node?.id || "";
@@ -84,7 +59,7 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       image: mainImage,
       galleryImages: images.length > 0 ? images : [mainImage],
       category: category,
-      description: sp.description || "Premium quality football jersey. Express your passion for the game.",
+      description: sp.description || "Premium quality t-shirt. Comfortable and stylish.",
       variantId: rawVariantId,
       slug: generateProductSlug(title)
     };
@@ -108,41 +83,8 @@ export function useProducts() {
       if (data && data.length > 0) {
         const parsed = parseShopifyProducts(data);
         
-        // Prioritize specific jerseys to the top
-        const sortedParsed = parsed.sort((a, b) => {
-          const getPriority = (product: Product) => {
-            let priority = 0;
-            const lowerName = product.name.toLowerCase();
-            
-            // Unconditional Top Priority: Spain Away 2026 and Spain 2026 variants
-            if (lowerName.includes("spain") && (lowerName.includes("away") || lowerName.includes("2026") || lowerName.includes("26"))) {
-              priority += 50000;
-            }
-
-            // Deprioritize full sleeve jerseys so they appear at the bottom
-            if (lowerName.includes("full sleeve") || lowerName.includes("full-sleeve") || lowerName.includes("long sleeve") || lowerName.includes("long-sleeve")) {
-              priority -= 1000;
-            }
-
-            if (product.category === "player") {
-              if (lowerName.includes("spain") && product.price === 999) priority += 100;
-              else if (lowerName.includes("spain")) priority += 95;
-              else if (lowerName.includes("argentina") && product.price === 899) priority += 90;
-              else if (lowerName.includes("argentina")) priority += 85;
-              else if (lowerName.includes("japan")) priority += 80;
-              else if (lowerName.includes("portugal")) priority += 70;
-              else if (lowerName.includes("brazil")) priority += 60;
-              else if (lowerName.includes("real madrid")) priority += 50;
-              else if (lowerName.includes("manchester united") || lowerName.includes("man utd")) priority += 40;
-            }
-
-            return priority;
-          };
-          return getPriority(b) - getPriority(a);
-        });
-
-        shopifyProductsStore = sortedParsed;
-        setProducts(sortedParsed);
+        shopifyProductsStore = parsed;
+        setProducts(parsed);
       }
       setIsLoading(false);
     }).catch((err) => {
