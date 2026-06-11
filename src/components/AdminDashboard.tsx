@@ -295,8 +295,53 @@ function AdminOrderCard({
   const [trackingId, setTrackingId] = useState(order.trackingId || "");
   const [courierName, setCourierName] = useState(order.courierName || "");
   const [showTrackingForm, setShowTrackingForm] = useState(false);
+  const [isFulfilling, setIsFulfilling] = useState(false);
+  const [fulfillmentSuccess, setFulfillmentSuccess] = useState("");
+  const [fulfillmentErr, setFulfillmentErr] = useState("");
   const navigate = useNavigate();
   const { products } = useProducts();
+
+  const handleQikinkFulfillment = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to send Order #${order.id} to Qikink Fulfillment?`)) {
+      return;
+    }
+    setIsFulfilling(true);
+    setFulfillmentErr("");
+    setFulfillmentSuccess("");
+
+    try {
+      const response = await fetch("/api/qikink/send-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ order })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Fulfillment request failed");
+      }
+
+      setFulfillmentSuccess("Successfully Sent to Qikink!");
+      // Automatically update the order status in Firestore to indicate it has been pushed
+      onUpdateStatus("Order Placed (Qikink)");
+      
+      // Let's check if there are immediate tracking details
+      if (data.qikinkResponse && data.qikinkResponse.tracking_id) {
+        onUpdateTracking(data.qikinkResponse.tracking_id, data.qikinkResponse.courier_name || "Qikink Logistics");
+      }
+      
+      alert("Success: " + (data.message || "Order submitted to Qikink successfully!"));
+    } catch (err: any) {
+      console.error(err);
+      setFulfillmentErr(err.message || "An error occurred during Qikink submission.");
+      alert("Error: " + (err.message || "Fulfillment failed"));
+    } finally {
+      setIsFulfilling(false);
+    }
+  };
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -558,8 +603,28 @@ function AdminOrderCard({
 
           {/* Action Buttons based on Tab */}
           <div className="space-y-2">
+            {fulfillmentErr && (
+              <p className="text-[11px] font-bold text-red-600 bg-red-50 p-2 rounded-md border border-red-100 break-words">
+                ⚠️ {fulfillmentErr}
+              </p>
+            )}
+            {fulfillmentSuccess && (
+              <p className="text-[11px] font-bold text-green-600 bg-green-50 p-2 rounded-md border border-green-100 break-words">
+                ✅ {fulfillmentSuccess}
+              </p>
+            )}
             {activeTab === "new" && (
               <>
+                <button
+                  disabled={isFulfilling}
+                  onClick={handleQikinkFulfillment}
+                  className={`w-full py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 transition-all ${
+                    isFulfilling ? "bg-orange-400 cursor-not-allowed" : "bg-orange-600 hover:bg-orange-700"
+                  }`}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isFulfilling ? "animate-spin" : ""}`} />
+                  {isFulfilling ? "Sending to Qikink..." : "⚡ Fulfill with Qikink"}
+                </button>
                 <button
                   onClick={() => onUpdateStatus("Advance Paid (Fampay)")}
                   className="w-full py-2.5 bg-[#1E2A44] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
@@ -648,6 +713,16 @@ function AdminOrderCard({
 
             {activeTab === "placed" && (
               <>
+                <button
+                  disabled={isFulfilling}
+                  onClick={handleQikinkFulfillment}
+                  className={`w-full py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 transition-all ${
+                    isFulfilling ? "bg-orange-400 cursor-not-allowed" : "bg-orange-600 hover:bg-orange-700"
+                  }`}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isFulfilling ? "animate-spin" : ""}`} />
+                  {isFulfilling ? "Sending to Qikink..." : "⚡ Fulfill with Qikink"}
+                </button>
                 <button
                   onClick={() => onUpdateStatus("Received")}
                   className="w-full py-2.5 bg-gray-100 text-gray-800 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm border border-gray-200 mb-2 hover:bg-gray-200"

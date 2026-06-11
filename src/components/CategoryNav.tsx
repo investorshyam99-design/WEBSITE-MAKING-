@@ -74,14 +74,14 @@ export function CategoryNav() {
   return (
     <div id="category-nav" className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm">
       <div className="max-w-7xl mx-auto px-1 sm:px-4">
-        <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1">
+        <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1" style={{ height: "190.08px" }}>
           {categories.map((cat, index) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
                 key={`nav-${cat.id}`}
                 onClick={() => scrollToCategory(cat.id)}
-                style={index === 0 ? { width: "100px" } : undefined}
+                style={index === 0 ? { width: "182.075px" } : undefined}
                 className={`w-full aspect-square flex flex-col items-center justify-center p-1 md:p-2 text-[11px] sm:text-sm md:text-base lg:text-xl font-black uppercase text-center transition-colors leading-tight ${
                   isActive 
                     ? "bg-[#1E2A44] text-[#EDE3D8]" 

@@ -288,6 +288,11 @@ export function CartModal() {
           fullName,
           address: combinedAddress,
           phone,
+          pincode,
+          houseNo,
+          areaStreet,
+          city,
+          state,
         });
         createdOrderIds.push(docRef.id);
       }
