@@ -269,6 +269,7 @@ export function CartModal() {
           productName: item.name,
           image: item.image,
           size: item.selectedSize || "N/A",
+          color: item.selectedColor || "N/A",
           quantity: item.quantity || 1,
           customization: item.customization
             ? `${item.customization.name} (${item.customization.number})`
@@ -454,7 +455,7 @@ export function CartModal() {
                   <div className="p-4 md:p-6 space-y-4">
                     {cart.map((item) => (
                       <div
-                        key={`${item.id}-${item.selectedSize}`}
+                        key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
                         className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 relative group"
                       >
                         <div className="w-24 h-28 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0">
@@ -470,7 +471,12 @@ export function CartModal() {
                               {item.name}
                             </h3>
                             <div className="flex flex-col gap-1 mt-2">
-                              <span className="inline-block px-2.5 py-1 bg-gray-50 border border-gray-100 text-xs font-bold text-gray-600 rounded-lg w-fit">
+                              {item.selectedColor && (
+                                <span className="inline-block px-2.5 py-1 bg-gray-50 border border-gray-100 text-[10px] font-bold text-gray-600 rounded-lg w-fit uppercase">
+                                  Color: {item.selectedColor}
+                                </span>
+                              )}
+                              <span className="inline-block px-2.5 py-1 bg-gray-50 border border-gray-100 text-[10px] font-bold text-gray-600 rounded-lg w-fit uppercase">
                                 Size: {item.selectedSize}
                               </span>
                               {item.customization && (
@@ -493,6 +499,7 @@ export function CartModal() {
                                   updateQuantity(
                                     item.id,
                                     item.selectedSize,
+                                    item.selectedColor,
                                     item.quantity - 1,
                                     item.customization,
                                   )
@@ -511,6 +518,7 @@ export function CartModal() {
                                   updateQuantity(
                                     item.id,
                                     item.selectedSize,
+                                    item.selectedColor,
                                     item.quantity + 1,
                                     item.customization,
                                   )
@@ -530,6 +538,7 @@ export function CartModal() {
                             removeFromCart(
                               item.id,
                               item.selectedSize,
+                              item.selectedColor,
                               item.customization,
                             )
                           }

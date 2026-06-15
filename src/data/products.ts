@@ -11,7 +11,7 @@ export type Product = {
   description?: string;
   descriptionHtml?: string;
   variantId?: string;
-  variants?: { id: string; title: string; availableForSale: boolean }[];
+  variants?: { id: string; title: string; color?: string | null; image?: string; availableForSale: boolean }[];
   slug: string;
 };
 
@@ -35,6 +35,11 @@ export const categories = [
     id: "formula1",
     name: "FORMULA 1",
     description: "Formula 1 merchandise",
+  },
+  {
+    id: "word-drip",
+    name: "WORD DRIP",
+    description: "Word Drip collection",
   },
 ];
 
@@ -75,6 +80,13 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       productType.includes("basketball") ||
       tags.includes("basketball") ||
       tags.includes("nba");
+    const isWordDrip =
+      titleLower.includes("word drip") ||
+      productType.includes("word drip") ||
+      tags.includes("word drip") ||
+      titleLower.includes("word-drip") ||
+      productType.includes("word-drip") ||
+      tags.includes("word-drip");
     const isFormula1 =
       titleLower.includes("formula 1") ||
       titleLower.includes("f1") ||
@@ -83,7 +95,8 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       tags.includes("formula 1") ||
       tags.includes("f1");
 
-    if (isFormula1) category = "formula1";
+    if (isWordDrip) category = "word-drip";
+    else if (isFormula1) category = "formula1";
     else if (isBasketball) category = "basketball";
     else if (isCricket) category = "cricket";
 
@@ -101,23 +114,41 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
       sp.variants?.edges.map((e: any) => {
         const v = e.node;
         let sizeTitle = v.title;
+        let colorTitle = null;
+
         if (v.selectedOptions) {
           const sizeOption = v.selectedOptions.find(
-            (opt: any) => opt.name.toLowerCase() === "size",
+            (opt: any) =>
+              opt.name.toLowerCase() === "size" ||
+              opt.name.toLowerCase() === "sizes",
           );
           if (sizeOption) {
             sizeTitle = sizeOption.value;
           }
+          const colorOption = v.selectedOptions.find(
+            (opt: any) =>
+              opt.name.toLowerCase() === "color" ||
+              opt.name.toLowerCase() === "colour",
+          );
+          if (colorOption) {
+            colorTitle = colorOption.value;
+          }
         } else if (v.title.includes("/")) {
           // Fallback for simple split
           const parts = v.title.split("/");
-          // Assuming size is usually the last part or shorter part
-          sizeTitle = parts[parts.length - 1].trim();
+          if (parts.length >= 2) {
+            colorTitle = parts[0].trim();
+            sizeTitle = parts[parts.length - 1].trim();
+          } else {
+            sizeTitle = parts[0].trim();
+          }
         }
 
         return {
           id: v.id.replace("gid://shopify/ProductVariant/", ""),
           title: sizeTitle,
+          color: colorTitle,
+          image: v.image?.url,
           availableForSale: v.availableForSale,
         };
       }) || [];

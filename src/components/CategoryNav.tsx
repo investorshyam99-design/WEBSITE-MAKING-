@@ -2,21 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { categories } from "../data/products";
 
 export function CategoryNav() {
-  const [activeCategory, setActiveCategory] = useState<string>('');
+  const [activeCategory, setActiveCategory] = useState<string>("");
   const isManualScroll = useRef(false);
   const scrollTimeout = useRef<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       if (isManualScroll.current) return;
-      
-      const navElement = document.getElementById('category-nav');
+
+      const navElement = document.getElementById("category-nav");
       const headerHeight = window.innerWidth >= 768 ? 96 : 80;
       const navHeight = navElement ? navElement.offsetHeight : 0;
       const offset = headerHeight + navHeight + 20;
 
-      let currentActive = '';
-      
+      let currentActive = "";
+
       for (const cat of categories) {
         const element = document.getElementById(`category-${cat.id}`);
         if (element) {
@@ -32,38 +32,38 @@ export function CategoryNav() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [activeCategory]);
 
   const scrollToCategory = (id: string) => {
     const element = document.getElementById(`category-${id}`);
-    const navElement = document.getElementById('category-nav');
-    
+    const navElement = document.getElementById("category-nav");
+
     if (element) {
       const headerHeight = window.innerWidth >= 768 ? 96 : 80;
       const navHeight = navElement ? navElement.offsetHeight : 0;
       const offset = headerHeight + navHeight;
-      
+
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.scrollY - offset;
-      
+
       isManualScroll.current = true;
       setActiveCategory(id);
-      
+
       window.scrollTo({
         top: offsetPosition,
-        behavior: "smooth"
+        behavior: "smooth",
       });
-      
+
       if (scrollTimeout.current) {
         window.clearTimeout(scrollTimeout.current);
       }
-      
+
       // Re-enable scroll listener after animation finishes (~800ms)
       scrollTimeout.current = window.setTimeout(() => {
         isManualScroll.current = false;
@@ -72,24 +72,29 @@ export function CategoryNav() {
   };
 
   return (
-    <div id="category-nav" className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm">
+    <div
+      id="category-nav"
+      className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm"
+    >
       <div className="max-w-7xl mx-auto px-1 sm:px-4">
-        <div className="grid grid-cols-4 w-full gap-2 p-2">
+        <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1 sm:p-2">
           {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
                 key={`nav-${cat.id}`}
                 onClick={() => scrollToCategory(cat.id)}
-                className={`w-full py-5 md:py-8 flex flex-col items-center justify-center p-2 text-xs sm:text-sm md:text-base lg:text-lg font-black uppercase text-center transition-all leading-tight rounded-xl shadow-sm border-2 ${
-                  isActive 
-                    ? "bg-[#1E2A44] text-[#EDE3D8] border-[#1E2A44]" 
+                className={`w-full py-3 md:py-6 flex flex-col items-center justify-center p-1 md:p-2 text-[9px] min-[400px]:text-[10px] sm:text-xs md:text-sm lg:text-base font-black uppercase text-center transition-all leading-tight rounded-xl shadow-sm border-2 ${
+                  isActive
+                    ? "bg-[#1E2A44] text-[#EDE3D8] border-[#1E2A44]"
                     : "bg-[#EDE3D8] text-[#1E2A44] border-transparent hover:border-[#1E2A44] hover:bg-[#EAE0D3] active:scale-95"
                 }`}
               >
                 <span className="leading-tight">
                   {cat.name.split(/[\s\n]+/).map((word, wIndex) => (
-                    <span key={wIndex} className="block">{word}</span>
+                    <span key={wIndex} className="block">
+                      {word}
+                    </span>
                   ))}
                 </span>
               </button>

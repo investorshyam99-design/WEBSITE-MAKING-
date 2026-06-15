@@ -67,6 +67,7 @@ export function ProductPage() {
   }, [product]);
 
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const [isCustomized, setIsCustomized] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customNumber, setCustomNumber] = useState("");
@@ -188,7 +189,14 @@ export function ProductPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     if (product) {
-      setActiveImage(product.image);
+      const variantWithColorConfig = product.variants?.find(v => v.color);
+      if (variantWithColorConfig) {
+          setSelectedColor(variantWithColorConfig.color!);
+          const variantImage = product.variants?.find(v => v.color === variantWithColorConfig.color && v.image)?.image;
+          setActiveImage(variantImage || product.image);
+      } else {
+          setActiveImage(product.image);
+      }
     }
   }, [decodedKey, product]);
 
@@ -233,13 +241,29 @@ export function ProductPage() {
       alert("Please select a size first");
       return;
     }
+    const hasColors = product?.variants?.some(v => v.color);
+    if (hasColors && !selectedColor) {
+      alert("Please select a color first");
+      return;
+    }
+    
+    // Check if selected variant is available
+    if (product?.variants) {
+      const selectedVariant = product.variants.find(v => v.title === selectedSize && (!hasColors || v.color === selectedColor));
+      if (selectedVariant && !selectedVariant.availableForSale) {
+        alert("Selected variation is out of stock");
+        return;
+      }
+    }
+
     if (isCustomized && !customName.trim()) {
       alert("Please enter a name for customization");
       return;
     }
     addToCart(
-      product,
+      product!,
       selectedSize,
+      selectedColor || undefined,
       isCustomized ? { name: customName, number: customNumber } : undefined,
     );
     setIsCartOpen(true);
@@ -250,13 +274,29 @@ export function ProductPage() {
       alert("Please select a size first");
       return;
     }
+    const hasColors = product?.variants?.some(v => v.color);
+    if (hasColors && !selectedColor) {
+      alert("Please select a color first");
+      return;
+    }
+
+    // Check if selected variant is available
+    if (product?.variants) {
+      const selectedVariant = product.variants.find(v => v.title === selectedSize && (!hasColors || v.color === selectedColor));
+      if (selectedVariant && !selectedVariant.availableForSale) {
+        alert("Selected variation is out of stock");
+        return;
+      }
+    }
+
     if (isCustomized && !customName.trim()) {
       alert("Please enter a name for customization");
       return;
     }
     addToCart(
-      product,
+      product!,
       selectedSize,
+      selectedColor || undefined,
       isCustomized ? { name: customName, number: customNumber } : undefined,
     );
     setIsCartOpen(true);
@@ -335,7 +375,7 @@ export function ProductPage() {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 w-full relative">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-20">
           {/* Image Gallery */}
-          <div className="flex-1">
+          <div id="product-gallery" className="flex-1">
             <div className="sticky top-24 space-y-4">
               {/* Main Image with Zoom and Swipe */}
               <div
@@ -460,6 +500,49 @@ export function ProductPage() {
             </div>
 
             <div className="space-y-8 mb-10 border-t border-gray-100 pt-8">
+              {/* Color Selection */}
+              {product.variants && (() => {
+                const colors = Array.from(new Set(product.variants.filter(v => v.color).map(v => v.color as string)));
+                if (colors.length === 0) return null;
+                return (
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                        Select Color
+                      </h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2 md:gap-3">
+                      {colors.map((color) => {
+                        return (
+                          <button
+                            key={color}
+                            onClick={() => {
+                              setSelectedColor(color);
+                              const variantWithImage = product.variants?.find(v => v.color === color && v.image);
+                              if (variantWithImage && variantWithImage.image) {
+                                setActiveImage(variantWithImage.image);
+                                const galleryEl = document.getElementById('product-gallery');
+                                if (galleryEl) galleryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }
+                            }}
+                            className={cn(
+                              "group flex-1 py-3 px-3 border-2 rounded-xl flex items-center justify-center transition-all duration-300 min-w-[80px] shadow-sm transform active:scale-95",
+                              selectedColor === color
+                                ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10 text-white"
+                                : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 text-[#1B1B1B]",
+                            )}
+                          >
+                            <span className="text-sm font-bold tracking-tight">
+                              {color}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Size Selection */}
               {product.variants &&
                 product.variants.length > 0 &&
@@ -472,7 +555,9 @@ export function ProductPage() {
                     </div>
                     <div className="flex flex-wrap gap-2 md:gap-3">
                       {(() => {
-                        const variantsSource = product.variants.reduce<
+                        const filteredVariants = selectedColor ? product.variants.filter(v => v.color === selectedColor) : product.variants;
+                        
+                        const variantsSource = filteredVariants.reduce<
                           { size: string; available: boolean }[]
                         >((acc, v) => {
                           const existing = acc.find((a) => a.size === v.title);

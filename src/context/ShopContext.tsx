@@ -8,15 +8,16 @@ import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvi
 type CartItem = Product & { 
   quantity: number; 
   selectedSize?: string;
+  selectedColor?: string;
   customization?: { name: string; number: string };
 };
 
 interface ShopContextType {
   cart: CartItem[];
   wishlist: Product[];
-  addToCart: (product: Product, selectedSize?: string, customization?: { name: string; number: string }) => void;
-  removeFromCart: (productId: string, selectedSize?: string, customization?: { name: string; number: string }) => void;
-  updateQuantity: (productId: string, selectedSize: string | undefined, quantity: number, customization?: { name: string; number: string }) => void;
+  addToCart: (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => void;
+  removeFromCart: (productId: string, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => void;
+  updateQuantity: (productId: string, selectedSize: string | undefined, selectedColor: string | undefined, quantity: number, customization?: { name: string; number: string }) => void;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: string) => boolean;
   isCartOpen: boolean;
@@ -204,7 +205,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setCart([]);
 
-  const addToCart = (product: Product, selectedSize?: string, customization?: { name: string; number: string }) => {
+  const addToCart = (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => {
     setCart((prev) => {
       const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
         if (!itemCustom && !targetCustom) return true;
@@ -213,32 +214,41 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       };
 
       const existingItem = prev.find(
-        (item) => item.id === product.id && item.selectedSize === selectedSize && isCustomSame(item.customization, customization)
+        (item) => item.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization)
       );
       if (existingItem) {
         return prev.map((item) =>
-          item.id === product.id && item.selectedSize === selectedSize && isCustomSame(item.customization, customization)
+          item.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1, selectedSize, customization, price: product.price + (customization ? 199 : 0) }];
+      
+      let itemImage = product.image;
+      if (product.variants && selectedColor) {
+         const matchingVariant = product.variants.find(v => v.color === selectedColor && v.image);
+         if (matchingVariant && matchingVariant.image) {
+             itemImage = matchingVariant.image;
+         }
+      }
+      
+      return [...prev, { ...product, image: itemImage, quantity: 1, selectedSize, selectedColor, customization, price: product.price + (customization ? 199 : 0) }];
     });
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, selectedSize?: string, customization?: { name: string; number: string }) => {
+  const removeFromCart = (productId: string, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => {
     const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
       if (!itemCustom && !targetCustom) return true;
       if (!itemCustom || !targetCustom) return false;
       return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
     };
-    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && isCustomSame(item.customization, customization))));
+    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization))));
   };
 
-  const updateQuantity = (productId: string, selectedSize: string | undefined, quantity: number, customization?: { name: string; number: string }) => {
+  const updateQuantity = (productId: string, selectedSize: string | undefined, selectedColor: string | undefined, quantity: number, customization?: { name: string; number: string }) => {
     if (quantity < 1) {
-      removeFromCart(productId, selectedSize, customization);
+      removeFromCart(productId, selectedSize, selectedColor, customization);
       return;
     }
     const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
@@ -248,7 +258,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     };
     setCart((prev) =>
       prev.map((item) =>
-        item.id === productId && item.selectedSize === selectedSize && isCustomSame(item.customization, customization)
+        item.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization)
           ? { ...item, quantity }
           : item
       )

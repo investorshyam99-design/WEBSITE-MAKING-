@@ -23,6 +23,9 @@ export async function fetchShopifyProducts() {
                     amount
                     currencyCode
                   }
+                  image {
+                    url
+                  }
                   selectedOptions {
                     name
                     value
@@ -30,7 +33,7 @@ export async function fetchShopifyProducts() {
                 }
               }
             }
-            images(first: 5) {
+            images(first: 50) {
               edges {
                 node {
                   url
