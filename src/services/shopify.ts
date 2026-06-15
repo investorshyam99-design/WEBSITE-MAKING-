@@ -10,15 +10,22 @@ export async function fetchShopifyProducts() {
             id
             title
             description
+            descriptionHtml
             productType
             tags
-            variants(first: 1) {
+            variants(first: 50) {
               edges {
                 node {
                   id
+                  title
+                  availableForSale
                   price {
                     amount
                     currencyCode
+                  }
+                  selectedOptions {
+                    name
+                    value
                   }
                 }
               }

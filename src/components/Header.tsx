@@ -28,7 +28,6 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [initialSearchQuery, setInitialSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isTeamsOpen, setIsTeamsOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
   const { setIsLoginOpen, logout, user, isAuthLoading, setIsCartOpen, cart } =
     useShop();
@@ -91,48 +90,7 @@ export function Header() {
                 <Home className="h-5 w-5" /> Home
               </Link>
 
-              <button
-                onClick={() => setIsTeamsOpen(!isTeamsOpen)}
-                className="flex items-center justify-between px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase w-full"
-              >
-                <div className="flex items-center gap-3">
-                  <Shirt className="h-5 w-5" /> Shop by Team
-                </div>
-                <ChevronDown
-                  className={`h-5 w-5 transition-transform ${isTeamsOpen ? "rotate-180" : ""}`}
-                />
-              </button>
 
-              {isTeamsOpen && (
-                <div className="bg-gray-50 border-b border-gray-100">
-                  {[
-                    "Real Madrid",
-                    "Barcelona",
-                    "Argentina",
-                    "Portugal",
-                    "Brazil",
-                    "Spain",
-                    "Manchester United",
-                    "Arsenal",
-                    "Manchester City",
-                    "Bayern Munich",
-                    "Juventus",
-                  ].map((team) => (
-                    <button
-                      key={team}
-                      onClick={() => {
-                        setInitialSearchQuery(team);
-                        setIsSearchOpen(true);
-                        setIsMobileMenuOpen(false);
-                        setIsTeamsOpen(false);
-                      }}
-                      className="block w-full text-left px-12 py-3 text-sm font-semibold text-[#1B1B1B] hover:bg-gray-200 hover:text-[#1E2A44] transition-colors uppercase"
-                    >
-                      {team}
-                    </button>
-                  ))}
-                </div>
-              )}
 
               <button
                 onClick={() => {
