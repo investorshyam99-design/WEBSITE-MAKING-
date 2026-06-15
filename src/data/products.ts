@@ -65,9 +65,23 @@ export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
     const productType = (sp.productType || "").toLowerCase();
     const tags = (sp.tags || []).map((t: string) => t.toLowerCase());
 
-    const isCricket = titleLower.includes("cricket") || productType.includes("cricket") || tags.includes("cricket") || tags.includes("ipl");
-    const isBasketball = titleLower.includes("basketball") || productType.includes("basketball") || tags.includes("basketball") || tags.includes("nba");
-    const isFormula1 = titleLower.includes("formula 1") || titleLower.includes("f1") || productType.includes("formula 1") || productType.includes("f1") || tags.includes("formula 1") || tags.includes("f1");
+    const isCricket =
+      titleLower.includes("cricket") ||
+      productType.includes("cricket") ||
+      tags.includes("cricket") ||
+      tags.includes("ipl");
+    const isBasketball =
+      titleLower.includes("basketball") ||
+      productType.includes("basketball") ||
+      tags.includes("basketball") ||
+      tags.includes("nba");
+    const isFormula1 =
+      titleLower.includes("formula 1") ||
+      titleLower.includes("f1") ||
+      productType.includes("formula 1") ||
+      productType.includes("f1") ||
+      tags.includes("formula 1") ||
+      tags.includes("f1");
 
     if (isFormula1) category = "formula1";
     else if (isBasketball) category = "basketball";

@@ -1,0 +1,116 @@
+[
+  {
+    "id": "gid://shopify/ProductVariant/45183215337542",
+    "title": "Maroon / S",
+    "availableForSale": true,
+    "price": {
+      "amount": "1499.0",
+      "currencyCode": "INR"
+    },
+    "selectedOptions": [
+      {
+        "name": "color",
+        "value": "Maroon"
+      },
+      {
+        "name": "size",
+        "value": "S"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/ProductVariant/45183215370310",
+    "title": "Maroon / M",
+    "availableForSale": true,
+    "price": {
+      "amount": "1499.0",
+      "currencyCode": "INR"
+    },
+    "selectedOptions": [
+      {
+        "name": "color",
+        "value": "Maroon"
+      },
+      {
+        "name": "size",
+        "value": "M"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/ProductVariant/45183215403078",
+    "title": "Maroon / L",
+    "availableForSale": true,
+    "price": {
+      "amount": "1499.0",
+      "currencyCode": "INR"
+    },
+    "selectedOptions": [
+      {
+        "name": "color",
+        "value": "Maroon"
+      },
+      {
+        "name": "size",
+        "value": "L"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/ProductVariant/45183215435846",
+    "title": "Maroon / XL",
+    "availableForSale": true,
+    "price": {
+      "amount": "1499.0",
+      "currencyCode": "INR"
+    },
+    "selectedOptions": [
+      {
+        "name": "color",
+        "value": "Maroon"
+      },
+      {
+        "name": "size",
+        "value": "XL"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/ProductVariant/45183215468614",
+    "title": "Maroon / XXL",
+    "availableForSale": true,
+    "price": {
+      "amount": "1499.0",
+      "currencyCode": "INR"
+    },
+    "selectedOptions": [
+      {
+        "name": "color",
+        "value": "Maroon"
+      },
+      {
+        "name": "size",
+        "value": "XXL"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/ProductVariant/45183215501382",
+    "title": "Maroon / XS",
+    "availableForSale": true,
+    "price": {
+      "amount": "1499.0",
+      "currencyCode": "INR"
+    },
+    "selectedOptions": [
+      {
+        "name": "color",
+        "value": "Maroon"
+      },
+      {
+        "name": "size",
+        "value": "XS"
+      }
+    ]
+  }
+]

@@ -461,90 +461,72 @@ export function ProductPage() {
 
             <div className="space-y-8 mb-10 border-t border-gray-100 pt-8">
               {/* Size Selection */}
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
-                    Select Size
-                  </h3>
-                </div>
-                <p className="text-xs text-gray-500 mb-3 font-medium">
-                  Standard Fit. Order your usual size.
-                </p>
-                <div className="flex flex-wrap gap-2 md:gap-3">
-                  {(() => {
-                    const variantsSource =
-                      product.variants &&
-                      product.variants.length > 0 &&
-                      product.variants[0].title !== "Default Title"
-                        ? product.variants.reduce<
-                            { size: string; available: boolean }[]
-                          >((acc, v) => {
-                            const existing = acc.find(
-                              (a) => a.size === v.title,
-                            );
-                            if (existing) {
-                              if (v.availableForSale) existing.available = true;
-                            } else {
-                              acc.push({
-                                size: v.title,
-                                available: v.availableForSale,
-                              });
-                            }
-                            return acc;
-                          }, [])
-                        : (product.category === "tshirts"
-                            ? ["XS", "S", "M", "L", "XL", "XXL", "3XL"]
-                            : SIZES
-                          ).map((s) => ({ size: s, available: true }));
+              {product.variants &&
+                product.variants.length > 0 &&
+                product.variants[0].title !== "Default Title" && (
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                        Select Size
+                      </h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2 md:gap-3">
+                      {(() => {
+                        const variantsSource = product.variants.reduce<
+                          { size: string; available: boolean }[]
+                        >((acc, v) => {
+                          const existing = acc.find((a) => a.size === v.title);
+                          if (existing) {
+                            if (v.availableForSale) existing.available = true;
+                          } else {
+                            acc.push({
+                              size: v.title,
+                              available: v.availableForSale,
+                            });
+                          }
+                          return acc;
+                        }, []);
 
-                    return variantsSource.map((variant) => {
-                      const { size, available } = variant;
-                      let isUnavailable = !available;
+                        return variantsSource.map((variant) => {
+                          const { size, available } = variant;
+                          const isUnavailable = !available;
 
-                      // Fallback logical unavailable
-                      if (
-                        product.name.toLowerCase().includes("arsenal 3rd") &&
-                        product.name.toLowerCase().includes("full sleeve") &&
-                        (size === "S" || size === "M")
-                      ) {
-                        isUnavailable = true;
-                      }
-
-                      return (
-                        <button
-                          key={size}
-                          onClick={() => {
-                            if (!isUnavailable) handleSizeClick(size);
-                          }}
-                          disabled={isUnavailable}
-                          className={cn(
-                            "group flex-1 py-4 px-2 border-2 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 min-w-[60px] shadow-sm transform active:scale-95",
-                            isUnavailable
-                              ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 relative overflow-hidden"
-                              : selectedSize === size
-                                ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
-                                : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md",
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "text-lg md:text-xl font-black tracking-tight",
-                              selectedSize === size
-                                ? "text-white"
-                                : "text-[#1B1B1B]",
-                            )}
-                          >
-                            {size}
-                          </span>
-                          {isUnavailable && (
-                            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
-                          )}
-                        </button>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
+                          return (
+                            <button
+                              key={size}
+                              onClick={() => {
+                                if (!isUnavailable) handleSizeClick(size);
+                              }}
+                              disabled={isUnavailable}
+                              className={cn(
+                                "group flex-1 py-4 px-2 border-2 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 min-w-[60px] shadow-sm transform active:scale-95",
+                                isUnavailable
+                                  ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 relative overflow-hidden"
+                                  : selectedSize === size
+                                    ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
+                                    : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md",
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "text-lg md:text-xl font-black tracking-tight",
+                                  selectedSize === size
+                                    ? "text-white"
+                                    : "text-[#1B1B1B]",
+                                )}
+                              >
+                                {size}
+                              </span>
+                              {isUnavailable && (
+                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
+                              )}
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                )}
 
               {/* Description */}
               {product.descriptionHtml || product.description ? (
@@ -556,8 +538,6 @@ export function ProductPage() {
                   }}
                 ></div>
               ) : null}
-
-
 
               {/* COD Trust Box */}
               <div className="bg-[#1E2A44]/5 border border-[#1E2A44]/10 rounded-xl p-4 flex items-start gap-3">
