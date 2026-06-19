@@ -458,8 +458,8 @@ function AdminOrderCard({
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              {(order.paymentMode === "partial" ||
-                String(order.status).toLowerCase().includes("advance")) && (
+              {((order.paymentMode === "partial" ||
+                String(order.status).toLowerCase().includes("advance")) && order.paymentMode !== "full") && (
                 <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">
                   COD: ₹
                   {(
@@ -519,8 +519,8 @@ function AdminOrderCard({
                   ).toLocaleString("en-IN")}
                 </p>
               </div>
-              {(order.paymentMode === "partial" ||
-                String(order.status).toLowerCase().includes("advance")) && (
+              {((order.paymentMode === "partial" ||
+                String(order.status).toLowerCase().includes("advance")) && order.paymentMode !== "full") && (
                 <div className="text-right">
                   <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
                     To Collect (COD)
