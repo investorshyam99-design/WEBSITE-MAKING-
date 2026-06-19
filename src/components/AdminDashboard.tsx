@@ -319,7 +319,14 @@ function AdminOrderCard({
         body: JSON.stringify({ order })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data: any = {};
+      try {
+        if (text) data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Server returned invalid response. Is your backend running? (Status: ${response.status})`);
+      }
+
       if (!response.ok) {
         throw new Error(data.error || "Fulfillment request failed");
       }
