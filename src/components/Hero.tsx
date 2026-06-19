@@ -1,14 +1,33 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const navigate = useNavigate();
+  const [videoUrl, setVideoUrl] = useState("/hero-video.mp4");
+
+  useEffect(() => {
+    // Fetch dynamic unexpired Streamable video URL from our custom API
+    fetch("/api/hero-video")
+      .then((res) => {
+        if (!res.ok) throw new Error("API response not ok");
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.url) {
+          setVideoUrl(data.url);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load dynamic Streamable video URL:", err);
+      });
+  }, []);
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.defaultMuted = true;
       videoRef.current.muted = true;
+      videoRef.current.load(); // Reload video engine with new dynamic source url
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch((e: any) => {
@@ -18,7 +37,7 @@ export function Hero() {
         });
       }
     }
-  }, []);
+  }, [videoUrl]);
 
   return (
     <section className="bg-[#1B1B1B] flex flex-col justify-center relative overflow-hidden min-h-[70vh] md:min-h-[85vh]">
@@ -35,10 +54,8 @@ export function Hero() {
         poster="/hero-poster.jpg"
         style={{ transform: "translateZ(0)", willChange: "transform" }}
         className="absolute inset-0 w-full h-full object-cover z-0"
-        key="main-hero-video-v19"
-      >
-        <source src="/hero-video.mp4?v=2" type="video/mp4" />
-      </video>
+        src={videoUrl}
+      />
 
       {/* Subtle overlay to ensure button readability */}
       <div className="absolute inset-0 bg-black/30 z-[5]"></div>

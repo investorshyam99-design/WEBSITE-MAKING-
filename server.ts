@@ -626,6 +626,25 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
     }
   });
 
+  // Streamable Hero Video API to handle dynamic signature expirations
+  app.get("/api/hero-video", async (req, res) => {
+    try {
+      const response = await fetch("https://api.streamable.com/videos/th7p5y");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch from Streamable API: ${response.statusText}`);
+      }
+      const data: any = await response.json();
+      const mp4Url = data.files?.mp4?.url || data.files?.["mp4-mobile"]?.url;
+      if (!mp4Url) {
+        throw new Error("No MP4 video URL found in Streamable metadata");
+      }
+      res.json({ url: mp4Url });
+    } catch (error: any) {
+      console.error("Error fetching dynamic Streamable link:", error);
+      res.json({ url: "/hero-video.mp4" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
