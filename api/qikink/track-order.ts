@@ -14,8 +14,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = process.env.QIKINK_API_KEY || "54247f907400087c18b23dfce719caee2b50e2004db57d0e38e9d344f0443c7a";
 
     const trackPayload = {
-      api_key: apiKey,
-      tracking_id: trackingId
+      apikey: apiKey,
+      order_id: trackingId
     };
 
     const qikinkRes = await fetch("https://qikink.com/index.php/api/api/order_status/", {
