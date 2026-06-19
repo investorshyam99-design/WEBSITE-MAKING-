@@ -124,11 +124,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!qikinkRes.ok || (qikinkData && qikinkData.status === "error") || (qikinkData && qikinkData.error)) {
       console.error("Qikink error response:", qikinkData);
       
-      console.log("Mocking Qikink success due to API outage or error.");
-      return res.json({
-        success: true,
-        message: "API Simulation: Fulfillment submitted (Development fallback)",
-        qikinkResponse: { tracking_id: "MOCK-TRK-" + Math.floor(Math.random() * 100000), courier_name: "Mock Logistics" }
+      return res.status(400).json({
+        error: qikinkData.message || qikinkData.error || "Failed payload rejected by Qikink API",
+        details: qikinkData
       });
     }
 

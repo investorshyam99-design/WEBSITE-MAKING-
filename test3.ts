@@ -1,32 +1,12 @@
-import { parseShopifyProducts } from "./src/data/products.ts";
-import fs from "fs";
-
-const rawData = [
-  {
-    "title": "Portugal Ronaldo 7 Maroon Acidwash Unisex Oversized Tshirt (Football)",
-    "variants": {
-      "edges": [
-        {
-          "node": {
-            "id": "gid://shopify/ProductVariant/45183215337542",
-            "title": "Maroon / S",
-            "availableForSale": true,
-            "selectedOptions": [
-              {
-                "name": "color",
-                "value": "Maroon"
-              },
-              {
-                "name": "size",
-                "value": "S"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  }
-];
-
-const parsed = parseShopifyProducts(rawData);
-console.log(JSON.stringify(parsed[0].variants, null, 2));
+async function fetchQikink(url) {
+  const qikinkRes = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({})
+  });
+  console.log(url, qikinkRes.status);
+  const text = await qikinkRes.text();
+  console.log(text.substring(0, 100));
+}
+fetchQikink("https://dashboard.qikink.com/index.php/api/api/create_order/");
+fetchQikink("https://dashboard.qikink.com/api/create_order/");

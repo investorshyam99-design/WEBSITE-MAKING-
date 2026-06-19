@@ -181,29 +181,69 @@ async function startServer() {
       const lastName = nameParts.slice(1).join(" ") || "Customer";
 
       const qikinkPayload = {
-        apikey: apiKey,
-        order_id: order.id,
-        shipping_firstname: firstName,
-        shipping_lastname: lastName,
-        shipping_address_1: houseNo || order.address?.split(",")[0] || "Address 1",
-        shipping_address_2: areaStreet || "Address 2",
-        shipping_city: city || "City",
-        shipping_state: state || "State",
-        shipping_pincode: pincode || "000000",
-        shipping_phone: order.phone || "",
-        shipping_email: order.email || "customer@jerseyunicorn.com",
-        payment_method: (order.paymentMode === "full" || order.status?.toLowerCase().includes("fampay") || order.status?.toLowerCase().includes("confirmed")) ? "prepaid" : "cod",
-        cod_value: (order.paymentMode === "full" || order.status?.toLowerCase().includes("fampay") || order.status?.toLowerCase().includes("confirmed")) ? 0 : (order.remainingCodAmount || 0),
-        products: products
+        order_number: order.id,
+        qikink_shipping: "1",
+        gateway: (order.paymentMode === "full" || order.status?.toLowerCase().includes("fampay") || order.status?.toLowerCase().includes("confirmed")) ? "Prepaid" : "COD",
+        total_order_value: order.totalAmount || 0,
+        line_items: products.map(p => ({
+          sku: p.sku,
+          quantity: p.qty,
+          price: p.price,
+          search_from_my_products: 1
+        })),
+        shipping_address: {
+          first_name: firstName,
+          last_name: lastName,
+          address1: houseNo || order.address?.split(",")[0] || "Address 1",
+          address2: areaStreet || "Address 2",
+          city: city || "City",
+          province: state || "State",
+          country_code: "IN",
+          zip: pincode || "000000",
+          phone: order.phone || "9999999999",
+          email: order.email || "customer@jerseyunicorn.com"
+        }
       };
 
-      console.log("Sending order request to Qikink:", JSON.stringify(qikinkPayload, null, 2));
+      console.log("Fetching Qikink AccessToken...");
+      const qikinkApiUrl = process.env.QIKINK_API_URL || "https://sandbox.qikink.com";
+      const tokenParams = new URLSearchParams({
+        ClientId: "873512293843020",
+        client_secret: apiKey
+      });
 
-      // Post to Qikink endpoint
-      const qikinkRes = await fetch("https://qikink.com/index.php/api/api/create_order/", {
+      const tokenRes = await fetch(`${qikinkApiUrl}/api/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: tokenParams.toString()
+      });
+
+      let tokenData;
+      try {
+         tokenData = JSON.parse(await tokenRes.text());
+      } catch(e) {
+         return res.status(400).json({ error: "Failed to parse token response from Qikink" });
+      }
+
+      if (!tokenRes.ok || tokenData.error) {
+        return res.status(400).json({ error: tokenData.error || "Failed to authenticate with Qikink API. Check your ClientId and Client Secret."});
+      }
+
+      const accessToken = tokenData.access_token || tokenData.Accesstoken || tokenData.AccessToken || tokenData.token;
+
+      if (!accessToken) {
+         return res.status(400).json({ error: "No access token found in Qikink auth response."});
+      }
+
+      console.log("Sending order request to Qikink API V2");
+
+      // Post to Qikink v2 endpoint
+      const qikinkRes = await fetch(`${qikinkApiUrl}/api/order/create`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "ClientId": "873512293843020",
+          "Accesstoken": accessToken
         },
         body: JSON.stringify(qikinkPayload)
       });
@@ -213,7 +253,6 @@ async function startServer() {
       try {
         qikinkData = JSON.parse(responseText);
       } catch (parseErr) {
-        // If it's HTML, Qikink API is down or changed endpoint
         console.error("Qikink returned non-JSON response.");
         qikinkData = { 
           error: "Qikink API returned an invalid response (possibly down or endpoint changed)", 
@@ -223,12 +262,10 @@ async function startServer() {
 
       if (!qikinkRes.ok || (qikinkData && qikinkData.status === "error") || (qikinkData && qikinkData.error)) {
         console.error("Qikink error response:", qikinkData);
-        // Fallback mock success for demo purposes if Qikink is down or credentials fail
-        console.log("Mocking Qikink success due to API outage or error.");
-        return res.json({
-          success: true,
-          message: "API Simulation: Fulfillment submitted (Development fallback)",
-          qikinkResponse: { tracking_id: "MOCK-TRK-" + Math.floor(Math.random() * 100000), courier_name: "Mock Logistics" }
+        
+        return res.status(400).json({
+          error: qikinkData.message || qikinkData.error || "Failed payload rejected by Qikink API",
+          details: qikinkData
         });
       }
 
@@ -252,20 +289,52 @@ async function startServer() {
 
       const apiKey = process.env.QIKINK_API_KEY || "54247f907400087c18b23dfce719caee2b50e2004db57d0e38e9d344f0443c7a";
 
-      const trackPayload = {
-        apikey: apiKey,
-        order_id: orderId
-      };
-
-      const qikinkRes = await fetch("https://qikink.com/index.php/api/api/order_status/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(trackPayload)
+      console.log("Fetching Qikink AccessToken for tracking...");
+      const qikinkApiUrl = process.env.QIKINK_API_URL || "https://sandbox.qikink.com";
+      const tokenParams = new URLSearchParams({
+        ClientId: "873512293843020",
+        client_secret: apiKey
       });
 
-      const qikinkData = await qikinkRes.json();
+      const tokenRes = await fetch(`${qikinkApiUrl}/api/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: tokenParams.toString()
+      });
+
+      let tokenData;
+      try {
+         tokenData = JSON.parse(await tokenRes.text());
+      } catch(e) {
+         return res.status(400).json({ error: "Failed to parse token response from Qikink" });
+      }
+
+      if (!tokenRes.ok || tokenData.error) {
+        return res.status(400).json({ error: tokenData.error || "Failed to authenticate with Qikink API."});
+      }
+
+      const accessToken = tokenData.access_token || tokenData.Accesstoken || tokenData.AccessToken || tokenData.token;
+
+      const qikinkRes = await fetch(`${qikinkApiUrl}/api/order?id=${encodeURIComponent(orderId)}`, {
+        method: "GET",
+        headers: {
+          "ClientId": "873512293843020",
+          "Accesstoken": accessToken
+        }
+      });
+
+      const text = await qikinkRes.text();
+      let qikinkData;
+      try {
+        qikinkData = JSON.parse(text);
+      } catch(e) {
+        return res.status(400).json({ error: "Non-JSON response from tracking API" });
+      }
+      
+      if (!qikinkRes.ok || qikinkData.error) {
+         return res.status(400).json({ error: qikinkData.error || "Failed to fetch tracking" });
+      }
+
       res.json(qikinkData);
     } catch (error: any) {
       console.error("Qikink track error:", error);

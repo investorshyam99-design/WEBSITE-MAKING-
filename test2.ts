@@ -1,13 +1,11 @@
-import { fetchShopifyProducts } from "./src/services/shopify.ts";
-import fs from "fs";
-
-async function test() {
-  const data = await fetchShopifyProducts();
-  const allVariants = data.slice(0, 10).map(p => ({
-    title: p.title,
-    variants: p.variants.edges.map(e => e.node)
-  }));
-  fs.writeFileSync("test-all-variants.json", JSON.stringify(allVariants, null, 2));
+async function fetchQikink() {
+  const qikinkRes = await fetch("https://qikink.com/index.php/api/api/create_order/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({})
+  });
+  console.log(qikinkRes.status);
+  const text = await qikinkRes.text();
+  console.log(text.substring(0, 500));
 }
-
-test();
+fetchQikink();
