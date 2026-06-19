@@ -629,7 +629,7 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
   // Streamable Hero Video API to handle dynamic signature expirations
   app.get("/api/hero-video", async (req, res) => {
     try {
-      const response = await fetch("https://api.streamable.com/videos/th7p5y");
+      const response = await fetch("https://api.streamable.com/videos/75es0t");
       if (!response.ok) {
         throw new Error(`Failed to fetch from Streamable API: ${response.statusText}`);
       }
