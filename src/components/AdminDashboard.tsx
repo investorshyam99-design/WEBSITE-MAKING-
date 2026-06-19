@@ -466,7 +466,7 @@ function AdminOrderCard({
                 </button>
               </div>
               {((order.paymentMode === "partial" ||
-                String(order.status).toLowerCase().includes("advance")) && order.paymentMode !== "full") && (
+                String(order.status).toLowerCase().includes("advance") || String(order.status).toLowerCase() === "fampay") && order.paymentMode !== "full") && (
                 <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">
                   COD: ₹
                   {(
@@ -480,7 +480,7 @@ function AdminOrderCard({
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-100 text-gray-600">
-              {activeTab === "new" ? (order.status === "Fampay" ? "Fampay" : order.status || "Received") : activeTab}
+              {activeTab === "new" ? ((order.status === "Fampay" || order.status === "Advance Paid (Fampay)") ? "Fampay" : order.status || "Received") : activeTab}
             </span>
             <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
               {orderDate}
@@ -527,7 +527,7 @@ function AdminOrderCard({
                 </p>
               </div>
               {((order.paymentMode === "partial" ||
-                String(order.status).toLowerCase().includes("advance")) && order.paymentMode !== "full") && (
+                String(order.status).toLowerCase().includes("advance") || String(order.status).toLowerCase() === "fampay") && order.paymentMode !== "full") && (
                 <div className="text-right">
                   <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
                     To Collect (COD)

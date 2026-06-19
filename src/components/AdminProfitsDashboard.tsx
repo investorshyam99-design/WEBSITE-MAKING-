@@ -152,7 +152,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       if (o.paymentMode === 'full') {
         revenue = o.price || 0;
         razorpayFee = revenue * 0.0236;
-      } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance')) {
+      } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
         const advanceReceived = 150 * effectiveQty;
         razorpayFee = advanceReceived * 0.0236;
         const codAmount = (o.price || 0) + (50 * effectiveQty) - advanceReceived;

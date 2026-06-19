@@ -7,23 +7,6 @@ export function Hero() {
   const [videoUrl, setVideoUrl] = useState("/hero-video.mp4");
 
   useEffect(() => {
-    // Fetch dynamic unexpired Streamable video URL from our custom API
-    fetch("/api/hero-video")
-      .then((res) => {
-        if (!res.ok) throw new Error("API response not ok");
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.url) {
-          setVideoUrl(data.url);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load dynamic Streamable video URL:", err);
-      });
-  }, []);
-
-  useEffect(() => {
     if (videoRef.current) {
       videoRef.current.defaultMuted = true;
       videoRef.current.muted = true;
