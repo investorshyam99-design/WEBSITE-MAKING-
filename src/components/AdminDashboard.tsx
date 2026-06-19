@@ -473,7 +473,7 @@ function AdminOrderCard({
           </div>
           <div className="flex justify-between items-center mt-2">
             <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-100 text-gray-600">
-              {activeTab === "new" ? order.status || "Received" : activeTab}
+              {activeTab === "new" ? (order.status === "Fampay" ? "Fampay" : order.status || "Received") : activeTab}
             </span>
             <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
               {orderDate}
@@ -626,10 +626,10 @@ function AdminOrderCard({
                   {isFulfilling ? "Sending to Qikink..." : "⚡ Fulfill with Qikink"}
                 </button>
                 <button
-                  onClick={() => onUpdateStatus("Advance Paid (Fampay)")}
+                  onClick={() => onUpdateStatus("Fampay")}
                   className="w-full py-2.5 bg-[#1E2A44] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
                 >
-                  <Check className="h-4 w-4" /> Received via Fampay
+                  <Check className="h-4 w-4" /> Fampay
                 </button>
                 <button
                   onClick={() => onUpdateStatus("Order Placed")}
@@ -742,10 +742,10 @@ function AdminOrderCard({
             {activeTab === "drafts" && (
               <>
                 <button
-                  onClick={() => onUpdateStatus("Advance Paid (Fampay)")}
+                  onClick={() => onUpdateStatus("Fampay")}
                   className="w-full py-2.5 bg-[#1E2A44] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
                 >
-                  <Check className="h-4 w-4" /> Received via Fampay
+                  <Check className="h-4 w-4" /> Fampay
                 </button>
                 <button
                   onClick={(e) => handleWhatsApp(e, templates.draftReminder)}
