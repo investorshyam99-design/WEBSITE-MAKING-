@@ -253,7 +253,7 @@ async function startServer() {
       try {
         qikinkData = JSON.parse(responseText);
       } catch (parseErr) {
-        console.error("Qikink returned non-JSON response.");
+        console.error("Qikink returned non-JSON response:", responseText.substring(0, 500));
         qikinkData = { 
           error: "Qikink API returned an invalid response (possibly down or endpoint changed)", 
           isHTML: true 
