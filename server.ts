@@ -206,7 +206,11 @@ async function startServer() {
       };
 
       console.log("Fetching Qikink AccessToken...");
-      const qikinkApiUrl = process.env.QIKINK_API_URL || "https://sandbox.qikink.com";
+      const qikinkApiUrl = (process.env.QIKINK_API_URL || "https://sandbox.qikink.com").replace(/\/$/, "");
+      console.log("QIKINK CONFIG", {
+         apiUrl: qikinkApiUrl,
+         hasKey: !!process.env.QIKINK_API_KEY
+      });
       const tokenParams = new URLSearchParams({
         ClientId: "873512293843020",
         client_secret: apiKey
@@ -214,7 +218,10 @@ async function startServer() {
 
       const tokenRes = await fetch(`${qikinkApiUrl}/api/token`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { 
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        },
         body: tokenParams.toString()
       });
 
@@ -243,7 +250,8 @@ async function startServer() {
         headers: {
           "Content-Type": "application/json",
           "ClientId": "873512293843020",
-          "Accesstoken": accessToken
+          "Accesstoken": accessToken,
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         },
         body: JSON.stringify(qikinkPayload)
       });
@@ -255,7 +263,7 @@ async function startServer() {
       } catch (parseErr) {
         console.error("Qikink returned non-JSON response:", responseText.substring(0, 500));
         qikinkData = { 
-          error: "Qikink API returned an invalid response (possibly down or endpoint changed)", 
+          error: "Qikink API returned HTML/invalid JSON: " + responseText.substring(0, 200),
           isHTML: true 
         };
       }
@@ -298,7 +306,10 @@ async function startServer() {
 
       const tokenRes = await fetch(`${qikinkApiUrl}/api/token`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { 
+           "Content-Type": "application/x-www-form-urlencoded",
+           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        },
         body: tokenParams.toString()
       });
 

@@ -14,7 +14,7 @@ export function Hero() {
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch((e: any) => {
-          if (e.name !== "AbortError") {
+          if (e.name !== "AbortError" && e.name !== "NotSupportedError" && e.name !== "NotAllowedError") {
             console.error("Autoplay prevents:", e);
           }
         });
