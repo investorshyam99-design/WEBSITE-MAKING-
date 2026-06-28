@@ -379,7 +379,7 @@ export function CartModal() {
           contact: phone,
         },
         theme: {
-          color: "#1E2A44",
+          color: "#722F37",
         },
       };
 
@@ -414,7 +414,7 @@ export function CartModal() {
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="w-full max-w-md bg-white h-[100dvh] relative shadow-2xl flex flex-col md:rounded-l-2xl overflow-hidden"
           >
-            <div className="flex flex-col border-b border-gray-100 bg-[#1E2A44] text-white">
+            <div className="flex flex-col border-b border-gray-100 bg-[#722F37] text-white">
               <div className="flex items-center justify-between p-5 md:p-6 pb-2">
                 <div className="flex items-center gap-2">
                   <Lock className="w-5 h-5 text-[#E6C9A8]" />
@@ -445,7 +445,7 @@ export function CartModal() {
                   </p>
                   <button
                     onClick={() => setIsCartOpen(false)}
-                    className="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-[#1E2A44] hover:bg-gray-50 transition-colors shadow-sm"
+                    className="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-[#722F37] hover:bg-gray-50 transition-colors shadow-sm"
                   >
                     Continue Shopping
                   </button>
@@ -480,7 +480,7 @@ export function CartModal() {
                                 Size: {item.selectedSize}
                               </span>
                               {item.customization && (
-                                <span className="inline-block px-2.5 py-1 bg-[#1E2A44]/5 border border-[#1E2A44]/10 text-[10px] font-black text-[#1E2A44] rounded-lg tracking-widest uppercase mt-1">
+                                <span className="inline-block px-2.5 py-1 bg-[#722F37]/5 border border-[#722F37]/10 text-[10px] font-black text-[#722F37] rounded-lg tracking-widest uppercase mt-1">
                                   {item.customization.name} (
                                   {item.customization.number})
                                 </span>
@@ -489,7 +489,7 @@ export function CartModal() {
                           </div>
 
                           <div className="flex items-center justify-between mt-4">
-                            <p className="font-black text-lg text-[#1E2A44]">
+                            <p className="font-black text-lg text-[#722F37]">
                               ₹{item.price.toLocaleString()}
                             </p>
 
@@ -504,7 +504,7 @@ export function CartModal() {
                                     item.customization,
                                   )
                                 }
-                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-[#1E2A44] hover:text-white transition-colors"
+                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-[#722F37] hover:text-white transition-colors"
                               >
                                 <span className="text-lg leading-none mb-0.5">
                                   -
@@ -523,7 +523,7 @@ export function CartModal() {
                                     item.customization,
                                   )
                                 }
-                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-[#1E2A44] hover:text-white transition-colors"
+                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-[#722F37] hover:text-white transition-colors"
                               >
                                 <span className="text-lg leading-none mb-0.5">
                                   +
@@ -563,7 +563,7 @@ export function CartModal() {
                       {paymentMode === "partial" && (
                         <div className="flex justify-between text-xs font-bold text-gray-500 uppercase tracking-widest pt-2 border-t border-gray-200/60">
                           <span>COD Charges</span>
-                          <span className="text-[#1E2A44]">₹{codExtra}</span>
+                          <span className="text-[#722F37]">₹{codExtra}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-base font-black text-[#1B1B1B] uppercase tracking-wider pt-3 border-t border-gray-200">
@@ -574,7 +574,7 @@ export function CartModal() {
                       </div>
                       {paymentMode === "partial" && (
                         <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 mt-3">
-                          <div className="flex justify-between text-xs font-bold text-[#1E2A44] uppercase tracking-widest">
+                          <div className="flex justify-between text-xs font-bold text-[#722F37] uppercase tracking-widest">
                             <span>Advance Paid Now</span>
                             <span>₹{advanceAmount}</span>
                           </div>
@@ -590,7 +590,7 @@ export function CartModal() {
                       <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">
                         Delivery Details
                       </h3>
-                      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden focus-within:border-[#1E2A44] transition-colors focus-within:ring-1 focus-within:ring-[#1E2A44]">
+                      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden focus-within:border-[#722F37] transition-colors focus-within:ring-1 focus-within:ring-[#722F37]">
                         <div className="relative border-b border-gray-100 bg-white">
                           <input
                             id="fullName"
@@ -605,13 +605,13 @@ export function CartModal() {
                           />
                           <label
                             htmlFor="fullName"
-                            className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                            className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                           >
                             Full Name *
                           </label>
                         </div>
                         <div className="relative border-b border-gray-100 bg-white">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 lg:translate-y-0 lg:top-4 text-sm font-bold text-gray-500 z-10 peer-focus:text-[#1E2A44]">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 lg:translate-y-0 lg:top-4 text-sm font-bold text-gray-500 z-10 peer-focus:text-[#722F37]">
                             +91
                           </div>
                           <input
@@ -630,7 +630,7 @@ export function CartModal() {
                           />
                           <label
                             htmlFor="phone"
-                            className="absolute left-12 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:left-12 peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                            className="absolute left-12 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:left-12 peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                           >
                             Phone Number *
                           </label>
@@ -651,7 +651,7 @@ export function CartModal() {
                             />
                             <label
                               htmlFor="pincode"
-                              className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                              className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                             >
                               Pincode *
                             </label>
@@ -676,7 +676,7 @@ export function CartModal() {
                           />
                           <label
                             htmlFor="houseNo"
-                            className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                            className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                           >
                             House No / Flat No *
                           </label>
@@ -695,7 +695,7 @@ export function CartModal() {
                           />
                           <label
                             htmlFor="areaStreet"
-                            className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                            className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                           >
                             Area / Street *
                           </label>
@@ -715,7 +715,7 @@ export function CartModal() {
                             />
                             <label
                               htmlFor="city"
-                              className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                              className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                             >
                               City *
                             </label>
@@ -734,7 +734,7 @@ export function CartModal() {
                             />
                             <label
                               htmlFor="state"
-                              className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#1E2A44] pointer-events-none"
+                              className="absolute left-4 top-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-500 peer-placeholder-shown:normal-case peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:text-[#722F37] pointer-events-none"
                             >
                               State *
                             </label>
@@ -782,8 +782,8 @@ export function CartModal() {
                           className={`relative block p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden
                      ${
                        paymentMode === "full"
-                         ? "border-[#1E2A44] bg-[#1E2A44] text-white shadow-lg shadow-[#1E2A44]/20 scale-[1.02]"
-                         : "border-gray-200 bg-white hover:border-[#1E2A44]/50"
+                         ? "border-[#722F37] bg-[#722F37] text-white shadow-lg shadow-[#722F37]/20 scale-[1.02]"
+                         : "border-gray-200 bg-white hover:border-[#722F37]/50"
                      }`}
                         >
                           <input
@@ -828,7 +828,7 @@ export function CartModal() {
                             </div>
                             <div className="flex flex-col items-end">
                               <span
-                                className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm mb-1 ${paymentMode === "full" ? "bg-[#E6C9A8] text-[#1E2A44]" : "bg-green-100 text-green-800"}`}
+                                className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm mb-1 ${paymentMode === "full" ? "bg-[#E6C9A8] text-[#722F37]" : "bg-green-100 text-green-800"}`}
                               >
                                 Recommended
                               </span>
@@ -845,8 +845,8 @@ export function CartModal() {
                           className={`relative block p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 overflow-hidden
                      ${
                        paymentMode === "partial"
-                         ? "border-[#1E2A44] bg-[#1E2A44]/5 shadow-md scale-[1.02]"
-                         : "border-gray-200 bg-white hover:border-[#1E2A44]/50"
+                         ? "border-[#722F37] bg-[#722F37]/5 shadow-md scale-[1.02]"
+                         : "border-gray-200 bg-white hover:border-[#722F37]/50"
                      }`}
                         >
                           <input
@@ -860,17 +860,17 @@ export function CartModal() {
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <span
-                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMode === "partial" ? "border-[#1E2A44]" : "border-gray-300"}`}
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMode === "partial" ? "border-[#722F37]" : "border-gray-300"}`}
                                 >
                                   {paymentMode === "partial" && (
-                                    <div className="w-2.5 h-2.5 rounded-full bg-[#1E2A44]"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#722F37]"></div>
                                   )}
                                 </span>
                                 <span className="text-sm font-black text-[#1B1B1B] uppercase tracking-wider">
                                   Partial COD
                                 </span>
                               </div>
-                              <div className="text-xs font-bold text-[#1E2A44] ml-8 mt-1">
+                              <div className="text-xs font-bold text-[#722F37] ml-8 mt-1">
                                 ₹{advanceAmount} Confirmation Amount
                               </div>
                               <div className="text-xs font-medium text-gray-500 ml-8 mt-2 leading-relaxed">
@@ -900,11 +900,11 @@ export function CartModal() {
                     <div className="flex flex-col gap-y-3 pt-6 border-t border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
                       <div className="grid grid-cols-2 gap-y-3">
                         <div className="flex items-center gap-1.5">
-                          <Truck className="w-4 h-4 text-[#1E2A44]" /> Delivery:
+                          <Truck className="w-4 h-4 text-[#722F37]" /> Delivery:
                           3-10 Days
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-[#1E2A44]" />{" "}
+                          <ShieldCheck className="w-4 h-4 text-[#722F37]" />{" "}
                           Secure Checkout
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] leading-tight">
@@ -954,7 +954,7 @@ export function CartModal() {
                         }
                         setIsLoginOpen(true);
                       }}
-                      className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-[#722F37] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#722F37]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#833B44] transition-all flex items-center justify-center gap-2"
                     >
                       <Lock className="w-4 h-4" />
                       Sign in to place order
@@ -963,7 +963,7 @@ export function CartModal() {
                     <button
                       onClick={handleCheckout}
                       disabled={isSubmitting}
-                      className="w-full bg-[#1E2A44] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#1E2A44]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#223A5E] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                      className="w-full bg-[#722F37] text-white h-14 rounded-2xl font-black uppercase tracking-[0.15em] shadow-xl shadow-[#722F37]/20 hover:scale-[1.01] active:scale-[0.99] hover:bg-[#833B44] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
                     >
                       <Lock className="w-4 h-4" />
                       {isSubmitting

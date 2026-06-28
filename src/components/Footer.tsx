@@ -15,7 +15,7 @@ export function Footer() {
             {/* Brand */}
             <div className="lg:col-span-1">
               <h2 className="text-white text-xl font-black tracking-tighter uppercase mb-6 flex items-center gap-2">
-                 <img src="https://i.imgur.com/VaSs3Xd.png" alt="Logo" className="w-8 h-8 rounded-full object-cover grayscale brightness-200" />
+                 <img src="https://i.imgur.com/yZBllZJ.jpeg" alt="Logo" className="w-8 h-8 rounded-full object-cover grayscale brightness-200" />
                  Jersey Unicorn
               </h2>
               <p className="text-sm leading-relaxed mb-6">
@@ -39,7 +39,6 @@ export function Footer() {
               <ul className="space-y-4 text-sm font-medium">
                 <li><Link to="/orders" className="hover:text-white transition-colors flex items-center justify-between group">Track Order <ArrowUpRight className="w-4 h-4 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all" /></Link></li>
                 <li><Link to="/" className="hover:text-white transition-colors">All Products</Link></li>
-                <li><button onClick={() => setIsPoliciesOpen(true)} className="hover:text-white transition-colors flex items-center justify-between w-full group text-left">FAQ <ArrowUpRight className="w-4 h-4 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all" /></button></li>
               </ul>
             </div>
 

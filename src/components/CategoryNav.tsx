@@ -74,7 +74,7 @@ export function CategoryNav() {
   return (
     <div
       id="category-nav"
-      className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm"
+      className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#722F37]/10 shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-1 sm:px-4">
         <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1 sm:p-2">
@@ -86,8 +86,8 @@ export function CategoryNav() {
                 onClick={() => scrollToCategory(cat.id)}
                 className={`w-full py-3 md:py-6 flex flex-col items-center justify-center p-1 md:p-2 text-[9px] min-[400px]:text-[10px] sm:text-xs md:text-sm lg:text-base font-black uppercase text-center transition-all leading-tight rounded-xl shadow-sm border-2 ${
                   isActive
-                    ? "bg-[#1E2A44] text-[#EDE3D8] border-[#1E2A44]"
-                    : "bg-[#EDE3D8] text-[#1E2A44] border-transparent hover:border-[#1E2A44] hover:bg-[#EAE0D3] active:scale-95"
+                    ? "bg-[#722F37] text-[#EDE3D8] border-[#722F37]"
+                    : "bg-[#EDE3D8] text-[#722F37] border-transparent hover:border-[#722F37] hover:bg-[#EAE0D3] active:scale-95"
                 }`}
               >
                 <span className="leading-tight">

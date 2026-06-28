@@ -3,7 +3,6 @@ import { CategoryNav } from "../components/CategoryNav";
 import { Hero } from "../components/Hero";
 import { CategoriesSection } from "../components/CategoriesSection";
 import { TrustSection } from "../components/TrustSection";
-import { FAQ } from "../components/FAQ";
 import { InstagramSection } from "../components/InstagramSection";
 import { Footer } from "../components/Footer";
 
@@ -16,7 +15,6 @@ export function Home() {
         <CategoryNav />
         <InstagramSection />
         <CategoriesSection />
-        <FAQ />
         <TrustSection />
       </main>
       <Footer />

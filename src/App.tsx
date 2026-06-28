@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AIAssistant } from "./components/AIAssistant";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { ProductPage } from "./pages/ProductPage";
@@ -25,7 +24,6 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<Home />} />
         </Routes>
-        <AIAssistant />
         <CartModal />
         <LoginModal />
       </Router>

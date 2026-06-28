@@ -221,7 +221,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
           <button 
             key={item.id}
             onClick={() => setDateFilter(item.id)}
-            className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-full ${dateFilter === item.id ? 'bg-[#1E2A44] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-full ${dateFilter === item.id ? 'bg-[#722F37] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
           >
             {item.label}
           </button>
@@ -330,7 +330,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                </div>
                <div className="flex justify-end gap-2 mt-4 text-xs">
                   <button onClick={() => setIsEditingManual(false)} className="px-4 py-2 uppercase font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
-                  <button onClick={handleSaveManualStats} disabled={isSavingManual} className="px-6 py-2 uppercase font-bold text-white bg-[#1E2A44] hover:bg-[#2A3A5A] rounded shadow flex items-center justify-center">
+                  <button onClick={handleSaveManualStats} disabled={isSavingManual} className="px-6 py-2 uppercase font-bold text-white bg-[#722F37] hover:bg-[#2A3A5A] rounded shadow flex items-center justify-center">
                     {isSavingManual ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null} Save Today's Adjustments
                   </button>
                </div>
@@ -387,7 +387,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                     </div>
                   )}
                   <div>
-                    <p className="font-bold text-[#1E2A44] text-sm">{order.fullName || "Guest Customer"}</p>
+                    <p className="font-bold text-[#722F37] text-sm">{order.fullName || "Guest Customer"}</p>
                     <p className="text-xs text-gray-500 mb-2 truncate max-w-xs md:max-w-sm">{order.productName}</p>
                     <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-200 text-gray-700">
                       {order.paymentMode === 'full' ? 'Prepaid (Full)' : 'COD (Partial)'}
@@ -442,7 +442,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                      </div>
                      <div className="flex justify-end gap-2 text-xs">
                         <button onClick={() => setEditingOrderId(null)} className="px-4 py-2 uppercase font-bold text-gray-500 hover:bg-gray-100 rounded">Cancel</button>
-                        <button onClick={() => handleSaveCosts(order.id)} disabled={isSaving} className="px-6 py-2 uppercase font-bold text-white bg-[#1E2A44] hover:bg-[#2A3A5A] rounded shadow flex items-center justify-center">
+                        <button onClick={() => handleSaveCosts(order.id)} disabled={isSaving} className="px-6 py-2 uppercase font-bold text-white bg-[#722F37] hover:bg-[#2A3A5A] rounded shadow flex items-center justify-center">
                           {isSaving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null} Save Costs
                         </button>
                      </div>
@@ -471,7 +471,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                            <p className="font-semibold text-red-600 text-sm">-₹{rFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                         </div>
                     </div>
-                    <button onClick={() => openEditor(order)} className="mt-4 lg:mt-0 px-5 py-2 text-[10px] font-bold uppercase tracking-wider bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 text-[#1E2A44] w-full lg:w-auto transition-colors ml-0 lg:ml-4">
+                    <button onClick={() => openEditor(order)} className="mt-4 lg:mt-0 px-5 py-2 text-[10px] font-bold uppercase tracking-wider bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 text-[#722F37] w-full lg:w-auto transition-colors ml-0 lg:ml-4">
                       Edit Costs
                     </button>
                   </div>

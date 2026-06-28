@@ -104,7 +104,7 @@ export function OrdersPage() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <main className="flex-grow flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E2A44]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#722F37]"></div>
         </main>
         <Footer />
       </div>
@@ -126,7 +126,7 @@ export function OrdersPage() {
             </p>
             <button
               onClick={() => setIsLoginOpen(true)}
-              className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full hover:bg-[#223A5E] transition-colors rounded-xl"
+              className="bg-[#722F37] text-white px-6 py-3 font-bold uppercase text-sm w-full hover:bg-[#833B44] transition-colors rounded-xl"
             >
               Log in to view orders
             </button>
@@ -154,7 +154,7 @@ export function OrdersPage() {
 
         {loading ? (
           <div className="text-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E2A44] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#722F37] mx-auto mb-4"></div>
             <p className="text-gray-500 font-medium">Loading your orders...</p>
           </div>
         ) : orders.length === 0 ? (
@@ -284,7 +284,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
             
             {order.trackingId && (
               <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600 space-y-1">
-                <p className="font-bold text-[#1E2A44] flex items-center gap-2 tracking-wider uppercase"><Truck className="h-4 w-4" /> Tracking Information</p>
+                <p className="font-bold text-[#722F37] flex items-center gap-2 tracking-wider uppercase"><Truck className="h-4 w-4" /> Tracking Information</p>
                 <p><strong className="font-semibold">Courier:</strong> {order.courierName}</p>
                 <p><strong className="font-semibold">Tracking ID:</strong> {order.trackingId}</p>
               </div>

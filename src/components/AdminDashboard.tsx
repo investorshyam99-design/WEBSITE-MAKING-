@@ -194,7 +194,7 @@ export function AdminDashboard({
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="p-4">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-black text-[#1E2A44] uppercase tracking-widest flex items-center gap-2">
+            <h2 className="text-xl font-black text-[#722F37] uppercase tracking-widest flex items-center gap-2">
               Operations
             </h2>
             <button
@@ -211,7 +211,7 @@ export function AdminDashboard({
               placeholder="Search orders..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E2A44] text-sm font-medium"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#722F37] text-sm font-medium"
             />
           </div>
         </div>
@@ -224,7 +224,7 @@ export function AdminDashboard({
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex-shrink-0 ${
                 activeTab === tab.id
-                  ? "border-[#1E2A44] text-[#1E2A44]"
+                  ? "border-[#722F37] text-[#722F37]"
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
@@ -442,7 +442,7 @@ function AdminOrderCard({
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-bold text-[#1E2A44] text-sm truncate pr-2">
+              <p className="font-bold text-[#722F37] text-sm truncate pr-2">
                 {customerName}
               </p>
               <p className="text-xs text-gray-500 truncate">
@@ -460,7 +460,7 @@ function AdminOrderCard({
                     e.stopPropagation();
                     onUpdatePrice(order.price || 0);
                   }}
-                  className="text-gray-400 hover:text-[#1E2A44] transition-colors"
+                  className="text-gray-400 hover:text-[#722F37] transition-colors"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
@@ -634,7 +634,7 @@ function AdminOrderCard({
                 </button>
                 <button
                   onClick={() => onUpdateStatus("Fampay")}
-                  className="w-full py-2.5 bg-[#1E2A44] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
+                  className="w-full py-2.5 bg-[#722F37] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
                 >
                   <Check className="h-4 w-4" /> Fampay
                 </button>
@@ -750,7 +750,7 @@ function AdminOrderCard({
               <>
                 <button
                   onClick={() => onUpdateStatus("Fampay")}
-                  className="w-full py-2.5 bg-[#1E2A44] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
+                  className="w-full py-2.5 bg-[#722F37] text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2"
                 >
                   <Check className="h-4 w-4" /> Fampay
                 </button>

@@ -22,7 +22,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           <p className="text-[10px] text-gray-400 capitalize font-medium tracking-tight truncate">
             {product.category.replace(/-/g, ' ')}
           </p>
-          <h3 className="text-sm font-semibold mt-0.5 text-[#1B1B1B] group-hover:text-[#1E2A44] transition-colors truncate">
+          <h3 className="text-sm font-semibold mt-0.5 text-[#1B1B1B] group-hover:text-[#722F37] transition-colors truncate">
             {product.name}
           </h3>
           <div className="flex items-center gap-2 mt-1.5">

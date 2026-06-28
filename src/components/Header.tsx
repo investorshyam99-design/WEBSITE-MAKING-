@@ -72,10 +72,10 @@ export function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-[#EDE3D8] flex items-center justify-between bg-[#F5EFE6]">
-              <span className="font-black text-lg text-[#1E2A44]">MENU</span>
+              <span className="font-black text-lg text-[#722F37]">MENU</span>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-[#1B1B1B] hover:text-[#1E2A44] hover:bg-gray-200 rounded-full transition-colors"
+                className="p-2 text-[#1B1B1B] hover:text-[#722F37] hover:bg-gray-200 rounded-full transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -85,7 +85,7 @@ export function Header() {
               <Link
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#722F37] border-b border-gray-100 transition-colors uppercase"
               >
                 <Home className="h-5 w-5" /> Home
               </Link>
@@ -106,7 +106,7 @@ export function Header() {
                     100,
                   );
                 }}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase w-full text-left"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#722F37] border-b border-gray-100 transition-colors uppercase w-full text-left"
               >
                 <Phone className="h-5 w-5" /> Contact Us
               </button>
@@ -133,7 +133,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#722F37] border-b border-gray-100 transition-colors uppercase"
               >
                 <MessageSquare className="h-5 w-5" /> Chat with Us
               </a>
@@ -144,7 +144,7 @@ export function Header() {
                     setIsLoginOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
+                  className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#722F37] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
                 >
                   <LogIn className="h-5 w-5" /> Register/Login
                 </button>
@@ -157,7 +157,7 @@ export function Header() {
                     <Link
                       to="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
+                      className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#722F37] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
                     >
                       <ShieldAlert className="h-5 w-5" /> Admin Panel
                     </Link>
@@ -165,7 +165,7 @@ export function Header() {
                   <Link
                     to="/orders"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
+                    className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#722F37] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
                   >
                     <FileText className="h-5 w-5" /> My Orders
                   </Link>
@@ -189,7 +189,7 @@ export function Header() {
             <div className="mt-auto p-6 bg-[#F5EFE6]">
               <div className="flex justify-center items-center gap-2 text-xs font-bold text-[#F5EFE6]0 uppercase">
                 <img
-                  src="https://i.imgur.com/VaSs3Xd.png"
+                  src="https://i.imgur.com/yZBllZJ.jpeg"
                   alt="Logo"
                   className="w-[35px] h-[35px] rounded-full opacity-50 grayscale object-cover"
                 />
@@ -201,30 +201,22 @@ export function Header() {
       )}
 
       {/* Top Announcement Bar */}
-      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center overflow-hidden h-7">
+      <div className="bg-[#722F37] text-white py-1.5 px-4 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center overflow-hidden h-7">
         <div className="whitespace-nowrap animate-marquee flex items-center pr-8">
-          {[...Array(10)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <div key={i} className="flex items-center">
-              <span>COD AVAILABLE</span>
-              <span className="mx-8">&bull;</span>
               <span>FREE DELIVERY</span>
-              <span className="mx-8">&bull;</span>
-              <span>CUSTOMISATION AVAILABLE</span>
               <span className="mx-8">&bull;</span>
             </div>
           ))}
-          {[...Array(10)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <div key={"second-" + i} className="flex items-center">
-              <span>COD AVAILABLE</span>
-              <span className="mx-8">&bull;</span>
               <span>FREE DELIVERY</span>
-              <span className="mx-8">&bull;</span>
-              <span>CUSTOMISATION AVAILABLE</span>
               <span className="mx-8">&bull;</span>
             </div>
           ))}
         </div>
-        <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#1E2A44] pl-4 z-10">
+        <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#722F37] pl-4 z-10">
           <a
             href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg=="
             target="_blank"
@@ -252,10 +244,10 @@ export function Header() {
           <div className="flex items-center gap-4 md:gap-8">
             <Link
               to="/"
-              className="text-2xl md:text-3xl font-black tracking-tighter text-[#1E2A44] flex items-center gap-3"
+              className="text-2xl md:text-3xl font-black tracking-tighter text-[#722F37] flex items-center gap-3"
             >
               <img
-                src="https://i.imgur.com/VaSs3Xd.png"
+                src="https://i.imgur.com/yZBllZJ.jpeg"
                 alt="Jersey Unicorn Logo"
                 className="w-[53px] h-[53px] md:w-[70px] md:h-[70px] rounded-full object-cover"
               />
@@ -266,7 +258,7 @@ export function Header() {
           <nav className="hidden md:flex gap-6 text-sm font-medium uppercase tracking-wider">
             <Link
               to="/"
-              className="text-[#1E2A44] font-bold border-b-2 border-[#1E2A44]"
+              className="text-[#722F37] font-bold border-b-2 border-[#722F37]"
             >
               Home
             </Link>
@@ -281,7 +273,7 @@ export function Header() {
                   100,
                 );
               }}
-              className="hover:text-[#1E2A44] transition-colors cursor-pointer"
+              className="hover:text-[#722F37] transition-colors cursor-pointer"
             >
               Shop
             </button>
@@ -296,7 +288,7 @@ export function Header() {
                   100,
                 );
               }}
-              className="hover:text-[#1E2A44] transition-colors cursor-pointer"
+              className="hover:text-[#722F37] transition-colors cursor-pointer"
             >
               Categories
             </button>
@@ -311,7 +303,7 @@ export function Header() {
                   100,
                 );
               }}
-              className="hover:text-[#1E2A44] transition-colors cursor-pointer"
+              className="hover:text-[#722F37] transition-colors cursor-pointer"
             >
               Contact
             </button>
@@ -319,7 +311,7 @@ export function Header() {
               href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg=="
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#1E2A44] transition-colors"
+              className="hover:text-[#722F37] transition-colors"
             >
               Instagram
             </a>
@@ -329,7 +321,7 @@ export function Header() {
             {!isAuthLoading && !user ? (
               <button
                 onClick={() => setIsLoginOpen(true)}
-                className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+                className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#722F37] transition-colors"
               >
                 <LogIn className="h-4 w-4" /> Login
               </button>
@@ -338,14 +330,14 @@ export function Header() {
                 {user.email === "investorshyam99@gmail.com" && (
                   <Link
                     to="/admin"
-                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#722F37] transition-colors"
                   >
                     Admin
                   </Link>
                 )}
                 <Link
                   to="/orders"
-                  className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+                  className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#722F37] transition-colors"
                 >
                   Orders
                 </Link>
@@ -365,14 +357,14 @@ export function Header() {
 
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+              className="text-[#1B1B1B] hover:text-[#722F37] transition-colors"
             >
               <Search className="h-5 w-5 md:h-6 md:w-6" />
             </button>
 
             <button
               onClick={() => setIsCartOpen(true)}
-              className="text-[#1B1B1B] hover:text-[#1E2A44] transition-colors relative"
+              className="text-[#1B1B1B] hover:text-[#722F37] transition-colors relative"
             >
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
               {cartItemCount > 0 && (
@@ -383,7 +375,7 @@ export function Header() {
             </button>
 
             <button
-              className="md:hidden text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+              className="md:hidden text-[#1B1B1B] hover:text-[#722F37] transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
