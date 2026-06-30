@@ -15,7 +15,7 @@ export function Footer() {
             {/* Brand */}
             <div className="lg:col-span-1">
               <h2 className="text-white text-xl font-black tracking-tighter uppercase mb-6 flex items-center gap-2">
-                 <img src="https://i.imgur.com/yZBllZJ.jpeg" alt="Logo" className="w-8 h-8 rounded-full object-cover grayscale brightness-200" />
+                 <img src="https://i.imgur.com/VaSs3Xd.png" alt="Logo" className="w-8 h-8 rounded-full object-cover grayscale brightness-200" />
                  Jersey Unicorn
               </h2>
               <p className="text-sm leading-relaxed mb-6">

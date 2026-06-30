@@ -28,10 +28,10 @@ export function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps) {
           
           <table className="w-full text-sm text-left border-collapse">
             <thead>
-              <tr className="border-b-2 border-[#722F37]">
-                <th className="py-3 font-bold uppercase text-[#722F37] tracking-wider">Size</th>
-                <th className="py-3 font-bold uppercase text-[#722F37] tracking-wider">Chest (Inches)</th>
-                <th className="py-3 font-bold uppercase text-[#722F37] tracking-wider">Length (Inches)</th>
+              <tr className="border-b-2 border-[#1E2A44]">
+                <th className="py-3 font-bold uppercase text-[#1E2A44] tracking-wider">Size</th>
+                <th className="py-3 font-bold uppercase text-[#1E2A44] tracking-wider">Chest (Inches)</th>
+                <th className="py-3 font-bold uppercase text-[#1E2A44] tracking-wider">Length (Inches)</th>
               </tr>
             </thead>
             <tbody className="text-gray-700 font-medium">

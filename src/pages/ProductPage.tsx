@@ -220,7 +220,7 @@ export function ProductPage() {
             <h2 className="text-2xl font-bold mb-4">Product not found</h2>
             <Link
               to="/"
-              className="text-[#722F37] underline font-bold uppercase tracking-widest"
+              className="text-[#1E2A44] underline font-bold uppercase tracking-widest"
             >
               Return to shop
             </Link>
@@ -341,7 +341,7 @@ export function ProductPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white relative">
       {toastMessage && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-[#722F37] border border-[#722F37]/20 text-white px-6 py-3.5 rounded-full font-black uppercase text-xs tracking-widest flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-[#1E2A44] border border-[#1E2A44]/20 text-white px-6 py-3.5 rounded-full font-black uppercase text-xs tracking-widest flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <CheckCircle2 className="w-4.5 h-4.5 text-green-400 flex-shrink-0" />
           <span>{toastMessage}</span>
         </div>
@@ -353,14 +353,14 @@ export function ProductPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-[#F5EFE6]0">
           <Link
             to="/"
-            className="text-[#722F37] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"
+            className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"
           >
             Home
           </Link>
           <ChevronRight className="h-4 w-4 mx-2 text-gray-400" />
           <Link
             to="/"
-            className="text-[#722F37] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"
+            className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"
           >
             Shop
           </Link>
@@ -442,7 +442,7 @@ export function ProductPage() {
                     className={cn(
                       "flex-shrink-0 w-20 h-24 rounded-lg border-2 transition-all overflow-hidden",
                       activeImage === img
-                        ? "border-[#722F37]"
+                        ? "border-[#1E2A44]"
                         : "border-transparent hover:border-gray-200",
                     )}
                   >
@@ -487,7 +487,7 @@ export function ProductPage() {
             </div>
 
             <div className="flex items-end gap-3 mb-8">
-              <span className="text-3xl md:text-4xl font-black text-[#722F37]">
+              <span className="text-3xl md:text-4xl font-black text-[#1E2A44]">
                 ₹{product.price.toLocaleString("en-IN")}
               </span>
               <span className="text-xl md:text-2xl font-bold text-gray-400 line-through mb-1">
@@ -527,8 +527,8 @@ export function ProductPage() {
                             className={cn(
                               "group flex-1 py-3 px-3 border-2 rounded-xl flex items-center justify-center transition-all duration-300 min-w-[80px] shadow-sm transform active:scale-95",
                               selectedColor === color
-                                ? "border-[#722F37] bg-[#722F37] shadow-md shadow-[#722F37]/30 scale-105 z-10 text-white"
-                                : "border-gray-200 bg-white hover:border-[#722F37]/50 hover:bg-gray-50 text-[#1B1B1B]",
+                                ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10 text-white"
+                                : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 text-[#1B1B1B]",
                             )}
                           >
                             <span className="text-sm font-bold tracking-tight">
@@ -587,8 +587,8 @@ export function ProductPage() {
                                 isUnavailable
                                   ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 relative overflow-hidden"
                                   : selectedSize === size
-                                    ? "border-[#722F37] bg-[#722F37] shadow-md shadow-[#722F37]/30 scale-105 z-10"
-                                    : "border-gray-200 bg-white hover:border-[#722F37]/50 hover:bg-gray-50 hover:shadow-md",
+                                    ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
+                                    : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md",
                               )}
                             >
                               <span
@@ -624,10 +624,10 @@ export function ProductPage() {
               ) : null}
 
               {/* COD Trust Box */}
-              <div className="bg-[#722F37]/5 border border-[#722F37]/10 rounded-xl p-4 flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-[#722F37] flex-shrink-0 mt-0.5" />
+              <div className="bg-[#1E2A44]/5 border border-[#1E2A44]/10 rounded-xl p-4 flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-[#1E2A44] flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-[#722F37] uppercase tracking-wider mb-1">
+                  <h4 className="text-sm font-bold text-[#1E2A44] uppercase tracking-wider mb-1">
                     Cash on Delivery Available
                   </h4>
                   <p className="text-xs font-medium text-gray-600 leading-relaxed">
@@ -730,13 +730,13 @@ export function ProductPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 flex items-center justify-center text-center border-2 border-[#722F37] text-[#722F37] py-4 rounded-xl font-black uppercase tracking-widest hover:bg-gray-50 transition-colors text-sm"
+                    className="flex-1 flex items-center justify-center text-center border-2 border-[#1E2A44] text-[#1E2A44] py-4 rounded-xl font-black uppercase tracking-widest hover:bg-gray-50 transition-colors text-sm"
                   >
                     Add to Cart
                   </button>
                   <button
                     onClick={handleBuyNow}
-                    className="flex-1 flex items-center justify-center text-center bg-[#722F37] border-2 border-[#722F37] text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-md hover:bg-[#57242A] hover:-translate-y-0.5 transition-all duration-300 text-sm"
+                    className="flex-1 flex items-center justify-center text-center bg-[#1E2A44] border-2 border-[#1E2A44] text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-md hover:bg-[#151D2F] hover:-translate-y-0.5 transition-all duration-300 text-sm"
                   >
                     Buy Now
                   </button>
@@ -757,13 +757,13 @@ export function ProductPage() {
       >
         <button
           onClick={handleAddToCart}
-          className="flex-1 flex items-center justify-center text-center border-2 border-[#722F37] text-[#722F37] py-3.5 rounded-xl font-black uppercase tracking-widest bg-white shadow-sm transition-colors text-xs"
+          className="flex-1 flex items-center justify-center text-center border-2 border-[#1E2A44] text-[#1E2A44] py-3.5 rounded-xl font-black uppercase tracking-widest bg-white shadow-sm transition-colors text-xs"
         >
           Add to Cart
         </button>
         <button
           onClick={handleBuyNow}
-          className="flex-1 flex items-center justify-center text-center bg-[#722F37] border-2 border-[#722F37] text-white py-3.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-colors text-xs"
+          className="flex-1 flex items-center justify-center text-center bg-[#1E2A44] border-2 border-[#1E2A44] text-white py-3.5 rounded-xl font-black uppercase tracking-widest shadow-md transition-colors text-xs"
         >
           Buy Now
         </button>

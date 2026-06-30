@@ -14,7 +14,7 @@ export function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
         className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-[#722F37] text-white p-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-[#1E2A44] text-white p-4 flex items-center justify-between z-10">
           <h2 className="text-lg md:text-xl font-black uppercase tracking-widest">Our Policies</h2>
           <button 
             onClick={onClose}
@@ -46,7 +46,7 @@ export function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
                 <li>Damaged product received</li>
               </ul>
               
-              <h4 className="font-semibold text-[#722F37] uppercase tracking-wider text-xs">Important Conditions:</h4>
+              <h4 className="font-semibold text-[#1E2A44] uppercase tracking-wider text-xs">Important Conditions:</h4>
               <ul className="list-disc pl-5 space-y-2">
                 <li><strong>An unboxing video is mandatory</strong> for exchange requests.</li>
                 <li>The issue must be reported within <strong>24 hours</strong> of delivery.</li>

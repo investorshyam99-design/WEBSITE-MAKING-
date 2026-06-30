@@ -42,7 +42,7 @@ function CategoryBlock({ category, products }: { category: any, products: any[],
   return (
     <section id={`category-${category.id}`} className="scroll-mt-48 mb-4">
       {/* Heading block */}
-      <div className="mb-6 py-4 px-5 md:py-5 md:px-8 bg-[#722F37] flex flex-col items-start justify-center shadow-md border-l-4 border-[#E6C9A8] rounded-r-2xl">
+      <div className="mb-6 py-4 px-5 md:py-5 md:px-8 bg-[#14213D] flex flex-col items-start justify-center shadow-md border-l-4 border-[#E6C9A8] rounded-r-2xl">
         <h3 className="text-lg md:text-2xl font-black uppercase text-white mb-1 md:mb-2 tracking-tight">
           {category.name}
         </h3>

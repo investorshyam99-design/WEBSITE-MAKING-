@@ -8,7 +8,7 @@ export function InstagramSection() {
           href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg==" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="flex w-full sm:w-[220px] h-[44px] sm:h-[48px] items-center justify-center px-1 sm:px-6 border-2 border-[#722F37] bg-[#722F37] text-white font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-[#833B44] hover:border-[#833B44] transition-colors whitespace-nowrap text-center"
+          className="flex w-full sm:w-[220px] h-[44px] sm:h-[48px] items-center justify-center px-1 sm:px-6 border-2 border-[#1E2A44] bg-[#1E2A44] text-white font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-[#223A5E] hover:border-[#223A5E] transition-colors whitespace-nowrap text-center"
         >
           <Instagram className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 shrink-0" />
           Instagram
@@ -17,7 +17,7 @@ export function InstagramSection() {
           href="https://chat.whatsapp.com/K2t3JO050Z6GJ662AReKUv" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="flex w-full sm:w-[220px] h-[44px] sm:h-[48px] items-center justify-center px-1 sm:px-6 border-2 border-[#722F37] bg-[#722F37] text-white font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-[#833B44] hover:border-[#833B44] transition-colors whitespace-nowrap text-center"
+          className="flex w-full sm:w-[220px] h-[44px] sm:h-[48px] items-center justify-center px-1 sm:px-6 border-2 border-[#1E2A44] bg-[#1E2A44] text-white font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-[#223A5E] hover:border-[#223A5E] transition-colors whitespace-nowrap text-center"
         >
           <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 shrink-0" />
           WhatsApp

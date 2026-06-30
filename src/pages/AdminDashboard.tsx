@@ -115,7 +115,7 @@ export function AdminDashboard() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-black text-[#722F37] uppercase tracking-wider">
+          <h1 className="text-2xl font-black text-[#1E2A44] uppercase tracking-wider">
             Admin Dashboard
           </h1>
           <p className="text-gray-500 mt-2 font-medium">
@@ -125,7 +125,7 @@ export function AdminDashboard() {
 
         {isAuthLoading ? (
           <div className="flex justify-center items-center h-48">
-            <Loader2 className="w-8 h-8 animate-spin text-[#722F37]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
           </div>
         ) : !user ? (
           <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-gray-100">
@@ -149,7 +149,7 @@ export function AdminDashboard() {
           </div>
         ) : loading ? (
           <div className="flex justify-center items-center h-48">
-            <Loader2 className="w-8 h-8 animate-spin text-[#722F37]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
           </div>
         ) : error ? (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm font-medium">
@@ -163,7 +163,7 @@ export function AdminDashboard() {
                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
                   <Users className="w-24 h-24" />
                 </div>
-                <Users className="w-8 h-8 text-[#722F37] mb-4" />
+                <Users className="w-8 h-8 text-[#1E2A44] mb-4" />
                 <h3 className="text-gray-500 font-medium text-sm">
                   Total Logged-in Users
                 </h3>

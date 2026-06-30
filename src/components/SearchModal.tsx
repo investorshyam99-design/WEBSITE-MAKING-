@@ -75,10 +75,10 @@ export function SearchModal({ isOpen, onClose, initialQuery }: SearchModalProps)
                   />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase truncate text-[#1B1B1B] group-hover:text-[#722F37] transition-colors">
+                  <h3 className="text-xs font-bold uppercase truncate text-[#1B1B1B] group-hover:text-[#1E2A44] transition-colors">
                     {product.name}
                   </h3>
-                  <p className="font-black text-sm text-[#722F37]">
+                  <p className="font-black text-sm text-[#1E2A44]">
                     ₹{product.price.toLocaleString("en-IN")}
                   </p>
                 </div>

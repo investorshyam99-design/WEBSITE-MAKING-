@@ -224,7 +224,7 @@ export function LoginModal() {
              <div className="w-12 h-12 bg-gray-900 text-white rounded-xl flex items-center justify-center font-black text-xl mx-auto mb-4 tracking-tighter">
                 JU.
              </div>
-            <h2 className="text-2xl font-black uppercase tracking-tight text-[#722F37]">
+            <h2 className="text-2xl font-black uppercase tracking-tight text-[#1E2A44]">
               {loginMethod === 'selection' ? "Welcome Back" : confirmationResult ? "Verify Phone" : "Enter Phone"}
             </h2>
             <p className="text-gray-500 mt-2 text-sm font-medium">
@@ -265,7 +265,7 @@ export function LoginModal() {
                     <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 block">
                       Mobile Number
                     </label>
-                    <div className="flex bg-gray-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-[#722F37] transition-all border border-gray-100">
+                    <div className="flex bg-gray-50 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-[#1E2A44] transition-all border border-gray-100">
                       <div className="flex items-center justify-center px-4 border-r border-gray-200 bg-gray-100/50">
                         <span className="text-gray-500 font-bold text-sm">+91</span>
                       </div>
@@ -274,7 +274,7 @@ export function LoginModal() {
                         value={phoneNumber.replace('+91', '').trim()} // hide if they pasted it
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="98765 43210"
-                        className="w-full p-4 bg-transparent font-bold text-lg text-[#722F37] tracking-wide focus:outline-none placeholder-gray-300"
+                        className="w-full p-4 bg-transparent font-bold text-lg text-[#1E2A44] tracking-wide focus:outline-none placeholder-gray-300"
                         required
                       />
                     </div>
@@ -282,7 +282,7 @@ export function LoginModal() {
                   <button
                     type="submit"
                     disabled={isLoading || phoneNumber.length < 10}
-                    className="w-full h-14 bg-[#722F37] disabled:bg-gray-300 disabled:shadow-none text-white rounded-2xl flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-wider hover:bg-[#2A3A5A] transition-all shadow-xl shadow-[#722F37]/20 mt-6 active:scale-[0.98]"
+                    className="w-full h-14 bg-[#1E2A44] disabled:bg-gray-300 disabled:shadow-none text-white rounded-2xl flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-wider hover:bg-[#2A3A5A] transition-all shadow-xl shadow-[#1E2A44]/20 mt-6 active:scale-[0.98]"
                   >
                     {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Get OTP'}
                   </button>
@@ -302,7 +302,7 @@ export function LoginModal() {
                           value={digit}
                           onChange={(e) => handleOtpChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                          className="w-full h-12 sm:h-14 bg-gray-50 border-2 border-transparent focus:border-[#722F37] focus:bg-white rounded-xl sm:rounded-2xl font-black text-center text-xl sm:text-2xl text-[#722F37] transition-all outline-none pb-1 focus:shadow-md"
+                          className="w-full h-12 sm:h-14 bg-gray-50 border-2 border-transparent focus:border-[#1E2A44] focus:bg-white rounded-xl sm:rounded-2xl font-black text-center text-xl sm:text-2xl text-[#1E2A44] transition-all outline-none pb-1 focus:shadow-md"
                         />
                       ))}
                     </div>
@@ -315,7 +315,7 @@ export function LoginModal() {
                           setConfirmationResult(null);
                           setOtp(['', '', '', '', '', '']);
                         }}
-                        className="text-xs font-bold uppercase text-gray-500 hover:text-[#722F37]"
+                        className="text-xs font-bold uppercase text-gray-500 hover:text-[#1E2A44]"
                       >
                         Change Number
                       </button>
@@ -329,7 +329,7 @@ export function LoginModal() {
                           type="button"
                           onClick={() => sendOTP(true)}
                           disabled={isLoading}
-                          className="text-xs font-bold text-[#722F37] uppercase flex items-center gap-1 hover:underline"
+                          className="text-xs font-bold text-[#1E2A44] uppercase flex items-center gap-1 hover:underline"
                         >
                           <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} /> Get new OTP
                         </button>
@@ -341,7 +341,7 @@ export function LoginModal() {
                     <button
                       onClick={() => verifyOtp(otp.join(''))}
                       disabled={isLoading}
-                      className="w-full h-14 bg-[#722F37] text-white rounded-2xl flex items-center justify-center text-sm font-bold uppercase tracking-wider mt-4 animate-in fade-in"
+                      className="w-full h-14 bg-[#1E2A44] text-white rounded-2xl flex items-center justify-center text-sm font-bold uppercase tracking-wider mt-4 animate-in fade-in"
                     >
                       {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirming...'}
                     </button>
