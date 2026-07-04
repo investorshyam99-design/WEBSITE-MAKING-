@@ -44,9 +44,24 @@
   .animate-marquee {
     animation: marquee 80s linear infinite;
   }
+
+  .animate-whatsapp-pulse {
+    animation: whatsapp-pulse 3s ease-in-out infinite;
+  }
 }
 
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+@keyframes whatsapp-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+  }
 }

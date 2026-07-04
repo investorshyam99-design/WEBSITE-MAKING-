@@ -26,6 +26,8 @@ interface ShopContextType {
   setIsWishlistOpen: (open: boolean) => void;
   isLoginOpen: boolean;
   setIsLoginOpen: (open: boolean) => void;
+  isSearchOpen: boolean;
+  setIsSearchOpen: (open: boolean) => void;
   user: { email: string; name: string; uid: string } | null;
   isAuthLoading: boolean;
   loginWithGoogle: () => void;
@@ -41,6 +43,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -343,6 +346,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         setIsWishlistOpen,
         isLoginOpen,
         setIsLoginOpen,
+        isSearchOpen,
+        setIsSearchOpen,
         user,
         isAuthLoading,
         loginWithGoogle,

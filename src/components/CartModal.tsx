@@ -452,6 +452,39 @@ export function CartModal() {
                 </div>
               ) : (
                 <>
+                  {/* Free Shipping Progress Bar (Task 2C) */}
+                  {(() => {
+                    const freeShippingThreshold = 999;
+                    const remainingForFreeShipping = freeShippingThreshold - subtotal;
+                    const percentage = Math.min((subtotal / freeShippingThreshold) * 100, 100);
+                    return (
+                      <div className="bg-white border-b border-gray-100 p-4 md:p-5 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-gray-700">
+                            {remainingForFreeShipping > 0 ? (
+                              <>
+                                Add <span className="text-[#1E2A44] font-black">₹{remainingForFreeShipping}</span> more for <span className="text-[#1E2A44]">FREE shipping 🚀</span>
+                              </>
+                            ) : (
+                              <span className="text-green-600 font-black">🎉 You've unlocked FREE shipping!</span>
+                            )}
+                          </span>
+                          <span className="text-xs font-bold text-gray-500">
+                            {Math.round(percentage)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-[#EDE3D8] h-[6px] rounded-[3px] overflow-hidden relative">
+                          <div
+                            className={`h-full rounded-[3px] transition-all duration-500 ease-out ${
+                              remainingForFreeShipping > 0 ? "bg-[#1E2A44]" : "bg-green-500"
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <div className="p-4 md:p-6 space-y-4">
                     {cart.map((item) => (
                       <div

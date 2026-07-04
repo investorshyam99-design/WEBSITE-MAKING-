@@ -17,6 +17,7 @@ import {
   Shirt,
   ShieldAlert,
 } from "lucide-react";
+import { cn } from "../lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SearchModal } from "./SearchModal";
@@ -25,12 +26,33 @@ import { useShop } from "../context/ShopContext";
 
 export function Header() {
   const navigate = useNavigate();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [initialSearchQuery, setInitialSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
-  const { setIsLoginOpen, logout, user, isAuthLoading, setIsCartOpen, cart } =
+  const { setIsLoginOpen, logout, user, isAuthLoading, setIsCartOpen, cart, isSearchOpen, setIsSearchOpen } =
     useShop();
+
+  const [viewingCount, setViewingCount] = useState(38);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [fadeClass, setFadeClass] = useState("opacity-100");
+
+  useEffect(() => {
+    const viewInterval = setInterval(() => {
+      setViewingCount(Math.floor(Math.random() * 25) + 20);
+    }, 10000);
+    return () => clearInterval(viewInterval);
+  }, []);
+
+  useEffect(() => {
+    const rotationInterval = setInterval(() => {
+      setFadeClass("opacity-0");
+      setTimeout(() => {
+        setMessageIndex((prev) => (prev + 1) % 4);
+        setFadeClass("opacity-100 transition-opacity duration-300");
+      }, 300);
+    }, 4000);
+    return () => clearInterval(rotationInterval);
+  }, []);
 
   // Calculate total cart items
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
@@ -201,20 +223,20 @@ export function Header() {
       )}
 
       {/* Top Announcement Bar */}
-      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center overflow-hidden h-7">
-        <div className="whitespace-nowrap animate-marquee flex items-center pr-8">
-          {[...Array(20)].map((_, i) => (
-            <div key={i} className="flex items-center">
-              <span>FREE DELIVERY</span>
-              <span className="mx-8">&bull;</span>
-            </div>
-          ))}
-          {[...Array(20)].map((_, i) => (
-            <div key={"second-" + i} className="flex items-center">
-              <span>FREE DELIVERY</span>
-              <span className="mx-8">&bull;</span>
-            </div>
-          ))}
+      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center justify-center overflow-hidden h-7">
+        <div className={cn("text-center font-bold tracking-wider transition-all duration-300 w-full flex justify-center items-center gap-1.5 px-12 sm:px-24 md:px-32", fadeClass)}>
+          {messageIndex === 0 && (
+            <span className="flex items-center gap-1">⚡ DROPPING FAST — Only a few left</span>
+          )}
+          {messageIndex === 1 && (
+            <span className="flex items-center gap-1">🔥 {viewingCount} people viewing this right now</span>
+          )}
+          {messageIndex === 2 && (
+            <span className="flex items-center gap-1">🕐 Order before 5PM for same-day dispatch</span>
+          )}
+          {messageIndex === 3 && (
+            <span className="flex items-center gap-1">COD AVAILABLE &bull; FREE DELIVERY &bull; CUSTOMISATION AVAILABLE</span>
+          )}
         </div>
         <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#1E2A44] pl-4 z-10">
           <a
