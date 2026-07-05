@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
+import { CartReservationTimer } from "./CartReservationTimer";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -430,7 +431,7 @@ export function CartModal() {
                 </button>
               </div>
               <p className="px-5 md:px-6 pb-4 text-xs font-medium text-gray-300">
-                Trusted by 5000+ football fans across India
+                Trusted by premium streetwear customers across India
               </p>
             </div>
 
@@ -484,6 +485,8 @@ export function CartModal() {
                       </div>
                     );
                   })()}
+
+                  <CartReservationTimer />
 
                   <div className="p-4 md:p-6 space-y-4">
                     {cart.map((item) => (
@@ -801,7 +804,7 @@ export function CartModal() {
                       <div className="bg-green-50/50 border border-green-100 rounded-xl p-3 flex items-center justify-center gap-2 mt-4">
                         <ShieldCheck className="w-4 h-4 text-green-600" />
                         <span className="text-xs font-bold text-green-800 uppercase tracking-wider">
-                          Trusted by 10,000+ Football Fans
+                          Trusted by 10,000+ Streetwear Lovers
                         </span>
                       </div>
                     </div>
@@ -950,16 +953,6 @@ export function CartModal() {
                             }
                           />{" "}
                           Premium T-Shirts
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2 mt-1">
-                        <div className="flex items-center gap-1.5 text-[#25D366]">
-                          <CheckCircle2 className="w-4 h-4 text-[#25D366]" /> We
-                          will send tracking number through whatsapp
-                        </div>
-                        <div className="flex items-center gap-1.5 text-red-500">
-                          <X className="w-4 h-4 text-red-500" /> Exchanges can
-                          be made only when mistake is done by our side
                         </div>
                       </div>
                     </div>

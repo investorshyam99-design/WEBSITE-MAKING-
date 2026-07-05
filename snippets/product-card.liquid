@@ -1,0 +1,50 @@
+<!-- snippets/product-card.liquid -->
+<div class="group cursor-pointer">
+  <a href="{{ product.url }}" class="block">
+    <div class="aspect-[3/4] bg-[#F5EFE6] relative flex items-center justify-center overflow-hidden rounded-xl">
+      <img 
+        src="{{ product.featured_image | img_url: '400x' }}" 
+        srcset="{{ product.featured_image | img_url: '400x' }} 400w, 
+                {{ product.featured_image | img_url: '800x' }} 800w"
+        sizes="(max-width: 768px) 50vw, 25vw"
+        loading="lazy"
+        alt="{{ product.title | escape }} - {{ product.options_by_name['Color'].values.first | default: 'Color' | escape }} Oversized Graphic Tee | Jersey Unicorn" 
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+      />
+      
+      {% if product.compare_at_price > product.price %}
+        {% assign discount = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round %}
+        {% if discount >= 50 %}
+          <div class="absolute top-2 left-2 bg-[#e83e44] text-white text-[9px] font-black px-2 py-0.5 rounded-full z-10 tracking-wide shadow-sm">
+            -{{ discount }}%
+          </div>
+        {% endif %}
+      {% endif %}
+      
+      {% assign date_published = product.published_at | date: '%s' %}
+      {% assign now = 'now' | date: '%s' %}
+      {% assign difference = now | minus: date_published %}
+      {% if difference < 1209600 %}
+        <!-- Less than 14 days old (14 * 24 * 60 * 60) -->
+        <div class="absolute top-2 right-2 bg-[#1E2A44] text-white text-[9px] font-black px-2 py-0.5 rounded-full z-10 tracking-wide shadow-sm">
+          NEW
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="mt-2.5 px-1">
+      <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wide truncate">
+        {{ product.type | default: 'WORD DRIP' }}
+      </p>
+      <h3 class="text-[12px] font-black mt-0.5 text-[#1B1B1B] uppercase line-clamp-2 leading-[1.2]">
+        {{ product.title }}
+      </h3>
+      <div class="flex items-end gap-2 mt-1.5">
+        <span class="font-black text-[14px] text-[#1E2A44] leading-none">{{ product.price | money }}</span>
+        {% if product.compare_at_price > product.price %}
+          <span class="font-bold text-[11px] text-gray-400 line-through leading-none">{{ product.compare_at_price | money }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+</div>

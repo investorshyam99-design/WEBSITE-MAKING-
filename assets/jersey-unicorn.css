@@ -1,0 +1,86 @@
+/* assets/jersey-unicorn.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+}
+
+/* Marquee Animation (60s duration, linear, infinite) */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 60s linear infinite;
+  display: inline-flex;
+}
+
+/* WhatsApp Pulse (scale 1->1.1->1 every 3s) */
+@keyframes whatsapp-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+  }
+}
+.animate-whatsapp-pulse {
+  animation: whatsapp-pulse 3s ease-in-out infinite;
+}
+
+/* Scarcity Badge Pulse (scale 1->1.03->1, 1.5s infinite) */
+@keyframes urgency-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.animate-[pulse_1.5s_infinite] {
+  animation: urgency-pulse 1.5s ease-in-out infinite;
+}
+
+/* Shimmer Skeleton (shimmer animation) */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-bg {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Remove default summary marker in some browsers */
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure body doesn't bounce weirdly on mobile */
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Focus styles for accessibility without ugly outlines if not keyboard navigating */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid #1E2A44;
+  outline-offset: 2px;
+}

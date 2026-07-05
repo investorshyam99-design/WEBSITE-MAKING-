@@ -1,0 +1,191 @@
+<!-- layout/checkout.liquid -->
+<!DOCTYPE html>
+<html lang="{{ locale }}" dir="{{ direction }}" class="{{ checkout_html_classes }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, height=device-height, minimum-scale=1.0, user-scalable=0">
+    <title>{{ page_title }}</title>
+    {{ content_for_header }}
+    {{ checkout_stylesheets }}
+    {{ checkout_scripts }}
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Inter', sans-serif; }
+    </style>
+  </head>
+  <body class="bg-white">
+    {{ skip_to_content_link }}
+
+    <!-- Task 5A: Secure Checkout Header -->
+    <header class="bg-[#1E2A44] text-white py-4 px-4 sm:px-6 lg:px-8 border-b-4 border-[#E6C9A8] text-center" role="banner">
+      <div class="max-w-3xl mx-auto flex flex-col items-center justify-center">
+        <div class="flex items-center gap-2 mb-1">
+          <svg class="w-5 h-5 text-[#25D366]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <h1 class="text-lg md:text-xl font-black uppercase tracking-widest m-0 leading-none">Secure Checkout</h1>
+        </div>
+        <p class="text-[10px] md:text-xs font-bold text-gray-300 uppercase tracking-widest m-0">Trusted by 5000+ football fans across India</p>
+      </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      
+      <!-- Task 5B: Free Shipping Progress Bar -->
+      <div class="mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm">
+        {% assign cart_total = checkout.subtotal_price | divided_by: 100.0 %}
+        {% assign free_shipping_threshold = 999 %}
+        
+        <div class="flex justify-between items-end mb-2">
+          <span class="text-xs font-black uppercase tracking-wider text-[#1B1B1B]">
+            {% if cart_total >= free_shipping_threshold %}
+              <span class="text-green-600">🎉 YOU'VE UNLOCKED FREE SHIPPING!</span>
+            {% else %}
+              {% assign needed = free_shipping_threshold | minus: cart_total %}
+              Add <span class="text-[#1E2A44] font-black">₹{{ needed | round }}</span> more for <span class="text-[#1E2A44]">FREE shipping 🚀</span>
+            {% endif %}
+          </span>
+        </div>
+        
+        <div class="w-full bg-[#EDE3D8] h-2.5 rounded-full overflow-hidden relative">
+          {% if cart_total >= free_shipping_threshold %}
+            <div class="h-full bg-green-500 w-full transition-all duration-700 ease-out"></div>
+          {% else %}
+            {% assign percent = cart_total | divided_by: free_shipping_threshold | times: 100 %}
+            <div class="h-full bg-[#1E2A44] transition-all duration-700 ease-out" style="width: {{ percent }}%;"></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Task 3: 10-Min Cart Urgency Timer -->
+      <div id="cart-timer-card" style="background:#FFF8F0;border-radius:12px;padding:16px 20px;margin:12px 0 32px 0;border:1px solid #F5DEB3;transition:all 0.3s ease;display:none;">
+        <p id="cart-timer-text" style="font-family:Inter,sans-serif;font-size:15px;color:#3D2C1E;line-height:1.7;margin:0;">
+          <span id="cart-timer-message">Please, hurry! Someone has placed an order on one of the items you have in the cart. We'll keep it for you for</span><br>
+          <strong>
+            <span id="cart-timer-display" style="font-size:20px;font-weight:900;">10:00</span> minutes.
+          </strong>
+        </p>
+      </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const TIMER_KEY = 'ju_cart_timer_end';
+          let endTime = sessionStorage.getItem(TIMER_KEY);
+          
+          if (endTime) {
+            document.getElementById('cart-timer-card').style.display = 'block';
+            const timerInterval = setInterval(function() {
+              const remaining = Math.max(0, endTime - Date.now());
+              const minutes = Math.floor(remaining / 60000);
+              const seconds = Math.floor((remaining % 60000) / 1000);
+              const display = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+              const displayEl = document.getElementById('cart-timer-display');
+              if (displayEl) displayEl.innerText = display;
+              
+              const timerCard = document.getElementById('cart-timer-card');
+              const timerText = document.getElementById('cart-timer-text');
+              
+              if (remaining < 120000 && remaining > 0) {
+                if (timerCard) {
+                  timerCard.style.background = '#FFF0F0';
+                  timerCard.style.borderColor = '#FECACA';
+                }
+                if (timerText) timerText.style.color = '#DC2626';
+              }
+              
+              if (remaining <= 0) {
+                clearInterval(timerInterval);
+                const msgEl = document.getElementById('cart-timer-message');
+                if (msgEl) msgEl.innerText = 'Your cart reservation has expired. Items may no longer be available.';
+                if (timerCard) timerCard.style.background = '#FFF0F0';
+                if (displayEl) displayEl.innerText = '00:00';
+                sessionStorage.removeItem(TIMER_KEY);
+              }
+            }, 1000);
+          }
+        });
+      </script>
+
+      <!-- Task 5C: Payment Method Toggle (Visual override for standard checkout) -->
+      <!-- Note: Actual checkout payment logic is handled by Shopify's backend. 
+           This is a UI overlay that typically requires Shopify Plus to fully integrate. 
+           This demonstrates the requested UI. -->
+      <div class="mb-8" id="custom-payment-toggle">
+        <h2 class="text-sm font-black uppercase tracking-widest text-[#1B1B1B] mb-4">Select Payment Method</h2>
+        
+        <label class="block cursor-pointer mb-3 relative">
+          <input type="radio" name="custom_payment" value="prepaid" class="peer sr-only" checked>
+          <div class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-[#1E2A44] peer-checked:bg-[#1E2A44]/5 transition-all">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center peer-checked:border-[#1E2A44]">
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#1E2A44] opacity-0 transition-opacity"></div>
+                </div>
+                <div>
+                  <span class="block text-sm font-black text-[#1B1B1B] uppercase tracking-wide">Full Payment</span>
+                  <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Free Delivery + Faster Processing</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="block text-xs font-black bg-amber-100 text-amber-800 px-2 py-0.5 rounded uppercase tracking-widest mb-1">Recommended</span>
+                <span class="block text-sm font-black text-[#1E2A44]">{{ checkout.total_price | money }}</span>
+              </div>
+            </div>
+          </div>
+          <!-- Custom CSS to handle inner dot -->
+          <style>
+            input[type="radio"]:checked + div .w-2\.5 { opacity: 1; }
+          </style>
+        </label>
+        
+        <label class="block cursor-pointer relative">
+          <input type="radio" name="custom_payment" value="cod" class="peer sr-only">
+          <div class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-[#1E2A44] peer-checked:bg-[#1E2A44]/5 transition-all">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center peer-checked:border-[#1E2A44]">
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#1E2A44] opacity-0 transition-opacity"></div>
+                </div>
+                <div>
+                  <span class="block text-sm font-black text-[#1B1B1B] uppercase tracking-wide">Partial COD</span>
+                  <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">₹150 confirmation + balance at door</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="block text-sm font-black text-[#1B1B1B]">{{ checkout.total_price | plus: 15000 | money }}</span>
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Main Checkout Content -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-0 md:p-6 mb-8">
+        {{ content_for_layout }}
+      </div>
+
+      <!-- Task 5D: Trust Signals Footer -->
+      <footer class="mt-8 border-t border-gray-200 pt-8 pb-12 text-center" role="contentinfo">
+        <div class="flex flex-wrap justify-center gap-4 md:gap-8 mb-6">
+          <div class="flex items-center gap-2 text-gray-600 text-xs font-bold uppercase tracking-widest">
+            <span class="text-xl">🚚</span> Delivery 3-10 Days
+          </div>
+          <div class="flex items-center gap-2 text-gray-600 text-xs font-bold uppercase tracking-widest">
+            <span class="text-xl">🔒</span> Secure Checkout
+          </div>
+          <div class="flex items-center gap-2 text-gray-600 text-xs font-bold uppercase tracking-widest">
+            <span class="text-xl">📦</span> Tracking Number
+          </div>
+          <div class="flex items-center gap-2 text-gray-600 text-xs font-bold uppercase tracking-widest">
+            <span class="text-xl">💬</span> WhatsApp Support
+          </div>
+        </div>
+        
+        <p class="text-green-600 text-xs font-black uppercase tracking-widest mb-2">We will send tracking number through WhatsApp</p>
+        <p class="text-red-500 text-[10px] font-bold uppercase tracking-widest">Exchanges only when mistake is done by our side</p>
+      </footer>
+    </div>
+    
+    {{ tracking_snippet }}
+  </body>
+</html>

@@ -1,0 +1,62 @@
+<!-- sections/hero.liquid -->
+<div class="relative w-full h-[85vh] overflow-hidden bg-black flex items-center justify-center">
+
+  <video 
+    autoplay 
+    loop 
+    muted 
+    playsinline 
+    class="absolute inset-0 w-full h-full object-cover opacity-80"
+    poster="{{ section.settings.video_poster | img_url: '1000x' }}"
+  >
+    <source src="{{ section.settings.video_url }}" type="video/mp4">
+  </video>
+  
+  <div class="absolute inset-0 bg-[rgba(0,0,0,0.25)] z-10"></div>
+  
+  <div class="absolute bottom-16 md:bottom-24 left-0 right-0 flex justify-center z-20 px-4">
+    <a href="#categories" class="bg-white/90 text-[#1B1B1B] px-12 py-4 rounded-full font-black uppercase tracking-widest text-xl shadow-xl hover:scale-105 hover:bg-white transition-all duration-300 flex items-center gap-2">
+      SHOP NOW
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+    </a>
+  </div>
+</div>
+
+<script>
+  document.querySelector('a[href="#categories"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.getElementById('categories');
+    if (target) {
+      const headerOffset = 64; // height of sticky header + category nav
+      const elementPosition = target.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Hero Video",
+  "settings": [
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video MP4 URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_poster",
+      "label": "Video Fallback Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Video"
+    }
+  ]
+}
+{% endschema %}

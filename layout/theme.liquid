@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1E2A44">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
+  
+  {%- if template == 'index' and hero_image -%}
+    <link rel="preload" as="image" href="{{ hero_image | img_url: '1200x' }}">
+  {%- endif -%}
+
+  <!-- Dynamic Page Titles -->
+  <title>
+    {% if template == 'index' %}
+      Jersey Unicorn | Word Drip Graphic Tees — Buy Online India
+    {% elsif template == 'product' %}
+      {{ product.title }} | ₹999 | Jersey Unicorn India
+    {% elsif template == 'collection' %}
+      {{ collection.title }} Graphic Tees | Jersey Unicorn
+    {% elsif template == 'cart' or template == 'checkout' %}
+      Checkout | Jersey Unicorn
+    {% else %}
+      {{ page_title }} | Jersey Unicorn
+    {% endif %}
+  </title>
+
+  <!-- Dynamic Meta Descriptions -->
+  {% if template == 'index' %}
+    <meta name="description" content="Shop bold back-print oversized graphic tees by Jersey Unicorn. Football, F1, Anime & Word Drip drops. ₹999. COD available. Free shipping above ₹999. Ships pan-India.">
+  {% elsif template == 'product' %}
+    <meta name="description" content="{{ product.title }} — 240GSM heavyweight cotton, unisex oversized fit. Buy at ₹999 with COD. Free shipping above ₹999. Jersey Unicorn India.">
+  {% elsif template == 'collection' %}
+    <meta name="description" content="Shop {{ collection.title }} graphic tees at Jersey Unicorn. Bold back-print designs, 240GSM cotton, COD, ships pan-India.">
+  {% endif %}
+
+  <!-- Open Graph Tags -->
+  <meta property="og:title" content="{% if template == 'index' %}Jersey Unicorn | Word Drip Graphic Tees — Buy Online India{% elsif template == 'product' %}{{ product.title }} | ₹999 | Jersey Unicorn India{% elsif template == 'collection' %}{{ collection.title }} Graphic Tees | Jersey Unicorn{% else %}{{ page_title }} | Jersey Unicorn{% endif %}" />
+  <meta property="og:description" content="{% if template == 'index' %}Shop bold back-print oversized graphic tees by Jersey Unicorn. Football, F1, Anime & Word Drip drops. ₹999. COD available. Free shipping above ₹999. Ships pan-India.{% elsif template == 'product' %}{{ product.title }} — 240GSM heavyweight cotton, unisex oversized fit. Buy at ₹999 with COD. Free shipping above ₹999. Jersey Unicorn India.{% elsif template == 'collection' %}Shop {{ collection.title }} graphic tees at Jersey Unicorn. Bold back-print designs, 240GSM cotton, COD, ships pan-India.{% endif %}" />
+  <meta property="og:image" content="{% if product.featured_image %}{{ product.featured_image | img_url: '1200x630', crop: 'center' }}{% else %}{{ 'og-image.jpg' | asset_url }}{% endif %}" />
+  <meta property="og:url" content="{{ canonical_url }}" />
+  <meta property="og:type" content="{% if template == 'product' %}product{% else %}website{% endif %}" />
+  <meta property="og:site_name" content="Jersey Unicorn" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@jerseyunicorn" />
+
+  <!-- Product Structured Data -->
+  {% if template == 'product' %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ product.title | escape }}",
+    "image": [{% for image in product.images %}"{{ image | img_url: '800x' }}"{% unless forloop.last %},{% endunless %}{% endfor %}],
+    "description": "{{ product.description | strip_html | escape }}",
+    "sku": "{{ product.selected_or_first_available_variant.sku }}",
+    "brand": { "@type": "Brand", "name": "Jersey Unicorn" },
+    "offers": {
+      "@type": "Offer",
+      "url": "{{ canonical_url }}",
+      "priceCurrency": "INR",
+      "price": "{{ product.price | divided_by: 100.0 }}",
+      "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+      "seller": { "@type": "Organization", "name": "Jersey Unicorn" }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "reviewCount": "352"
+    }
+  }
+  </script>
+  {% endif %}
+
+  <!-- Tailwind CSS & Custom Assets -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  {{ 'jersey-unicorn.css' | asset_url | stylesheet_tag }}
+
+  {{ content_for_header }}
+</head>
+
+<body class="font-sans antialiased text-[#1B1B1B] bg-white min-h-screen flex flex-col md:pb-0 {% if template != 'checkout' %}pb-[56px]{% endif %}">
+  
+  {% section 'header' %}
+
+  <main role="main" id="MainContent" class="flex-grow">
+    {{ content_for_layout }}
+  </main>
+
+  {% section 'footer' %}
+
+  <!-- Task 7A: Floating WhatsApp Button -->
+  <a href="https://wa.me/918788965436?text=Hi%20Jersey%20Unicorn!" target="_blank" rel="noopener noreferrer" 
+     class="fixed bottom-[72px] right-4 w-[52px] h-[52px] bg-[#25D366] text-white rounded-full flex items-center justify-center z-[199] shadow-lg animate-whatsapp-pulse active:scale-95 transition-transform" 
+     aria-label="Chat on WhatsApp">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-[26px] h-[26px] fill-white" viewBox="0 0 24 24"><path d="M12.01 2.014c-5.46 0-9.897 4.437-9.897 9.896 0 1.956.551 3.844 1.554 5.485L2.12 21.8l4.52-1.503c1.597.94 3.42 1.436 5.37 1.436 5.46 0 9.897-4.438 9.897-9.897s-4.437-9.896-9.897-9.896zm0 18.066c-1.662 0-3.284-.427-4.735-1.233l-.337-.188-3.155 1.05 1.07-3.076-.208-.344C3.81 14.81 3.328 13.167 3.328 11.91c0-4.8 3.906-8.706 8.706-8.706 4.8 0 8.706 3.906 8.706 8.706s-3.906 8.706-8.706 8.706zm4.78-6.315c-.26-.13-1.545-.764-1.785-.852-.24-.087-.416-.13-.59.13-.174.26-.676.852-.828 1.026-.152.174-.304.195-.564.065-.26-.13-1.103-.406-2.102-1.298-.777-.695-1.303-1.553-1.455-1.813-.152-.26-.016-.401.114-.53.117-.116.26-.304.39-.456.13-.152.174-.26.26-.434.087-.174.043-.326-.022-.456-.065-.13-.59-1.423-.808-1.95-.213-.513-.43-.443-.59-.45-.152-.008-.326-.008-.5-.008-.174 0-.456.065-.695.326-.24.26-.91 .89-.91 2.17s.933 2.518 1.063 2.69c.13.174 1.83 2.793 4.43 3.89 2.17.915 2.57.738 3.05.695.48-.043 1.545-.63 1.76-1.24.215-.61.215-1.134.15-1.24-.065-.106-.24-.171-.5-.302z"/></svg>
+  </a>
+
+  <!-- Task 7B: Mobile Bottom Nav Bar -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[56px] bg-white border-t border-[#EDE3D8] z-[200] flex items-center justify-around px-2 pb-safe shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+    <a href="/" class="flex flex-col items-center justify-center w-14 h-full relative {% if template == 'index' %}text-[#1E2A44]{% else %}text-[#aaaaaa]{% endif %}">
+      <svg class="w-5 h-5 {% if template == 'index' %}fill-current{% else %}stroke-current fill-none stroke-[2]{% endif %}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span class="text-[9px] font-black uppercase tracking-wider mt-1">Home</span>
+    </a>
+    
+    <a href="/search" class="flex flex-col items-center justify-center w-14 h-full relative {% if template == 'search' %}text-[#1E2A44] stroke-[2.5]{% else %}text-[#aaaaaa] stroke-[2]{% endif %}">
+      <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <span class="text-[9px] font-black uppercase tracking-wider mt-1">Search</span>
+    </a>
+    
+    <a href="/collections/all" class="flex flex-col items-center justify-center w-14 h-full relative {% if template contains 'collection' %}text-[#1E2A44] fill-current{% else %}text-[#aaaaaa] stroke-current fill-none stroke-[2]{% endif %}">
+      <svg class="w-5 h-5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      <span class="text-[9px] font-black uppercase tracking-wider mt-1">Catalog</span>
+    </a>
+    
+    <a href="/account" class="flex flex-col items-center justify-center w-14 h-full relative {% if template contains 'customers' %}text-[#1E2A44] fill-current{% else %}text-[#aaaaaa] stroke-current fill-none stroke-[2]{% endif %}">
+      <svg class="w-5 h-5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span class="text-[9px] font-black uppercase tracking-wider mt-1">Account</span>
+    </a>
+    
+    <a href="/cart" class="flex flex-col items-center justify-center w-14 h-full relative {% if template == 'cart' %}text-[#1E2A44] fill-current{% else %}text-[#aaaaaa] stroke-current fill-none stroke-[2]{% endif %}">
+      <div class="relative">
+        <svg class="w-5 h-5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        {% if cart.item_count > 0 %}
+          <span class="absolute -top-1 -right-1 bg-[#e83e44] text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-pulse shadow-sm">
+            {{ cart.item_count }}
+          </span>
+        {% endif %}
+      </div>
+      <span class="text-[9px] font-black uppercase tracking-wider mt-1">Cart</span>
+    </a>
+  </nav>
+  
+</body>
+</html>

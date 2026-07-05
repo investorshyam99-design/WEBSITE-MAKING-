@@ -1,0 +1,29 @@
+<!-- templates/collection.liquid -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+  <header class="mb-8 md:mb-12">
+    <div class="bg-[#14213D] border-l-4 border-[#E6C9A8] rounded-r-xl py-4 px-6 shadow-sm inline-block max-w-[90%]">
+      <h1 class="text-white text-2xl md:text-4xl font-black uppercase tracking-tight">{{ collection.title }}</h1>
+      {% if collection.description != blank %}
+        <p class="text-white/70 text-xs md:text-sm font-bold tracking-widest uppercase mt-2">{{ collection.description | strip_html | truncate: 100 }}</p>
+      {% endif %}
+    </div>
+  </header>
+
+  {% paginate collection.products by 24 %}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {% for product in collection.products %}
+        {% render 'product-card', product: product %}
+      {% else %}
+        <div class="col-span-full py-16 text-center">
+          <p class="text-gray-500 font-bold uppercase tracking-widest text-sm">No drops found in this collection yet.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if paginate.pages > 1 %}
+      <div class="mt-12 flex justify-center">
+        {{ paginate | default_pagination: next: 'Next →', previous: '← Prev' | replace: 'class="page"', 'class="mx-1 px-4 py-2 border-2 border-gray-200 rounded-lg font-black text-[#1E2A44] hover:border-[#1E2A44] transition-colors"' | replace: 'class="page current"', 'class="mx-1 px-4 py-2 border-2 border-[#1E2A44] bg-[#1E2A44] text-white rounded-lg font-black"' }}
+      </div>
+    {% endif %}
+  {% endpaginate %}
+</div>

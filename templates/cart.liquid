@@ -1,0 +1,129 @@
+<!-- templates/cart.liquid -->
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-16">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl md:text-3xl font-black uppercase tracking-tight text-[#1B1B1B]">Your Cart</h1>
+    <a href="/collections/all" class="text-xs font-black uppercase tracking-widest text-[#1E2A44] underline underline-offset-4">Continue Shopping</a>
+  </div>
+
+  {% if cart.item_count > 0 %}
+    <!-- Task 3: 10-Min Cart Urgency Timer -->
+    <div id="cart-timer-card" style="background:#FFF8F0;border-radius:12px;padding:16px 20px;margin:12px 0 32px 0;border:1px solid #F5DEB3;transition:all 0.3s ease;">
+      <p id="cart-timer-text" style="font-family:Inter,sans-serif;font-size:15px;color:#3D2C1E;line-height:1.7;margin:0;">
+        <span id="cart-timer-message">Please, hurry! Someone has placed an order on one of the items you have in the cart. We'll keep it for you for</span><br>
+        <strong>
+          <span id="cart-timer-display" style="font-size:20px;font-weight:900;">10:00</span> minutes.
+        </strong>
+      </p>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const TIMER_KEY = 'ju_cart_timer_end';
+        const TIMER_DURATION = 10 * 60; // 10 minutes in seconds
+
+        function initTimer() {
+          let endTime = sessionStorage.getItem(TIMER_KEY);
+          
+          if (!endTime) {
+            endTime = Date.now() + TIMER_DURATION * 1000;
+            sessionStorage.setItem(TIMER_KEY, endTime);
+          }
+          
+          function updateDisplay() {
+            const remaining = Math.max(0, endTime - Date.now());
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            const display = `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+            const displayEl = document.getElementById('cart-timer-display');
+            if (displayEl) displayEl.innerText = display;
+            
+            const timerCard = document.getElementById('cart-timer-card');
+            const timerText = document.getElementById('cart-timer-text');
+            
+            if (remaining < 120000 && remaining > 0) {
+              if (timerCard) {
+                timerCard.style.background = '#FFF0F0';
+                timerCard.style.borderColor = '#FECACA';
+              }
+              if (timerText) timerText.style.color = '#DC2626';
+            }
+            
+            if (remaining <= 0) {
+              clearInterval(timerInterval);
+              const msgEl = document.getElementById('cart-timer-message');
+              if (msgEl) msgEl.innerText = 'Your cart reservation has expired. Items may no longer be available.';
+              if (timerCard) timerCard.style.background = '#FFF0F0';
+              if (displayEl) displayEl.innerText = '00:00';
+              sessionStorage.removeItem(TIMER_KEY);
+            }
+          }
+          
+          updateDisplay();
+          const timerInterval = setInterval(updateDisplay, 1000);
+        }
+
+        if (document.getElementById('cart-timer-card')) {
+          initTimer();
+        }
+      });
+    </script>
+
+    <form action="/cart" method="post" novalidate class="space-y-8">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Cart Items -->
+        {% for item in cart.items %}
+          <div class="flex gap-4 p-4 md:p-6 border-b border-gray-100 last:border-0">
+            <a href="{{ item.url }}" class="w-20 h-24 md:w-28 md:h-36 flex-shrink-0 bg-[#F5EFE6] rounded-xl overflow-hidden">
+              <img src="{{ item.image | img_url: '400x' }}" alt="{{ item.title | escape }}" class="w-full h-full object-cover">
+            </a>
+            <div class="flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-start gap-4">
+                  <a href="{{ item.url }}" class="text-xs md:text-sm font-black uppercase tracking-tight text-[#1B1B1B] hover:text-[#1E2A44] line-clamp-2">{{ item.product.title }}</a>
+                  <a href="/cart/change?line={{ forloop.index }}&amp;quantity=0" class="text-gray-400 hover:text-[#e83e44] transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </a>
+                </div>
+                {% unless item.product.has_only_default_variant %}
+                  <p class="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">{{ item.variant.title }}</p>
+                {% endunless %}
+              </div>
+              
+              <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden h-9">
+                  <a href="/cart/change?line={{ forloop.index }}&amp;quantity={{ item.quantity | minus: 1 }}" class="w-8 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">-</a>
+                  <input type="number" name="updates[]" id="updates_{{ item.key }}" value="{{ item.quantity }}" min="0" class="w-10 h-full text-center text-xs font-black focus:outline-none border-x-2 border-gray-200" readonly>
+                  <a href="/cart/change?line={{ forloop.index }}&amp;quantity={{ item.quantity | plus: 1 }}" class="w-8 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">+</a>
+                </div>
+                <span class="text-sm md:text-base font-black text-[#1E2A44]">{{ item.line_price | money }}</span>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Checkout Footer -->
+      <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-xs font-bold uppercase tracking-widest text-gray-500">Subtotal</span>
+          <span class="text-xl font-black text-[#1B1B1B]">{{ cart.total_price | money }}</span>
+        </div>
+        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">Taxes and shipping calculated at checkout</p>
+        
+        <button type="submit" name="checkout" class="w-full bg-[#1E2A44] text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-md hover:bg-[#151D2F] hover:-translate-y-0.5 transition-all duration-300 text-sm flex items-center justify-center gap-2">
+          Proceed to Checkout
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        </button>
+      </div>
+    </form>
+  {% else %}
+    <div class="text-center py-16 bg-gray-50 rounded-2xl border border-gray-100">
+      <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+      <h2 class="text-lg font-black uppercase tracking-widest text-[#1B1B1B] mb-2">Your cart is empty</h2>
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-8">Looks like you haven't added any drips yet.</p>
+      <a href="/collections/all" class="inline-block bg-[#1E2A44] text-white px-8 py-3.5 rounded-xl font-black uppercase tracking-widest text-xs shadow-md">
+        Start Shopping
+      </a>
+    </div>
+  {% endif %}
+</div>

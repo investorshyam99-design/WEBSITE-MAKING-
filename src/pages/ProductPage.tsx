@@ -14,6 +14,8 @@ import {
   ReviewsSection,
   getProductReviewsInfo,
 } from "../components/ReviewsSection";
+import { LiveViewerCount } from "../components/LiveViewerCount";
+import { TrendingSalesIndicator } from "../components/TrendingSalesIndicator";
 import {
   ChevronRight,
   ChevronLeft,
@@ -519,6 +521,8 @@ export function ProductPage() {
                   )}
                 </p>
               )}
+              
+              <LiveViewerCount />
             </div>
 
             <div className="flex items-end gap-3 mb-8">
@@ -533,6 +537,7 @@ export function ProductPage() {
               </span>
             </div>
 
+            <TrendingSalesIndicator productId={product.id} />
             <div className="space-y-8 mb-10 border-t border-gray-100 pt-8">
               {/* Color Selection */}
               {product.variants && (() => {
@@ -805,27 +810,20 @@ export function ProductPage() {
         </div>
       </main>
 
-      {/* Mobile Sticky CTA Bar (Task 2E) */}
+      {/* Flipkart Style Mobile Sticky Buttons */}
       {product && (
-        <div
-          className={cn(
-            "fixed bottom-[60px] left-0 right-0 px-4 py-3 bg-white/95 backdrop-blur-md border-t border-gray-100 z-[190] md:hidden transition-all duration-300 ease-in-out flex items-center justify-between shadow-lg",
-            showMobileSticky ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none",
-          )}
-        >
-          <div className="flex flex-col max-w-[55dvw]">
-            <h3 className="text-xs font-black uppercase tracking-tight truncate text-[#1B1B1B]">
-              {product.name}
-            </h3>
-            <span className="text-sm font-black text-[#1E2A44]">
-              ₹{product.price}
-            </span>
-          </div>
+        <div className="fixed bottom-[60px] left-0 right-0 z-[190] md:hidden flex items-center bg-white border-t border-gray-100 shadow-[0_-4px_10px_-1px_rgba(0,0,0,0.1)] pb-safe">
           <button
             onClick={handleAddToCart}
-            className="flex-shrink-0 bg-[#1E2A44] text-white px-5 py-2.5 rounded-lg font-black uppercase tracking-wider text-xs active:scale-95 transition-transform"
+            className="flex-1 bg-white text-[#1B1B1B] font-black uppercase tracking-widest text-sm py-4 border-r border-gray-200 active:bg-gray-50 transition-colors"
           >
             Add to Cart
+          </button>
+          <button
+            onClick={handleBuyNow}
+            className="flex-1 bg-[#1E2A44] text-white font-black uppercase tracking-widest text-sm py-4 active:bg-[#151D2F] transition-colors"
+          >
+            Buy Now
           </button>
         </div>
       )}

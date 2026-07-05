@@ -1,0 +1,37 @@
+<!-- sections/faq.liquid -->
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-20">
+  <div class="text-center mb-12">
+    <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight text-[#1B1B1B]">FAQ</h1>
+    <p class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mt-4">Everything you need to know about Jersey Unicorn.</p>
+  </div>
+
+  <div class="space-y-4">
+    {% assign faqs = "What is your shipping time?|We dispatch orders within 24-48 hours. Delivery takes 3-7 working days depending on your location.,Do you offer Cash on Delivery (COD)?|Yes, we offer COD across India. A nominal ₹150 advance is required to confirm the order, and the rest can be paid at delivery.,Can I customize the back print?|Absolutely! For an extra ₹199, you can add your custom name and number to the back of any Word Drip tee.,What is your return policy?|We offer exchanges only if there is a mistake from our side (wrong size sent, defective product). Please check the size chart carefully before ordering.,How do the sizes fit?|Our tees are designed for an oversized streetwear fit. Stick to your regular size for a baggy look, or size down for a standard fit." | split: "," %}
+    
+    {% for faq in faqs %}
+      {% assign parts = faq | split: "|" %}
+      <details class="group bg-gray-50 rounded-xl border border-gray-100 overflow-hidden cursor-pointer">
+        <summary class="flex items-center justify-between p-5 md:p-6 font-black uppercase tracking-widest text-xs md:text-sm list-none text-[#1E2A44]">
+          {{ parts[0] }}
+          <span class="transition-transform duration-300 group-open:rotate-180 bg-white w-6 h-6 rounded-full flex items-center justify-center border border-gray-200">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+          </span>
+        </summary>
+        <div class="p-5 md:p-6 pt-0 text-gray-600 text-sm font-medium leading-relaxed border-t border-gray-100/50 mt-2 bg-white">
+          {{ parts[1] }}
+        </div>
+      </details>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "presets": [
+    {
+      "name": "FAQ Accordion"
+    }
+  ]
+}
+{% endschema %}
