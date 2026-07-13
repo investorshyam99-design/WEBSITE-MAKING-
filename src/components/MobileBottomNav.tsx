@@ -9,6 +9,7 @@ export function MobileBottomNav() {
   const navigate = useNavigate();
   const {
     cart,
+    user,
     isSearchOpen,
     setIsSearchOpen,
     isLoginOpen,
@@ -34,6 +35,8 @@ export function MobileBottomNav() {
     !isSearchOpen &&
     !isLoginOpen &&
     !isCartOpen;
+    
+  const isAccountActive = location.pathname === "/account" || isLoginOpen;
 
   const handleHomeClick = () => {
     // Close any open modals first
@@ -79,7 +82,12 @@ export function MobileBottomNav() {
   const handleAccountClick = () => {
     setIsSearchOpen(false);
     setIsCartOpen(false);
-    setIsLoginOpen(!isLoginOpen);
+    if (user) {
+      setIsLoginOpen(false);
+      navigate("/account");
+    } else {
+      setIsLoginOpen(!isLoginOpen);
+    }
   };
 
   const handleCartClick = () => {
@@ -163,13 +171,13 @@ export function MobileBottomNav() {
         <User
           className={cn(
             "w-[22px] h-[22px] transition-all",
-            isLoginOpen ? "text-[#1E2A44] fill-[#1E2A44]" : "text-[#aaaaaa]"
+            isAccountActive ? "text-[#1E2A44] fill-[#1E2A44]" : "text-[#aaaaaa]"
           )}
         />
         <span
           className={cn(
             "text-[9px] font-black uppercase tracking-wider mt-1 transition-colors",
-            isLoginOpen ? "text-[#1E2A44]" : "text-[#aaaaaa]"
+            isAccountActive ? "text-[#1E2A44]" : "text-[#aaaaaa]"
           )}
         >
           Account

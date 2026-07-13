@@ -90,6 +90,74 @@ async function startServer() {
     }
   });
 
+  // Shopify Products API Proxy
+  app.get("/api/shopify-products", async (req, res) => {
+    try {
+      const SHOPIFY_DOMAIN = "https://0qtwuu-br.myshopify.com";
+      const SHOPIFY_STOREFRONT_TOKEN = "e711ef4603f75af0b8370a9b8ebeb2e5";
+      
+      const query = `
+        {
+          products(first: 250, sortKey: CREATED_AT, reverse: true) {
+            edges {
+              node {
+                id
+                title
+                description
+                descriptionHtml
+                productType
+                tags
+                variants(first: 50) {
+                  edges {
+                    node {
+                      id
+                      title
+                      availableForSale
+                      price {
+                        amount
+                        currencyCode
+                      }
+                      image {
+                        url
+                      }
+                      selectedOptions {
+                        name
+                        value
+                      }
+                    }
+                  }
+                }
+                images(first: 50) {
+                  edges {
+                    node {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+      
+      const response = await fetch(`${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({ query }),
+        cache: "no-cache",
+      });
+      
+      const json = await response.json();
+      res.json(json);
+    } catch (error: any) {
+      console.error("Error proxying Shopify products:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Qikink Fulfillment API
   app.post("/api/qikink/send-order", async (req, res) => {
     try {
@@ -717,7 +785,7 @@ The assistant should feel premium, modern, fast, emotionally natural, and highly
   // Streamable Hero Video API to handle dynamic signature expirations
   app.get("/api/hero-video", async (req, res) => {
     try {
-      const response = await fetch("https://api.streamable.com/videos/l1h5cw");
+      const response = await fetch("https://api.streamable.com/videos/hpvnxl");
       if (!response.ok) {
         throw new Error(`Failed to fetch from Streamable API: ${response.statusText}`);
       }

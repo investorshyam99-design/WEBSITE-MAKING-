@@ -6,31 +6,31 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { ProductPage } from "./pages/ProductPage";
-import { OrdersPage } from "./pages/OrdersPage";
+import { AccountPage } from "./pages/AccountPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { ShopProvider } from "./context/ShopContext";
 import { CartModal } from "./components/CartModal";
 import { LoginModal } from "./components/LoginModal";
 import { MobileBottomNav } from "./components/MobileBottomNav";
-import { WhatsAppButton } from "./components/WhatsAppButton";
+import { RecentOrdersTicker } from "./components/RecentOrdersTicker";
 
 export default function App() {
   return (
     <ShopProvider>
       <Router>
-        <div className="pb-[60px] md:pb-0 min-h-screen flex flex-col bg-white">
+        <div className="pb-[60px] md:pb-0 min-h-screen flex flex-col bg-brand-bg text-brand-text">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/products/:slug" element={<ProductPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/account" element={<AccountPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<Home />} />
           </Routes>
           <CartModal />
           <LoginModal />
-          <WhatsAppButton />
           <MobileBottomNav />
+          <RecentOrdersTicker />
         </div>
       </Router>
     </ShopProvider>

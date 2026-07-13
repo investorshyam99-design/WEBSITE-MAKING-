@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { categories } from "../data/products";
+
+const NAVIGATION_ITEMS = [
+  { id: "football", sectionId: "section-football", name: "FOOTBALL" },
+  { id: "formula1", sectionId: "section-formula1", name: "FORMULA 1" },
+  { id: "anime", sectionId: "section-anime", name: "ANIME" },
+  { id: "artists", sectionId: "section-artists", name: "ARTISTS" },
+  { id: "word-drip", sectionId: "section-word-drip", name: "WORD DRIP" }
+];
 
 export function CategoryNav() {
-  const [activeCategory, setActiveCategory] = useState<string>("");
+  const [activeCategory, setActiveCategory] = useState<string>("football");
   const isManualScroll = useRef(false);
   const scrollTimeout = useRef<number | null>(null);
 
@@ -13,16 +20,16 @@ export function CategoryNav() {
       const navElement = document.getElementById("category-nav");
       const headerHeight = window.innerWidth >= 768 ? 96 : 80;
       const navHeight = navElement ? navElement.offsetHeight : 0;
-      const offset = headerHeight + navHeight + 20;
+      const offset = headerHeight + navHeight + 40;
 
-      let currentActive = "";
+      let currentActive = "football";
 
-      for (const cat of categories) {
-        const element = document.getElementById(`category-${cat.id}`);
+      for (const item of NAVIGATION_ITEMS) {
+        const element = document.getElementById(item.sectionId);
         if (element) {
           const rect = element.getBoundingClientRect();
-          if (rect.top <= offset + 100) {
-            currentActive = cat.id;
+          if (rect.top <= offset + 120) {
+            currentActive = item.id;
           }
         }
       }
@@ -33,21 +40,22 @@ export function CategoryNav() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    // Run once initially
+    setTimeout(handleScroll, 200);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [activeCategory]);
 
-  const scrollToCategory = (id: string) => {
-    const element = document.getElementById(`category-${id}`);
+  const scrollToSection = (id: string, sectionId: string) => {
+    const element = document.getElementById(sectionId);
     const navElement = document.getElementById("category-nav");
 
     if (element) {
       const headerHeight = window.innerWidth >= 768 ? 96 : 80;
       const navHeight = navElement ? navElement.offsetHeight : 0;
-      const offset = headerHeight + navHeight;
+      const offset = headerHeight + navHeight - 5;
 
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.scrollY - offset;
@@ -76,27 +84,21 @@ export function CategoryNav() {
       id="category-nav"
       className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm"
     >
-      <div className="max-w-7xl mx-auto px-1 sm:px-4">
-        <div className="grid grid-cols-5 w-full gap-1 sm:gap-2 p-1 sm:p-2">
-          {categories.map((cat) => {
-            const isActive = activeCategory === cat.id;
+      <div className="max-w-7xl mx-auto px-2 py-2.5 w-full">
+        <div className="flex items-center gap-1.5 md:gap-3 w-full justify-between">
+          {NAVIGATION_ITEMS.map((item) => {
+            const isActive = activeCategory === item.id;
             return (
               <button
-                key={`nav-${cat.id}`}
-                onClick={() => scrollToCategory(cat.id)}
-                className={`w-full py-3 md:py-6 flex flex-col items-center justify-center p-1 md:p-2 text-[9px] min-[400px]:text-[10px] sm:text-xs md:text-sm lg:text-base font-black uppercase text-center transition-all leading-tight rounded-xl shadow-sm border-2 ${
+                key={`nav-${item.id}`}
+                onClick={() => scrollToSection(item.id, item.sectionId)}
+                className={`flex-1 aspect-square flex items-center justify-center text-center p-1 md:p-2 text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-tighter sm:tracking-wide rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 leading-[1.1] ${
                   isActive
-                    ? "bg-[#1E2A44] text-[#EDE3D8] border-[#1E2A44]"
-                    : "bg-[#EDE3D8] text-[#1E2A44] border-transparent hover:border-[#1E2A44] hover:bg-[#EAE0D3] active:scale-95"
+                    ? "bg-[#1E2A44] text-white border-[#1E2A44] shadow-inner"
+                    : "bg-[#EDE3D8] text-[#1E2A44] border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white shadow-[2px_2px_0px_0px_#1E2A44]"
                 }`}
               >
-                <span className="leading-tight">
-                  {cat.name.split(/[\s\n]+/).map((word, wIndex) => (
-                    <span key={wIndex} className="block">
-                      {word}
-                    </span>
-                  ))}
-                </span>
+                {item.name}
               </button>
             );
           })}

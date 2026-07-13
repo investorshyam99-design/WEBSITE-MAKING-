@@ -32,28 +32,6 @@ export function Header() {
   const { setIsLoginOpen, logout, user, isAuthLoading, setIsCartOpen, cart, isSearchOpen, setIsSearchOpen } =
     useShop();
 
-  const [viewingCount, setViewingCount] = useState(38);
-  const [messageIndex, setMessageIndex] = useState(0);
-  const [fadeClass, setFadeClass] = useState("opacity-100");
-
-  useEffect(() => {
-    const viewInterval = setInterval(() => {
-      setViewingCount(Math.floor(Math.random() * 25) + 20);
-    }, 10000);
-    return () => clearInterval(viewInterval);
-  }, []);
-
-  useEffect(() => {
-    const rotationInterval = setInterval(() => {
-      setFadeClass("opacity-0");
-      setTimeout(() => {
-        setMessageIndex((prev) => (prev + 1) % 4);
-        setFadeClass("opacity-100 transition-opacity duration-300");
-      }, 300);
-    }, 4000);
-    return () => clearInterval(rotationInterval);
-  }, []);
-
   // Calculate total cart items
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
@@ -185,7 +163,7 @@ export function Header() {
                     </Link>
                   )}
                   <Link
-                    to="/orders"
+                    to="/account"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
                   >
@@ -223,20 +201,13 @@ export function Header() {
       )}
 
       {/* Top Announcement Bar */}
-      <div className="bg-[#1E2A44] text-white py-1.5 px-4 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center justify-center overflow-hidden h-7">
-        <div className={cn("text-center font-bold tracking-wider transition-all duration-300 w-full flex justify-center items-center gap-1.5 px-12 sm:px-24 md:px-32", fadeClass)}>
-          {messageIndex === 0 && (
-            <span className="flex items-center gap-1">⚡ DROPPING FAST — Only a few left</span>
-          )}
-          {messageIndex === 1 && (
-            <span className="flex items-center gap-1">🔥 {viewingCount} people viewing this right now</span>
-          )}
-          {messageIndex === 2 && (
-            <span className="flex items-center gap-1">🕐 Order before 5PM for same-day dispatch</span>
-          )}
-          {messageIndex === 3 && (
-            <span className="flex items-center gap-1">COD AVAILABLE &bull; FREE DELIVERY &bull; CUSTOMISATION AVAILABLE</span>
-          )}
+      <div className="bg-[#1E2A44] text-white py-1.5 text-[10px] md:text-xs font-semibold tracking-wide uppercase relative flex items-center overflow-hidden h-7">
+        <div className="flex animate-marquee whitespace-nowrap">
+          {[...Array(30)].map((_, i) => (
+            <span key={i} className="flex items-center mx-4">
+              Free delivery and cod available <span className="mx-4 text-gray-400">&bull;</span>
+            </span>
+          ))}
         </div>
         <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#1E2A44] pl-4 z-10">
           <a
@@ -358,7 +329,7 @@ export function Header() {
                   </Link>
                 )}
                 <Link
-                  to="/orders"
+                  to="/account"
                   className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
                 >
                   Orders

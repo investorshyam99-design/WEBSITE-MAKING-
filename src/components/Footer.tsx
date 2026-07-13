@@ -19,7 +19,7 @@ export function Footer() {
                  Jersey Unicorn
               </h2>
               <p className="text-sm leading-relaxed mb-6">
-                Redefining football culture in India. Premium fan versions engineered for true supporters.
+                Gen Z oversized back-print quote t-shirts and statement streetwear for Indian youth. Wear the banter.
               </p>
               <div className="flex gap-4">
                  <a href="https://www.instagram.com/jerseyunicorn1" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" title="Instagram">
@@ -37,7 +37,7 @@ export function Footer() {
             <div>
               <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-6">Shop</h4>
               <ul className="space-y-4 text-sm font-medium">
-                <li><Link to="/orders" className="hover:text-white transition-colors flex items-center justify-between group">Track Order <ArrowUpRight className="w-4 h-4 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all" /></Link></li>
+                <li><Link to="/account" className="hover:text-white transition-colors flex items-center justify-between group">Track Order <ArrowUpRight className="w-4 h-4 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all" /></Link></li>
                 <li><Link to="/" className="hover:text-white transition-colors">All Products</Link></li>
               </ul>
             </div>

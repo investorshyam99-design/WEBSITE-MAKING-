@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      window.addEventListener('error', (event) => {
+        document.body.innerHTML += `<div style="color: red; position: fixed; top: 0; left: 0; z-index: 9999; background: white; padding: 20px;">ERROR: ${event.message} <br/> ${event.filename}:${event.lineno} <br/> ${event.error?.stack}</div>`;
+      });
+      window.addEventListener('unhandledrejection', (event) => {
+        document.body.innerHTML += `<div style="color: red; position: fixed; top: 0; left: 0; z-index: 9999; background: white; padding: 20px;">PROMISE ERROR: ${event.reason} <br/> ${event.reason?.stack}</div>`;
+      });
+    </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -21,23 +29,23 @@
       }
     }
     </script>
-    <title>Jersey Unicorn | Premium Football Jerseys India</title>
+    <title>Jersey Unicorn | Gen Z Streetwear & Oversized Back-Print Tees</title>
     <meta name="theme-color" content="#1E2A44" />
-    <meta name="description" content="Shop premium football jerseys online in India. High-quality Player Versions, Fan Versions, Master Versions, and retro kits available at Jersey Unicorn." />
-    <meta name="keywords" content="football jerseys india, premium jerseys, player version jersey, retro kits, real madrid jersey, manchester united jersey, football kits" />
+    <meta name="description" content="Buy premium oversized back-print quote t-shirts in India. Bold banter tees for football, F1, anime, music artists, and wordplay. Elevate your street style." />
+    <meta name="keywords" content="football fan tees india, f1 tees india, anime tshirts india, artist graphic tees india, quote tshirts india, oversized back print tees india, gen z streetwear india" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jerseyunicorn.com/" />
-    <meta property="og:title" content="Jersey Unicorn | Premium Football Jerseys India" />
-    <meta property="og:description" content="Shop premium football jerseys online in India. High-quality Player Versions, Fan Versions, Master Versions, and retro kits available at Jersey Unicorn." />
+    <meta property="og:title" content="Jersey Unicorn | Gen Z Streetwear & Oversized Back-Print Tees" />
+    <meta property="og:description" content="Buy premium oversized back-print quote t-shirts in India. Bold banter tees for football, F1, anime, music artists, and wordplay. Elevate your street style." />
     <meta property="og:image" content="/logo.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://jerseyunicorn.com/" />
-    <meta property="twitter:title" content="Jersey Unicorn | Premium Football Jerseys India" />
-    <meta property="twitter:description" content="Shop premium football jerseys online in India. High-quality Player Versions, Fan Versions, Master Versions, and retro kits available at Jersey Unicorn." />
+    <meta property="twitter:title" content="Jersey Unicorn | Gen Z Streetwear & Oversized Back-Print Tees" />
+    <meta property="twitter:description" content="Buy premium oversized back-print quote t-shirts in India. Bold banter tees for football, F1, anime, music artists, and wordplay. Elevate your street style." />
     <meta property="twitter:image" content="/logo.png" />
   </head>
   <body>

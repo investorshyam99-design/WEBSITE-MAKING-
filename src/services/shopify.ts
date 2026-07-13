@@ -2,64 +2,15 @@ export const SHOPIFY_DOMAIN = "https://0qtwuu-br.myshopify.com";
 export const SHOPIFY_STOREFRONT_TOKEN = "e711ef4603f75af0b8370a9b8ebeb2e5"; // Provided by user
 
 export async function fetchShopifyProducts() {
-  const query = `
-    {
-      products(first: 250, sortKey: CREATED_AT, reverse: true) {
-        edges {
-          node {
-            id
-            title
-            description
-            descriptionHtml
-            productType
-            tags
-            variants(first: 50) {
-              edges {
-                node {
-                  id
-                  title
-                  availableForSale
-                  price {
-                    amount
-                    currencyCode
-                  }
-                  image {
-                    url
-                  }
-                  selectedOptions {
-                    name
-                    value
-                  }
-                }
-              }
-            }
-            images(first: 50) {
-              edges {
-                node {
-                  url
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
   try {
-    const response = await fetch(`${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
-      },
-      body: JSON.stringify({ query }),
-      cache: "no-cache",
-    });
-
+    const response = await fetch('/api/shopify-products');
+    if (!response.ok) {
+        console.error("Invalid response from Shopify proxy:", await response.text());
+        return [];
+    }
     const json = await response.json();
     if (!json.data || !json.data.products) {
-      console.error("Invalid response from Shopify:", json);
+      console.error("Invalid response from Shopify proxy:", json);
       return [];
     }
     return json.data.products.edges.map((edge: any) => edge.node);

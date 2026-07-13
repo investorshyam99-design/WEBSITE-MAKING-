@@ -19,27 +19,27 @@ export const categories = [
   {
     id: "football",
     name: "FOOTBALL",
-    description: "Football jerseys and merchandise",
-  },
-  {
-    id: "cricket",
-    name: "CRICKET",
-    description: "Cricket jerseys and merchandise",
-  },
-  {
-    id: "basketball",
-    name: "BASKETBALL",
-    description: "Basketball jerseys and merchandise",
+    seoTitle: "Football Banter Tees | Oversized Football T-Shirts India",
   },
   {
     id: "formula1",
     name: "FORMULA 1",
-    description: "Formula 1 merchandise",
+    seoTitle: "F1 Fan Tees India | Formula 1 Oversized Streetwear",
+  },
+  {
+    id: "anime",
+    name: "ANIME",
+    seoTitle: "Anime Tees India | Gen Z Oversized Anime Graphic T-Shirts",
+  },
+  {
+    id: "artists",
+    name: "ARTISTS",
+    seoTitle: "Artist Tees India | Music Artist & Rapper Oversized T-Shirts",
   },
   {
     id: "word-drip",
     name: "WORD DRIP",
-    description: "Word Drip collection",
+    seoTitle: "Worddrip Tees | Gen Z Quote & Wordplay T-Shirts India",
   },
 ];
 
@@ -57,132 +57,79 @@ export function generateProductSlug(name: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-// Global store for parsed products
-let shopifyProductsStore: Product[] = [];
 
-export function parseShopifyProducts(shopifyProducts: any[]): Product[] {
-  const parsed = shopifyProducts.map((sp) => {
-    const title = sp.title || "";
-
-    // Auto-categorize based on title, type or tags
-    let category = "football"; // default
-    const titleLower = title.toLowerCase();
-    const productType = (sp.productType || "").toLowerCase();
-    const tags = (sp.tags || []).map((t: string) => t.toLowerCase());
-
-    const isCricket =
-      titleLower.includes("cricket") ||
-      productType.includes("cricket") ||
-      tags.includes("cricket") ||
-      tags.includes("ipl");
-    const isBasketball =
-      titleLower.includes("basketball") ||
-      productType.includes("basketball") ||
-      tags.includes("basketball") ||
-      tags.includes("nba");
-    const isWordDrip =
-      titleLower.includes("word drip") ||
-      productType.includes("word drip") ||
-      tags.includes("word drip") ||
-      titleLower.includes("word-drip") ||
-      productType.includes("word-drip") ||
-      tags.includes("word-drip");
-    const isFormula1 =
-      titleLower.includes("formula 1") ||
-      titleLower.includes("f1") ||
-      productType.includes("formula 1") ||
-      productType.includes("f1") ||
-      tags.includes("formula 1") ||
-      tags.includes("f1");
-
-    if (isWordDrip) category = "word-drip";
-    else if (isFormula1) category = "formula1";
-    else if (isBasketball) category = "basketball";
-    else if (isCricket) category = "cricket";
-
-    const price = parseFloat(sp.variants?.edges[0]?.node?.price?.amount || "0");
-    const variantId = sp.variants?.edges[0]?.node?.id || "";
-    // extract digits from gid://shopify/ProductVariant/44976826056774
-    const rawVariantId = variantId.replace("gid://shopify/ProductVariant/", "");
-    const images = sp.images?.edges.map((e: any) => e.node.url) || [];
-    const mainImage =
-      images[0] ||
-      "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop";
-
-    // Extract variants
-    const productVariants =
-      sp.variants?.edges.map((e: any) => {
-        const v = e.node;
-        let sizeTitle = v.title;
-        let colorTitle = null;
-
-        if (v.selectedOptions) {
-          const sizeOption = v.selectedOptions.find(
-            (opt: any) =>
-              opt.name.toLowerCase() === "size" ||
-              opt.name.toLowerCase() === "sizes",
-          );
-          if (sizeOption) {
-            sizeTitle = sizeOption.value;
-          }
-          const colorOption = v.selectedOptions.find(
-            (opt: any) =>
-              opt.name.toLowerCase() === "color" ||
-              opt.name.toLowerCase() === "colour",
-          );
-          if (colorOption) {
-            colorTitle = colorOption.value;
-          }
-        } else if (v.title.includes("/")) {
-          // Fallback for simple split
-          const parts = v.title.split("/");
-          if (parts.length >= 2) {
-            colorTitle = parts[0].trim();
-            sizeTitle = parts[parts.length - 1].trim();
-          } else {
-            sizeTitle = parts[0].trim();
-          }
+export function parseShopifyProducts(nodes: any[]): Product[] {
+  return nodes.map((node) => {
+    let price = 0;
+    const variants = (node.variants?.edges || []).map((vEdge: any) => {
+        const v = vEdge.node;
+        if (price === 0 && v.price?.amount) {
+            price = parseFloat(v.price.amount);
         }
+        
+        const colorOption = v.selectedOptions?.find((o: any) => o.name.toLowerCase() === 'color' || o.name.toLowerCase() === 'colour');
+        const sizeOption = v.selectedOptions?.find((o: any) => o.name.toLowerCase() === 'size');
+        const parsedTitle = sizeOption ? sizeOption.value : (v.title.includes(' / ') ? v.title.split(' / ').pop() : v.title);
 
         return {
-          id: v.id.replace("gid://shopify/ProductVariant/", ""),
-          title: sizeTitle,
-          color: colorTitle,
-          image: v.image?.url,
-          availableForSale: v.availableForSale,
+            id: v.id,
+            title: parsedTitle,
+            color: colorOption ? colorOption.value : null,
+            image: v.image?.url || null,
+            availableForSale: v.availableForSale
         };
-      }) || [];
+    });
+
+    const galleryImages = (node.images?.edges || []).map((imgEdge: any) => imgEdge.node.url);
+    const mainImage = galleryImages.length > 0 ? galleryImages[0] : (variants.length > 0 && variants[0].image ? variants[0].image : mockImages[0]);
+
+    const tags = (node.tags || []).map((t: string) => t.toLowerCase());
+    let category = 'football';
+    
+    const bracketMatch = node.title.match(/\((.*?)\)/);
+    
+    if (bracketMatch) {
+      const bracketCategory = bracketMatch[1].toLowerCase();
+      if (bracketCategory === 'f1' || bracketCategory === 'formula 1' || bracketCategory === 'formula1' || bracketCategory === 'formula-1') category = 'formula1';
+      else if (bracketCategory === 'football') category = 'football';
+      else if (bracketCategory === 'anime') category = 'anime';
+      else if (bracketCategory === 'artists' || bracketCategory === 'artist') category = 'artists';
+      else if (bracketCategory === 'word drip' || bracketCategory === 'word-drip') category = 'word-drip';
+      else category = bracketCategory.replace(/\s+/g, '-');
+    } else {
+      const matchingTag = tags.find(t => 
+        ['football', 'formula1', 'formula-1', 'anime', 'artists', 'artist', 'word-drip', 'word drip', 'word_drip'].includes(t)
+      );
+
+      if (matchingTag) {
+        if (matchingTag === 'formula-1') category = 'formula1';
+        else if (matchingTag === 'artist') category = 'artists';
+        else if (matchingTag === 'word drip' || matchingTag === 'word_drip') category = 'word-drip';
+        else category = matchingTag;
+      } else {
+        category = node.productType?.toLowerCase() || 'football';
+      }
+    }
 
     return {
-      id: sp.id, // Using Shopify base64 ID directly works with React Router params
-      name: title,
+      id: node.id,
+      name: node.title,
       price: price,
       image: mainImage,
-      galleryImages: images.length > 0 ? images : [mainImage],
+      galleryImages: galleryImages,
       category: category,
-      description:
-        sp.description || "Premium quality t-shirt. Comfortable and stylish.",
-      descriptionHtml: sp.descriptionHtml,
-      variantId: rawVariantId,
-      variants: productVariants,
-      slug: generateProductSlug(title),
+      description: node.description,
+      descriptionHtml: node.descriptionHtml,
+      variants: variants,
+      slug: generateProductSlug(node.title),
     };
-  });
-
-  return parsed.sort((a, b) => {
-    const aIsSpain =
-      a.name.toLowerCase().includes("spain") &&
-      a.name.toLowerCase().includes("away");
-    const bIsSpain =
-      b.name.toLowerCase().includes("spain") &&
-      b.name.toLowerCase().includes("away");
-    if (aIsSpain && !bIsSpain) return -1;
-    if (!aIsSpain && bIsSpain) return 1;
-    return 0;
   });
 }
 
-// React Hook to fetch and provide products
+// Global store for parsed products
+let shopifyProductsStore: Product[] = [];
+let fetchPromise: Promise<any> | null = null;
+
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>(shopifyProductsStore);
   const [isLoading, setIsLoading] = useState(shopifyProductsStore.length === 0);
@@ -194,20 +141,28 @@ export function useProducts() {
     }
 
     let isMounted = true;
-    fetchShopifyProducts()
-      .then((data) => {
-        if (!isMounted) return;
-        if (data && data.length > 0) {
-          const parsed = parseShopifyProducts(data);
+    
+    if (!fetchPromise) {
+        fetchPromise = fetchShopifyProducts().then((data) => {
+            if (data && data.length > 0) {
+              const parsed = parseShopifyProducts(data);
+              shopifyProductsStore = parsed;
+              return parsed;
+            }
+            return [];
+        }).catch(() => {
+            fetchPromise = null;
+            return [];
+        });
+    }
 
-          shopifyProductsStore = parsed;
-          setProducts(parsed);
+    fetchPromise.then((parsed) => {
+        if (!isMounted) return;
+        if (parsed.length > 0) {
+            setProducts(parsed);
         }
         setIsLoading(false);
-      })
-      .catch((err) => {
-        if (isMounted) setIsLoading(false);
-      });
+    });
 
     return () => {
       isMounted = false;

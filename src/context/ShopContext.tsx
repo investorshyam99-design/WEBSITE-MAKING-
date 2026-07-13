@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
 import { useProducts } from '../data/products';
@@ -11,6 +12,9 @@ type CartItem = Product & {
   selectedColor?: string;
   customization?: { name: string; number: string };
 };
+
+const safeGetItem = (key: string) => { try { return window.localStorage.getItem(key); } catch (e) { return null; } };
+const safeSetItem = (key: string, value: string) => { try { window.localStorage.setItem(key, value); } catch (e) {} };
 
 interface ShopContextType {
   cart: CartItem[];
@@ -28,7 +32,7 @@ interface ShopContextType {
   setIsLoginOpen: (open: boolean) => void;
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
-  user: { email: string; name: string; uid: string } | null;
+  user: { email: string; name: string; uid: string; phoneNumber?: string } | null;
   isAuthLoading: boolean;
   loginWithGoogle: () => void;
   logout: () => void;
@@ -44,7 +48,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [user, setUser] = useState<{ email: string; name: string; uid: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; name: string; uid: string; phoneNumber?: string } | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
@@ -66,6 +70,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
             email: identifier,
             name: currentUser.displayName || identifier,
             uid: currentUser.uid,
+            phoneNumber: currentUser.phoneNumber || undefined,
           });
           
           // Save user into Firestore (don't await to avoid UI blocking)
@@ -93,17 +98,17 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   // Visitor Tracking
   useEffect(() => {
-    let visitorId = localStorage.getItem('visitor_id');
+    let visitorId = safeGetItem('visitor_id');
     const isNewVisitor = !visitorId;
     if (!visitorId) {
       visitorId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem('visitor_id', visitorId);
+      safeSetItem('visitor_id', visitorId);
     }
 
     const trackVisitor = async () => {
       try {
         if (!visitorId) return;
-        let cumulativeTime = parseInt(localStorage.getItem('cumulative_time_spent') || '0', 10);
+        let cumulativeTime = parseInt(safeGetItem('cumulative_time_spent') || '0', 10);
         
         const visitorRef = doc(db, 'visitors', visitorId);
         await setDoc(visitorRef, {
@@ -122,9 +127,9 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     setTimeout(trackVisitor, 1500);
 
     const interval = setInterval(() => {
-       let cumulativeTime = parseInt(localStorage.getItem('cumulative_time_spent') || '0', 10);
+       let cumulativeTime = parseInt(safeGetItem('cumulative_time_spent') || '0', 10);
        cumulativeTime += 10; // add 10 seconds tracking
-       localStorage.setItem('cumulative_time_spent', cumulativeTime.toString());
+       safeSetItem('cumulative_time_spent', cumulativeTime.toString());
        trackVisitor(); // update firestore
     }, 10000);
 
@@ -136,8 +141,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   // Load from LocalStorage
   useEffect(() => {
     try {
-      const savedCart = localStorage.getItem('cart');
-      const savedWishlist = localStorage.getItem('wishlist');
+      const savedCart = safeGetItem('cart');
+      const savedWishlist = safeGetItem('wishlist');
       if (savedCart) setCart(JSON.parse(savedCart));
       if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     } catch (e) {
@@ -168,7 +173,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   // Save to LocalStorage and Sync Abandoned Carts to Firestore
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
+    safeSetItem('cart', JSON.stringify(cart));
     
     async function syncAbandonedCarts() {
       if (!user) return;
@@ -203,7 +208,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   }, [cart, user]);
 
   useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    safeSetItem('wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
 
   const clearCart = () => setCart([]);
@@ -309,11 +314,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       }
       setIsLoginOpen(false);
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        // User closed the popup, do nothing
+        return;
+      }
       console.error("Error signing in with Google:", error);
       if (error.code === 'auth/unauthorized-domain') {
         alert("Domain Not Authorized: Because you are hosting on a custom domain (" + window.location.hostname + "), Google Sign-In is blocked. You must create your own Firebase project, add " + window.location.hostname + " to Authorized Domains, and replace the Firebase config.");
-      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        // User closed the popup, do nothing
       } else if (error.code === 'auth/popup-blocked') {
         alert("Popup blocked by your browser! Please allow popups for this site or open in a standard browser (like Chrome or Safari) to log in.");
       } else {
