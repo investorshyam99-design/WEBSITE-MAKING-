@@ -8,13 +8,21 @@ export function Hero() {
 
   useEffect(() => {
     fetch("/api/hero-video")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.json();
+      })
       .then((data) => {
-        if (data.url) {
+        if (data && data.url) {
           setVideoUrl(data.url);
         }
       })
-      .catch((err) => console.error("Failed to fetch dynamic video:", err));
+      .catch((err) => {
+        // Fallback silently or just warn, default is already set to /hero-video.mp4
+        console.warn("Could not fetch dynamic video, using fallback:", err);
+      });
   }, []);
 
   useEffect(() => {

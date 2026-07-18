@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 
 const NAVIGATION_ITEMS = [
-  { id: "football", sectionId: "section-football", name: "FOOTBALL" },
-  { id: "formula1", sectionId: "section-formula1", name: "FORMULA 1" },
-  { id: "anime", sectionId: "section-anime", name: "ANIME" },
-  { id: "artists", sectionId: "section-artists", name: "ARTISTS" },
-  { id: "word-drip", sectionId: "section-word-drip", name: "WORD DRIP" }
+  { id: "player-version", sectionId: "section-player-version", name: "PLAYER VERSION" },
+  { id: "master-version", sectionId: "section-master-version", name: "MASTER VERSION" },
+  { id: "fan-set", sectionId: "section-fan-set", name: "FAN SET" },
+  { id: "tees", sectionId: "section-tees", name: "TEES" }
 ];
 
 export function CategoryNav() {
-  const [activeCategory, setActiveCategory] = useState<string>("football");
+  const [activeCategory, setActiveCategory] = useState<string>("player-version");
   const isManualScroll = useRef(false);
   const scrollTimeout = useRef<number | null>(null);
 
@@ -22,7 +21,7 @@ export function CategoryNav() {
       const navHeight = navElement ? navElement.offsetHeight : 0;
       const offset = headerHeight + navHeight + 40;
 
-      let currentActive = "football";
+      let currentActive = "player-version";
 
       for (const item of NAVIGATION_ITEMS) {
         const element = document.getElementById(item.sectionId);

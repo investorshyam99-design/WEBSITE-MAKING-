@@ -3,7 +3,6 @@ import { CategoryNav } from "../components/CategoryNav";
 import { Hero } from "../components/Hero";
 import { CategoriesSection } from "../components/CategoriesSection";
 import { TrustSection } from "../components/TrustSection";
-import { InstagramSection } from "../components/InstagramSection";
 import { Footer } from "../components/Footer";
 import { SEO } from "../components/SEO";
 
@@ -19,7 +18,6 @@ export function Home() {
       <main className="flex-grow">
         <Hero />
         <CategoryNav />
-        <InstagramSection />
         <CategoriesSection />
         <TrustSection />
       </main>

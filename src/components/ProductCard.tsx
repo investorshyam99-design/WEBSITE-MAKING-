@@ -11,7 +11,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const getBadge = () => {
     if (!product.id) return "";
 
-    const hash = product.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const hash = String(product.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
     // 1. Low inventory check (if any variant is unavailable, or based on deterministic low stock)
     const hasUnavailableVariants = product.variants?.some(v => !v.availableForSale);

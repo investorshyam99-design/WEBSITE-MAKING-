@@ -12,22 +12,53 @@
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
       />
       
-      {% if product.compare_at_price > product.price %}
-        {% assign discount = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round %}
-        {% if discount >= 50 %}
-          <div class="absolute top-2 left-2 bg-[#e83e44] text-white text-[9px] font-black px-2 py-0.5 rounded-full z-10 tracking-wide shadow-sm">
-            -{{ discount }}%
-          </div>
+      {% assign badge_text = "" %}
+      
+      <!-- 1. Low inventory/Limited stock -->
+      {% assign total_qty = 0 %}
+      {% for variant in product.variants %}
+        {% assign total_qty = total_qty | plus: variant.inventory_quantity %}
+      {% endfor %}
+      
+      {% if product.available == false %}
+        {% assign badge_text = "🚨 Limited Stock" %}
+      {% elsif total_qty > 0 and total_qty < 10 %}
+        {% assign badge_text = "🚨 Limited Stock" %}
+      {% endif %}
+      
+      {% if badge_text == "" %}
+        <!-- 2. New Arrivals -->
+        {% assign date_published = product.published_at | date: '%s' %}
+        {% assign now = 'now' | date: '%s' %}
+        {% assign difference = now | minus: date_published %}
+        {% if difference < 1209600 %}
+          {% assign badge_text = "🆕 New Arrival" %}
         {% endif %}
       {% endif %}
       
-      {% assign date_published = product.published_at | date: '%s' %}
-      {% assign now = 'now' | date: '%s' %}
-      {% assign difference = now | minus: date_published %}
-      {% if difference < 1209600 %}
-        <!-- Less than 14 days old (14 * 24 * 60 * 60) -->
-        <div class="absolute top-2 right-2 bg-[#1E2A44] text-white text-[9px] font-black px-2 py-0.5 rounded-full z-10 tracking-wide shadow-sm">
-          NEW
+      {% if badge_text == "" %}
+        <!-- 3. Deterministic fallback for other badges based on product.id -->
+        {% assign mod_val = product.id | modulo: 7 %}
+        {% if mod_val == 0 %}
+          {% assign badge_text = "🔥 Best Seller" %}
+        {% elsif mod_val == 1 %}
+          {% assign badge_text = "⭐ Top Rated" %}
+        {% elsif mod_val == 2 %}
+          {% assign badge_text = "⚡ Trending" %}
+        {% elsif mod_val == 3 %}
+          {% assign badge_text = "❤️ Fan Favorite" %}
+        {% elsif mod_val == 4 %}
+          {% assign badge_text = "💥 Selling Fast" %}
+        {% elsif mod_val == 5 %}
+          {% assign badge_text = "✨ Limited Drop" %}
+        {% elsif mod_val == 6 %}
+          {% assign badge_text = "🎁 Must Have" %}
+        {% endif %}
+      {% endif %}
+
+      {% if badge_text != "" %}
+        <div class="absolute top-2 left-2 md:top-2.5 md:left-2.5 z-10 bg-white/95 backdrop-blur-md px-2 md:px-2.5 py-0.5 md:py-1 rounded-[6px] border border-gray-200/50 text-[9px] md:text-[10px] font-black text-[#1B1B1B] uppercase tracking-wider shadow-sm flex items-center gap-1">
+          {{ badge_text }}
         </div>
       {% endif %}
     </div>

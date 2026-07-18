@@ -6,7 +6,7 @@ export function TrendingSalesIndicator({ productId }: { productId: string }) {
 
   useEffect(() => {
     // Generate deterministic but pseudo-random values based on productId
-    const idNum = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const idNum = String(productId).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     
     const baseSold = (idNum % 75) + 25; // 25 to 99
     const baseHours = (idNum % 24) + 12; 

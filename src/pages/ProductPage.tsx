@@ -11,12 +11,12 @@ import { ProductCard } from "../components/ProductCard";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { TrustSection } from "../components/TrustSection";
-import { InstagramSection } from "../components/InstagramSection";
 import { SEO } from "../components/SEO";
 import { addRecentlyViewed } from "../lib/recentlyViewed";
 import { RecentlyViewedSection } from "../components/RecentlyViewedSection";
 import {
   getProductReviewsInfo,
+  ReviewsSection
 } from "../components/ReviewsSection";
 import { LiveViewerCount } from "../components/LiveViewerCount";
 import { TrendingSalesIndicator } from "../components/TrendingSalesIndicator";
@@ -77,7 +77,6 @@ import {
   Copy,
   Check,
   MessageCircle,
-  Instagram,
   Send,
   X,
   Banknote,
@@ -110,10 +109,10 @@ export function ProductPage() {
     if (!product) return {};
     
     let catName = "Worddrip";
-    if (product.category === "football") catName = "Football Banter";
-    else if (product.category === "formula1") catName = "F1 Fan";
-    else if (product.category === "anime") catName = "Anime";
-    else if (product.category === "artists") catName = "Artist Rapper";
+    if (product.category === "player-version") catName = "Football Banter";
+    else if (product.category === "master-version") catName = "F1 Fan";
+    else if (product.category === "fan-set") catName = "Anime";
+    else if (product.category === "tees") catName = "Artist Rapper";
 
     const title = `${product.name} | Oversized ${catName} Tee - Jersey Unicorn`;
     
@@ -233,30 +232,6 @@ export function ProductPage() {
       })
       .catch((err) => {
         console.error("Failed to copy link: ", err);
-      });
-  };
-
-  const shareWhatsApp = () => {
-    if (!product) return;
-    const shareUrl = `${window.location.origin}/products/${product.slug}`;
-    const text = `Check out this premium apparel: ${product.name} at ${shareUrl}`;
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, "_blank");
-  };
-
-  const shareInstagram = () => {
-    if (!product) return;
-    const shareUrl = `${window.location.origin}/products/${product.slug}`;
-    navigator.clipboard
-      .writeText(shareUrl)
-      .then(() => {
-        showToast("Link copied! Paste it in Instagram.");
-        setTimeout(() => {
-          window.open("https://instagram.com", "_blank");
-        }, 800);
-      })
-      .catch(() => {
-        window.open("https://instagram.com", "_blank");
       });
   };
 
@@ -619,7 +594,7 @@ export function ProductPage() {
                   </button>
                 </div>
 
-                <div className="flex items-end gap-3 mb-2">
+                <div className="flex items-end gap-3 mb-1">
                   <span className="text-3xl font-black text-[#1E2A44]">
                     ₹{product.price.toLocaleString("en-IN")}
                   </span>
@@ -627,16 +602,22 @@ export function ProductPage() {
                     ₹{(product.price + 600).toLocaleString("en-IN")}
                   </span>
                 </div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 mb-2">
+                  <Truck className="w-3.5 h-3.5" />
+                  Estimated Delivery: 4-7 Days
+                </div>
               </div>
 
               {/* Thumbnails */}
-              <div className="mb-2 mt-4 flex items-center gap-2">
-                <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">SHOP BY VARIANT :</span>
-                {selectedColor && (
-                  <span className="text-[11px] font-black text-[#1B1B1B] uppercase tracking-widest">{selectedColor}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {!['player-version', 'master-version', 'fan-set'].includes(product.category) && (
+                <div className="mb-2 mt-4 flex items-center gap-2">
+                  <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">SHOP BY VARIANT :</span>
+                  {selectedColor && (
+                    <span className="text-[11px] font-black text-[#1B1B1B] uppercase tracking-widest">{selectedColor}</span>
+                  )}
+                </div>
+              )}
+              <div className={cn("flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide", ['player-version', 'master-version', 'fan-set'].includes(product.category) ? "mt-4" : "")}>
                 {galleryImages.map((img, idx) => (
                   <button
                     key={idx}
@@ -704,13 +685,19 @@ export function ProductPage() {
               <LiveViewerCount />
             </div>
 
-            <div className="hidden lg:flex items-end gap-3 mb-8">
-              <span className="text-3xl md:text-4xl font-black text-[#1E2A44]">
-                ₹{product.price.toLocaleString("en-IN")}
-              </span>
-              <span className="text-xl md:text-2xl font-bold text-gray-400 line-through mb-1">
-                ₹{(product.price + 600).toLocaleString("en-IN")}
-              </span>
+            <div className="hidden lg:flex flex-col gap-1 mb-8">
+              <div className="flex items-end gap-3">
+                <span className="text-3xl md:text-4xl font-black text-[#1E2A44]">
+                  ₹{product.price.toLocaleString("en-IN")}
+                </span>
+                <span className="text-xl md:text-2xl font-bold text-gray-400 line-through mb-1">
+                  ₹{(product.price + 600).toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-green-600">
+                <Truck className="w-3.5 h-3.5" />
+                Estimated Delivery: 4-7 Days
+              </div>
             </div>
 
                         <TrendingSalesIndicator productId={product.id} />
@@ -718,7 +705,7 @@ export function ProductPage() {
               {/* Size Selection */}
               {product.variants &&
                 product.variants.length > 0 &&
-                product.variants[0].title !== "Default Title" && (
+                (product.variants[0].title !== "Default Title" || ['player-version', 'master-version', 'fan-set'].includes(product.category)) && (
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
@@ -731,24 +718,37 @@ export function ProductPage() {
                         SIZE GUIDE <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-2 md:gap-3">
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
                       {(() => {
-                        const filteredVariants = selectedColor ? product.variants.filter(v => v.color === selectedColor) : product.variants;
-                        
-                        const variantsSource = filteredVariants.reduce<
-                          { size: string; available: boolean }[]
-                        >((acc, v) => {
-                          const existing = acc.find((a) => a.size === v.title);
-                          if (existing) {
-                            if (v.availableForSale) existing.available = true;
-                          } else {
-                            acc.push({
-                              size: v.title,
-                              available: v.availableForSale,
-                            });
-                          }
-                          return acc;
-                        }, []);
+                        const isJersey = ['player-version', 'master-version', 'fan-set'].includes(product.category);
+                        const fixedJerseySizes = [
+                          { size: 'S', available: true },
+                          { size: 'M', available: true },
+                          { size: 'L', available: true },
+                          { size: 'XL', available: true },
+                          { size: 'XXL', available: true }
+                        ];
+
+                        let variantsSource = [];
+                        if (isJersey) {
+                          variantsSource = fixedJerseySizes;
+                        } else {
+                          const filteredVariants = selectedColor ? product.variants.filter(v => v.color === selectedColor) : product.variants;
+                          variantsSource = filteredVariants.reduce<
+                            { size: string; available: boolean }[]
+                          >((acc, v) => {
+                            const existing = acc.find((a) => a.size === v.title);
+                            if (existing) {
+                              if (v.availableForSale) existing.available = true;
+                            } else {
+                              acc.push({
+                                size: v.title,
+                                available: v.availableForSale,
+                              });
+                            }
+                            return acc;
+                          }, []);
+                        }
 
                         return variantsSource.map((variant) => {
                           const { size, available } = variant;
@@ -762,26 +762,19 @@ export function ProductPage() {
                               }}
                               disabled={isUnavailable}
                               className={cn(
-                                "group w-11 h-11 md:w-12 md:h-12 border-2 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm transform active:scale-95 relative shrink-0",
+                                "relative w-10 h-10 border rounded flex items-center justify-center transition-all duration-200 text-xs md:text-sm font-bold tracking-tight shrink-0 select-none",
                                 isUnavailable
-                                  ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 overflow-hidden"
+                                  ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed overflow-hidden"
                                   : selectedSize === size
-                                    ? "border-[#1E2A44] bg-[#1E2A44] shadow-md shadow-[#1E2A44]/30 scale-105 z-10"
-                                    : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 hover:shadow-md",
+                                    ? "bg-[#1E2A44] text-white border-[#1E2A44] font-extrabold shadow-sm"
+                                    : "bg-white text-[#1B1B1B] border-gray-200 hover:border-black"
                               )}
                             >
-                              <span
-                                className={cn(
-                                  "text-sm md:text-base font-black tracking-tight",
-                                  selectedSize === size
-                                    ? "text-white"
-                                    : "text-[#1B1B1B]",
-                                )}
-                              >
-                                {size}
-                              </span>
+                              <span>{size}</span>
                               {isUnavailable && (
-                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
+                                <svg className="absolute inset-0 w-full h-full text-gray-300 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                  <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="1.5" />
+                                </svg>
                               )}
                             </button>
                           );
@@ -790,6 +783,43 @@ export function ProductPage() {
                     </div>
                   </div>
                 )}
+
+               {/* Name & Number Customization */}
+               {product && ['player-version', 'master-version', 'fan-set'].includes(product.category) && (
+                 <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                   <div className="flex items-center justify-between mb-3">
+                     <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                       Customize Jersey
+                     </h3>
+                     <span className="text-xs font-bold bg-[#1E2A44] text-white px-2 py-0.5 rounded-full">+₹199</span>
+                   </div>
+                   <div className="flex flex-col gap-3">
+                     <input
+                       type="text"
+                       placeholder="Player Name (Max 12 chars)"
+                       maxLength={12}
+                       value={customName}
+                       onChange={(e) => {
+                         setCustomName(e.target.value.toUpperCase());
+                         if (!isCustomized) setIsCustomized(true);
+                       }}
+                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44]"
+                     />
+                     <input
+                       type="text"
+                       placeholder="Player Number (Max 2 digits)"
+                       maxLength={2}
+                       value={customNumber}
+                       onChange={(e) => {
+                         setCustomNumber(e.target.value.replace(/\D/g, ''));
+                         if (!isCustomized) setIsCustomized(true);
+                       }}
+                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44]"
+                     />
+                     <p className="text-[10px] text-gray-500 font-medium">Leave blank if you don't want customization.</p>
+                   </div>
+                 </div>
+               )}
 
                {/* Low Stock Badge (Task 2B) */}
               {product && (
@@ -801,10 +831,6 @@ export function ProductPage() {
                   <span>Only {variantInventory} left — grab it fast</span>
                 </div>
               )}
-
-              {/* Main Body CTA Buttons (Attach Ref for Sticky Trigger) */}
-              <div className="flex flex-col gap-3 mt-6">
-              </div>
 
               {/* Trust Badges */}
               <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-gray-100 pb-2">
@@ -827,6 +853,8 @@ export function ProductPage() {
       </main>
       
       <ProductInfoAccordion product={product} />
+
+      <ReviewsSection product={product} />
 
       {/* Flipkart Style Permanent Mobile Sticky Buttons */}
       {product && !isCartOpen && (
@@ -874,7 +902,6 @@ export function ProductPage() {
       )}
 
       <RecentlyViewedSection />
-      <InstagramSection />
       <TrustSection />
       <Footer />
 
@@ -905,7 +932,12 @@ export function ProductPage() {
               >
                 <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <img 
-                    src="https://i.imgur.com/t4wt92I.png" 
+                    src={
+                      !product ? "https://i.imgur.com/t4wt92I.png" 
+                      : ['fan-set', 'master-version'].includes(product.category) ? "https://i.imgur.com/5vhqw6D.png" 
+                      : product.category === 'player-version' ? "https://i.imgur.com/cB5TwcK.png" 
+                      : "https://i.imgur.com/t4wt92I.png"
+                    }
                     alt="Size Guide" 
                     className="w-full h-auto object-contain cursor-move" 
                     style={{ maxHeight: 'calc(90vh - 60px)' }}
@@ -968,24 +1000,38 @@ export function ProductPage() {
                       SIZE GUIDE <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {(() => {
-                      const filteredVariants = selectedColor ? product.variants?.filter(v => v.color === selectedColor) : product.variants;
-                      if (!filteredVariants) return null;
-                      const variantsSource = filteredVariants.reduce<
-                        { size: string; available: boolean }[]
-                      >((acc, v) => {
-                        const existing = acc.find((a) => a.size === v.title);
-                        if (existing) {
-                          if (v.availableForSale) existing.available = true;
-                        } else {
-                          acc.push({
-                            size: v.title,
-                            available: v.availableForSale,
-                          });
-                        }
-                        return acc;
-                      }, []);
+                      const isJersey = ['player-version', 'master-version', 'fan-set'].includes(product.category);
+                      const fixedJerseySizes = [
+                        { size: 'S', available: true },
+                        { size: 'M', available: true },
+                        { size: 'L', available: true },
+                        { size: 'XL', available: true },
+                        { size: 'XXL', available: true }
+                      ];
+
+                      let variantsSource = [];
+                      if (isJersey) {
+                        variantsSource = fixedJerseySizes;
+                      } else {
+                        const filteredVariants = selectedColor ? product.variants?.filter(v => v.color === selectedColor) : product.variants;
+                        if (!filteredVariants) return null;
+                        variantsSource = filteredVariants.reduce<
+                          { size: string; available: boolean }[]
+                        >((acc, v) => {
+                          const existing = acc.find((a) => a.size === v.title);
+                          if (existing) {
+                            if (v.availableForSale) existing.available = true;
+                          } else {
+                            acc.push({
+                              size: v.title,
+                              available: v.availableForSale,
+                            });
+                          }
+                          return acc;
+                        }, []);
+                      }
 
                       return variantsSource.map((variant) => {
                         const { size, available } = variant;
@@ -999,19 +1045,19 @@ export function ProductPage() {
                             }}
                             disabled={isUnavailable}
                             className={cn(
-                              "w-11 h-11 md:w-12 md:h-12 border-2 rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm transform active:scale-95 relative shrink-0",
+                              "relative w-10 h-10 border rounded flex items-center justify-center transition-all duration-200 text-xs md:text-sm font-bold tracking-tight shrink-0 select-none",
                               isUnavailable
-                                ? "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200 overflow-hidden"
+                                ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed overflow-hidden"
                                 : selectedSize === size
-                                  ? "border-[#1E2A44] bg-[#1E2A44] shadow-md scale-105 z-10 text-white"
-                                  : "border-gray-200 bg-white hover:border-[#1E2A44]/50 hover:bg-gray-50 text-[#1B1B1B]"
+                                  ? "bg-[#1E2A44] text-white border-[#1E2A44] font-extrabold shadow-sm"
+                                  : "bg-white text-[#1B1B1B] border-gray-200 hover:border-black"
                             )}
                           >
-                            <span className="text-sm font-black tracking-tight">
-                              {size}
-                            </span>
+                            <span>{size}</span>
                             {isUnavailable && (
-                              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-400 rotate-[-15deg]"></div>
+                              <svg className="absolute inset-0 w-full h-full text-gray-300 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="1.5" />
+                              </svg>
                             )}
                           </button>
                         );

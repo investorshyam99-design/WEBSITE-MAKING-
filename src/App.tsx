@@ -3,16 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { CollectionPage } from "./pages/CollectionPage";
+import { GenericPage } from "./pages/GenericPage";
 import { Home } from "./pages/Home";
 import { ProductPage } from "./pages/ProductPage";
 import { AccountPage } from "./pages/AccountPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { CheckoutPage } from "./pages/CheckoutPage";
 import { ShopProvider } from "./context/ShopContext";
 import { CartModal } from "./components/CartModal";
 import { LoginModal } from "./components/LoginModal";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { RecentOrdersTicker } from "./components/RecentOrdersTicker";
+import { AIChatbot } from "./components/AIChatbot";
 
 export default function App() {
   return (
@@ -25,12 +29,16 @@ export default function App() {
             <Route path="/products/:slug" element={<ProductPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/collections/:id" element={<CollectionPage />} />
+            <Route path="/pages/:id" element={<GenericPage />} />
             <Route path="*" element={<Home />} />
           </Routes>
           <CartModal />
           <LoginModal />
           <MobileBottomNav />
           <RecentOrdersTicker />
+          <AIChatbot />
         </div>
       </Router>
     </ShopProvider>

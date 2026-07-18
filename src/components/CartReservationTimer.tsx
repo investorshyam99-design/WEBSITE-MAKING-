@@ -1,5 +1,5 @@
-const safeGetItem = (key: string) => { try { return window.safeGetItem(key); } catch (e) { return null; } };
-const safeSetItem = (key: string, value: string) => { try { window.safeSetItem(key, value); } catch (e) {} };
+const safeGetItem = (key: string) => { try { return window.localStorage.getItem(key); } catch (e) { return null; } };
+const safeSetItem = (key: string, value: string) => { try { window.localStorage.setItem(key, value); } catch (e) {} };
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 

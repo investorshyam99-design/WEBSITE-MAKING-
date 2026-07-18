@@ -4,39 +4,32 @@ import { Link } from "react-router-dom";
 
 const SECTIONS_CONFIG = [
   {
-    id: "football",
-    sectionId: "section-football",
-    title: "FOOTBALL",
-    subtitle: "Football culture. Wear the game.",
-    viewAllUrl: "/collections/football"
+    id: "player-version",
+    sectionId: "section-player-version",
+    title: "PLAYER VERSION",
+    subtitle: "Premium match-grade jerseys.",
+    viewAllUrl: "/collections/player-version"
   },
   {
-    id: "formula1",
-    sectionId: "section-formula1",
-    title: "FORMULA 1",
-    subtitle: "Built for those who live for speed.",
-    viewAllUrl: "/collections/formula-1"
+    id: "master-version",
+    sectionId: "section-master-version",
+    title: "MASTER VERSION",
+    subtitle: "Top-tier replica jerseys.",
+    viewAllUrl: "/collections/master-version"
   },
   {
-    id: "anime",
-    sectionId: "section-anime",
-    title: "ANIME",
-    subtitle: "Drip for those who move in silence.",
-    viewAllUrl: "/collections/anime"
+    id: "fan-set",
+    sectionId: "section-fan-set",
+    title: "FAN SET",
+    subtitle: "Classic fan version jerseys.",
+    viewAllUrl: "/collections/fan-set"
   },
   {
-    id: "artists",
-    sectionId: "section-artists",
-    title: "ARTISTS",
-    subtitle: "Wear your obsession.",
-    viewAllUrl: "/collections/artists"
-  },
-  {
-    id: "word-drip",
-    sectionId: "section-word-drip",
-    title: "WORD DRIP",
-    subtitle: "Words hit different on cotton.",
-    viewAllUrl: "/collections/word-drip"
+    id: "tees",
+    sectionId: "section-tees",
+    title: "TEES",
+    subtitle: "Oversized streetwear tees.",
+    viewAllUrl: "/collections/tees"
   }
 ];
 

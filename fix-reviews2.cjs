@@ -1,4 +1,7 @@
-import React, { useMemo } from "react";
+const fs = require('fs');
+let code = fs.readFileSync('src/components/ReviewsSection.tsx', 'utf8');
+
+const replacement = `import React, { useMemo } from "react";
 import { Star, CheckCircle2, ShieldCheck, ThumbsUp, Zap, Crown } from "lucide-react";
 import { Product } from "../data/products";
 
@@ -15,7 +18,7 @@ export const getProductReviewsInfo = (product: Product) => {
   const nameLast = ["S.", "M.", "K.", "J.", "P.", "D.", "T.", "S.", "N.", "B.", "C.", "R.", "V.", "G."];
   
   const sizes = ["S", "M", "L", "XL", "XXL"];
-  const heights = ["5'5\"", "5'6\"", "5'7\"", "5'8\"", "5'9\"", "5'10\"", "5'11\"", "6'0\"", "6'1\"", "6'2\""];
+  const heights = ["5'5\\"", "5'6\\"", "5'7\\"", "5'8\\"", "5'9\\"", "5'10\\"", "5'11\\"", "6'0\\"", "6'1\\"", "6'2\\""];
 
   const generateReview = (templates: string[]) => {
     const name = nameFirst[Math.floor(getRand() * nameFirst.length)] + " " + nameLast[Math.floor(getRand() * nameLast.length)];
@@ -43,37 +46,46 @@ export const getProductReviewsInfo = (product: Product) => {
   
   if (product.category === 'player-version') {
     templates = [
-      "The player version quality of {product} is unmatched. The match fit is absolutely perfect.",
-      "Incredible detailing on {product}. The heat-pressed logos look amazing and feel super premium.",
-      "Took a while to arrive, but this player version jersey is faultless. The premium fabric is totally worth it.",
-      "The breathability and match fit on this {product} is insane. Best player version I've bought.",
-      "Beautiful heat-pressed logos and premium fabric. It's exactly what the pros wear on the pitch."
+      "The player version quality of {product} is unmatched. Fits like a glove for my turf matches.",
+      "Incredible detailing on {product}. The crest and the fabric are exactly what the pros wear.",
+      "Took a while to arrive, but this player version jersey is faultless. Totally worth the premium price.",
+      "The breathability on this player issue {product} is insane. Best jersey I've bought in India.",
+      "I customized the name on the back. The font is spot on. Perfect for any die-hard fan."
     ];
   } else if (product.category === 'master-version') {
     templates = [
-      "The master version of {product} feels so premium. The embroidery is flawless.",
-      "Honestly better than expected. Supreme comfort and great value for money.",
-      "Very close to the authentic ones. The embroidery on this {product} master version is 10/10.",
-      "Incredible value! The comfort level is amazing, I wear it almost every weekend.",
-      "Material is very comfortable and the fit is perfect for casual wear. High quality embroidery too."
+      "The master version of {product} feels so premium. The stitching is flawless.",
+      "Honestly better than expected. The quality on this master version is top-tier.",
+      "Very close to the authentic ones. {product} master version is 10/10.",
+      "Bought this as a gift. The recipient was blown away by the quality of this master version jersey.",
+      "Material is very comfortable and the fit is perfect for casual wear. Highly recommend."
     ];
   } else if (product.category === 'fan-set' || product.category === 'fan-version') {
     templates = [
-      "Great value for money! The {product} fan version is perfect for daily wear.",
-      "For the price, you can't beat this fan version's affordability and comfort.",
-      "Awesome affordability. Colors are vibrant and it washes well for daily wear.",
-      "Best fan jersey for the price. Very comfortable for everyday use and daily wear.",
-      "Got this for my brother. He loves the affordability and wears it for daily wear everywhere."
+      "Great value for money! The {product} fan version looks great and feels comfortable.",
+      "For the price, you can't beat this fan version. Perfect for match days at the pub.",
+      "Colors are vibrant and it washes well. Very happy with my {product}.",
+      "Awesome quality fan jersey. Doesn't feel cheap at all. Will buy more.",
+      "Got this for my brother. He wears it everywhere. Good everyday jersey."
     ];
   } else {
     // Tees / Streetwear / F1 / Anime
-    templates = [
-      "The 240 GSM fabric on this {product} tee is incredible. True oversized fit.",
-      "Best oversized tee I've bought. The print quality on {product} is just insane.",
-      "Vibe is unmatched. Fits exactly how an oversized tee should. The 240 GSM fabric feels so premium.",
-      "Really premium 240 GSM blank used for this. The print quality is top tier.",
-      "Gen Z approved. Perfect oversized fit and the print quality is completely flawless."
-    ];
+    if (product.name.toLowerCase().includes('f1') || product.name.toLowerCase().includes('formula')) {
+      templates = [
+        "Sick F1 tee! The oversized fit is perfect and the print quality is crazy.",
+        "As a huge racing fan, this {product} is exactly what I wanted. Heavyweight cotton feels premium.",
+        "Great streetwear vibe for race weekends. Print hasn't faded after multiple washes.",
+        "The fit on this F1 shirt is fire. Definitely going one size down next time for a tighter look, but love the baggy feel."
+      ];
+    } else {
+      templates = [
+        "The streetwear aesthetic of {product} is on point. Heavy cotton, great drop shoulder fit.",
+        "Best oversized tee I've bought. The print on {product} feels like it will last forever.",
+        "Vibe is unmatched. Fits exactly how an oversized tee should. Wore it to a concert and got compliments.",
+        "Really premium blank used for this. The quote on the back is printed so cleanly.",
+        "Gen Z approved. Fits perfectly for that baggy streetwear look. Fast delivery too."
+      ];
+    }
   }
 
   // Generate Portuguese and Barcelona specific reviews based on product name
@@ -140,7 +152,7 @@ export function ReviewsSection({ product }: ReviewsSectionProps) {
                     </div>
                     <div className="flex items-center gap-1 text-gray-800">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'fill-current' : 'text-gray-200'}`} />
+                        <Star key={i} className={\`w-3 h-3 \${i < review.rating ? 'fill-current' : 'text-gray-200'}\`} />
                       ))}
                     </div>
                   </div>
@@ -155,3 +167,6 @@ export function ReviewsSection({ product }: ReviewsSectionProps) {
     </section>
   );
 }
+`;
+
+fs.writeFileSync('src/components/ReviewsSection.tsx', replacement);

@@ -100,15 +100,14 @@ export function RecentOrdersTicker() {
     // First trigger after a small delay
     const initialTimeout = setTimeout(triggerNotification, 6000);
 
-    // Set up a loop to display a new popup every 20-40 seconds
+    // Set up a loop to display a new popup every 30 seconds
     const intervalFunction = () => {
       triggerNotification();
-      // Schedule next notification between 20-40s
-      const nextInterval = Math.floor(Math.random() * (40000 - 20000 + 1)) + 20000;
-      intervalId = setTimeout(intervalFunction, nextInterval);
+      // Schedule next notification every 30s
+      intervalId = setTimeout(intervalFunction, 30000);
     };
 
-    let intervalId = setTimeout(intervalFunction, 20000);
+    let intervalId = setTimeout(intervalFunction, 30000);
 
     return () => {
       clearTimeout(initialTimeout);

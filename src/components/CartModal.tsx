@@ -23,6 +23,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { CartReservationTimer } from "./CartReservationTimer";
+import { getProductReviewsInfo } from "./ReviewsSection";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -196,10 +197,10 @@ export function CartModal() {
   };
 
   const getDominantCategory = () => {
-    if (cart.length === 0) return "football";
+    if (cart.length === 0) return "player-version";
     const categories = cart.map((item) => {
       const p = products.find((prod) => prod.id === item.id);
-      return p ? p.category : "football";
+      return p ? p.category : "player-version";
     });
 
     const counts = categories.reduce((acc, cat) => {
@@ -220,16 +221,15 @@ export function CartModal() {
     )
     .slice(0, 4);
 
-  let recommendationHeading =
-    "⭐ Customers who bought this also loved these designs";
-  if (dominantCategory === "football") {
-    recommendationHeading = "🔥 Trending in the Football Collection";
-  } else if (dominantCategory === "formula1") {
-    recommendationHeading = "🏁 More from the Formula 1 Collection";
-  } else if (dominantCategory === "anime") {
-    recommendationHeading = "🎨 More from the Anime Collection";
-  } else if (dominantCategory === "word-drip") {
-    recommendationHeading = "🖋 More from the WordDrip Collection";
+  let recommendationHeading = "⭐ More Products You'll Love";
+  if (dominantCategory === "player-version") {
+    recommendationHeading = "⭐ More Player Version Jerseys";
+  } else if (dominantCategory === "master-version") {
+    recommendationHeading = "⭐ More Master Version Jerseys";
+  } else if (dominantCategory === "fan-set") {
+    recommendationHeading = "⭐ More Fan Version Jerseys";
+  } else if (dominantCategory === "tees") {
+    recommendationHeading = "👕 More T-Shirts You'll Love";
   }
 
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -701,17 +701,56 @@ export function CartModal() {
                   </div>
 
                   {/* 5. Checkout Button */}
-                  <div className="px-4 md:px-6 mt-6">
-                    <button
-                      onClick={() => {
-                        setIsCartOpen(false);
-                        window.location.href = "/checkout";
-                      }}
-                      className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
-                    >
-                      <Lock className="w-4 h-4" />
-                      CHECKOUT
-                    </button>
+                  <div className="px-4 md:px-6 mt-6 flex flex-col gap-3">
+                    {(() => {
+                      const hasJerseys = cart.some(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
+                      const hasTShirts = cart.some(item => item.category === 'tees');
+
+                      const buttons = [];
+
+                      if (hasJerseys) {
+                        buttons.push(
+                          <button
+                            key="checkout-jerseys"
+                            onClick={() => {
+                              setIsCartOpen(false);
+                              window.location.href = "/#/checkout";
+                            }}
+                            className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
+                          >
+                            <Lock className="w-4 h-4" />
+                            {hasTShirts ? "CHECKOUT JERSEYS" : "CHECKOUT"}
+                          </button>
+                        );
+                      }
+
+                      if (hasTShirts) {
+                        buttons.push(
+                          <button
+                            key="checkout-tshirts"
+                            onClick={() => {
+                              const tShirts = cart.filter(item => item.category === 'tees');
+                              const lineItems = tShirts.map(item => {
+                                let variantMatch = item.variants?.find(v => v.title === item.selectedSize);
+                                if (item.selectedColor) {
+                                  variantMatch = item.variants?.find(v => v.title === item.selectedSize && v.color === item.selectedColor);
+                                }
+                                const vIdRaw = variantMatch ? variantMatch.id : (item.variantId || item.id);
+                                const vId = String(vIdRaw).split('/').pop();
+                                return `${vId}:${item.quantity}`;
+                              });
+                              window.location.href = `https://0qtwuu-br.myshopify.com/cart/${lineItems.join(',')}`;
+                            }}
+                            className="w-full bg-[#38D9A9] text-[#1B1B1B] h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2ebb8d] transition-all flex items-center justify-center gap-2"
+                          >
+                            <Lock className="w-4 h-4" />
+                            {hasJerseys ? "CHECKOUT T-SHIRTS" : "CHECKOUT"}
+                          </button>
+                        );
+                      }
+
+                      return buttons.length > 0 ? buttons : null;
+                    })()}
                   </div>
 
                   {/* 6. Payment Trust Section */}
@@ -748,7 +787,7 @@ export function CartModal() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-base leading-none">📦</span>{" "}
-                        Tracking shared via WhatsApp & Email
+                        Tracking shared via Email
                       </div>
                     </div>
                   </div>
@@ -786,10 +825,10 @@ export function CartModal() {
                           <div className="flex items-center gap-1 mb-3">
                             <span className="text-yellow-400 text-xs">★</span>
                             <span className="text-xs font-bold text-gray-700">
-                              4.8
+                              {getProductReviewsInfo(product).avgRating}
                             </span>
                             <span className="text-[10px] text-gray-400">
-                              ({Math.floor(Math.random() * 200 + 50)} reviews)
+                              ({getProductReviewsInfo(product).reviewCount} reviews)
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mb-3">

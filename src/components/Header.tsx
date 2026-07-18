@@ -2,7 +2,6 @@ import {
   ShoppingCart,
   Menu,
   Search,
-  Instagram,
   MessageCircle,
   X,
   Home,
@@ -89,55 +88,6 @@ export function Header() {
               >
                 <Home className="h-5 w-5" /> Home
               </Link>
-
-
-
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  if (window.location.pathname !== "/") {
-                    navigate("/");
-                  }
-                  setTimeout(
-                    () =>
-                      document
-                        .getElementById("footer")
-                        ?.scrollIntoView({ behavior: "smooth" }),
-                    100,
-                  );
-                }}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase w-full text-left"
-              >
-                <Phone className="h-5 w-5" /> Contact Us
-              </button>
-              <a
-                href="https://chat.whatsapp.com/K2t3JO050Z6GJ662AReKUv"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#25D366] hover:bg-[#F5EFE6] border-b border-gray-100 transition-colors uppercase"
-              >
-                <Users className="h-5 w-5" /> Join WhatsApp Group
-              </a>
-              <a
-                href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg=="
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#E1306C] hover:bg-[#F5EFE6] border-b border-gray-100 transition-colors uppercase"
-              >
-                <Instagram className="h-5 w-5" /> Join Instagram
-              </a>
-              <a
-                href="https://wa.me/918788965436"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
-              >
-                <MessageSquare className="h-5 w-5" /> Chat with Us
-              </a>
-
               {!isAuthLoading && !user ? (
                 <button
                   onClick={() => {
@@ -210,24 +160,6 @@ export function Header() {
           ))}
         </div>
         <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#1E2A44] pl-4 z-10">
-          <a
-            href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg=="
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 hover:text-[#EDE3D8] transition-colors"
-          >
-            <Instagram className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline-block">Follow Us</span>
-          </a>
-          <a
-            href="https://chat.whatsapp.com/K2t3JO050Z6GJ662AReKUv"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 hover:text-[#EDE3D8] transition-colors"
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline-block">Join Group</span>
-          </a>
         </div>
       </div>
 
@@ -255,59 +187,10 @@ export function Header() {
             >
               Home
             </Link>
-            <button
-              onClick={() => {
-                if (window.location.pathname !== "/") navigate("/");
-                setTimeout(
-                  () =>
-                    document
-                      .getElementById("categories")
-                      ?.scrollIntoView({ behavior: "smooth" }),
-                  100,
-                );
-              }}
-              className="hover:text-[#1E2A44] transition-colors cursor-pointer"
-            >
-              Shop
-            </button>
-            <button
-              onClick={() => {
-                if (window.location.pathname !== "/") navigate("/");
-                setTimeout(
-                  () =>
-                    document
-                      .getElementById("categories")
-                      ?.scrollIntoView({ behavior: "smooth" }),
-                  100,
-                );
-              }}
-              className="hover:text-[#1E2A44] transition-colors cursor-pointer"
-            >
-              Categories
-            </button>
-            <button
-              onClick={() => {
-                if (window.location.pathname !== "/") navigate("/");
-                setTimeout(
-                  () =>
-                    document
-                      .getElementById("footer")
-                      ?.scrollIntoView({ behavior: "smooth" }),
-                  100,
-                );
-              }}
-              className="hover:text-[#1E2A44] transition-colors cursor-pointer"
-            >
-              Contact
-            </button>
-            <a
-              href="https://www.instagram.com/jerseyunicorn1?igsh=MXRuN3VwcWtoNzlzdg=="
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#1E2A44] transition-colors"
-            >
-              Instagram
-            </a>
+            
+            <Link to="/collections/all" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Shop</Link>
+            <Link to="/collections/player-version" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Player Version</Link>
+            <Link to="/collections/t-shirts" className="hover:text-[#1E2A44] transition-colors cursor-pointer">T-Shirts</Link>
           </nav>
 
           <div className="flex items-center gap-4">

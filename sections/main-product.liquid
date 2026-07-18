@@ -110,10 +110,10 @@
                   {% else %}
                     <div class="flex flex-wrap gap-2">
                       {% for value in option.values %}
-                        <label class="cursor-pointer">
+                        <label class="cursor-pointer shrink-0 select-none">
                           <input type="radio" name="options[{{ option.name }}]" value="{{ value | escape }}" class="peer sr-only variant-selector size-selector" {% if option.selected_value == value %}checked{% endif %}>
-                          <div class="py-2.5 px-4 border-2 rounded-xl flex items-center justify-center transition-all peer-checked:border-[#1E2A44] peer-checked:bg-[#1E2A44] peer-checked:text-white border-gray-200 bg-white text-gray-600 hover:border-[#1E2A44]/30">
-                            <span class="text-xs font-black tracking-widest">{{ value }}</span>
+                          <div class="relative w-11 h-11 md:w-12 md:h-12 border rounded-md flex items-center justify-center transition-all duration-200 text-sm font-bold tracking-tight border-gray-200 bg-white text-[#1B1B1B] peer-checked:bg-[#1E2A44] peer-checked:text-white peer-checked:border-[#1E2A44] peer-checked:font-extrabold hover:border-black">
+                            <span>{{ value }}</span>
                           </div>
                         </label>
                       {% endfor %}

@@ -17,29 +17,24 @@ export type Product = {
 
 export const categories = [
   {
-    id: "football",
-    name: "FOOTBALL",
-    seoTitle: "Football Banter Tees | Oversized Football T-Shirts India",
+    id: "master-version",
+    name: "MASTER VERSION",
+    seoTitle: "Master Version Football Jerseys",
   },
   {
-    id: "formula1",
-    name: "FORMULA 1",
-    seoTitle: "F1 Fan Tees India | Formula 1 Oversized Streetwear",
+    id: "player-version",
+    name: "PLAYER VERSION",
+    seoTitle: "Player Version Football Jerseys",
   },
   {
-    id: "anime",
-    name: "ANIME",
-    seoTitle: "Anime Tees India | Gen Z Oversized Anime Graphic T-Shirts",
+    id: "fan-set",
+    name: "FAN SET",
+    seoTitle: "Fan Set Football Jerseys",
   },
   {
-    id: "artists",
-    name: "ARTISTS",
-    seoTitle: "Artist Tees India | Music Artist & Rapper Oversized T-Shirts",
-  },
-  {
-    id: "word-drip",
-    name: "WORD DRIP",
-    seoTitle: "Worddrip Tees | Gen Z Quote & Wordplay T-Shirts India",
+    id: "tees",
+    name: "TEES",
+    seoTitle: "Oversized Streetwear Tees",
   },
 ];
 
@@ -84,31 +79,22 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
     const mainImage = galleryImages.length > 0 ? galleryImages[0] : (variants.length > 0 && variants[0].image ? variants[0].image : mockImages[0]);
 
     const tags = (node.tags || []).map((t: string) => t.toLowerCase());
-    let category = 'football';
+    let category = 'tees'; // Default to T-Shirts
     
-    const bracketMatch = node.title.match(/\((.*?)\)/);
-    
-    if (bracketMatch) {
-      const bracketCategory = bracketMatch[1].toLowerCase();
-      if (bracketCategory === 'f1' || bracketCategory === 'formula 1' || bracketCategory === 'formula1' || bracketCategory === 'formula-1') category = 'formula1';
-      else if (bracketCategory === 'football') category = 'football';
-      else if (bracketCategory === 'anime') category = 'anime';
-      else if (bracketCategory === 'artists' || bracketCategory === 'artist') category = 'artists';
-      else if (bracketCategory === 'word drip' || bracketCategory === 'word-drip') category = 'word-drip';
-      else category = bracketCategory.replace(/\s+/g, '-');
+    if (tags.includes('player version')) {
+      category = 'player-version';
+    } else if (tags.includes('master version')) {
+      category = 'master-version';
+    } else if (tags.includes('fan version') || tags.includes('fan set')) {
+      category = 'fan-set';
+    } else if (tags.includes('tee') || tags.includes('t-shirt') || tags.includes('tees')) {
+      category = 'tees';
     } else {
-      const matchingTag = tags.find(t => 
-        ['football', 'formula1', 'formula-1', 'anime', 'artists', 'artist', 'word-drip', 'word drip', 'word_drip'].includes(t)
-      );
-
-      if (matchingTag) {
-        if (matchingTag === 'formula-1') category = 'formula1';
-        else if (matchingTag === 'artist') category = 'artists';
-        else if (matchingTag === 'word drip' || matchingTag === 'word_drip') category = 'word-drip';
-        else category = matchingTag;
-      } else {
-        category = node.productType?.toLowerCase() || 'football';
-      }
+      // Fallback if tag is missing but title hints it
+      const titleLower = node.title.toLowerCase();
+      if (titleLower.includes('player version')) category = 'player-version';
+      else if (titleLower.includes('master version')) category = 'master-version';
+      else if (titleLower.includes('fan version') || titleLower.includes('fan set')) category = 'fan-set';
     }
 
     return {

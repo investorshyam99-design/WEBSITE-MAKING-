@@ -59,7 +59,7 @@ export function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
             <h3 className="text-lg font-bold uppercase tracking-wide border-b-2 border-[#F5EFE6] pb-2 mb-4">Product Availability Notice</h3>
             <div className="space-y-3 text-sm md:text-base text-gray-700 leading-relaxed">
               <p>Due to high demand and inventory updates from our sourcing partners, some products or sizes may occasionally become unavailable after an order is placed.</p>
-              <p>In such rare cases, our team will contact you promptly on WhatsApp with the available alternatives, restock updates, or refund options if applicable.</p>
+              <p>In such rare cases, our team will contact you promptly with the available alternatives, restock updates, or refund options if applicable.</p>
               <p>We appreciate your understanding and support.</p>
             </div>
           </section>
