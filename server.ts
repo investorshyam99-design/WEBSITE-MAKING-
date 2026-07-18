@@ -91,7 +91,7 @@ async function startServer() {
   });
 
   // Shopify Products API Proxy
-  app.get("/api/shopify-products", async (req, res) => {
+  app.get("/api/store-inventory", async (req, res) => {
     try {
       const SHOPIFY_DOMAIN = "https://0qtwuu-br.myshopify.com";
       const SHOPIFY_STOREFRONT_TOKEN = "e711ef4603f75af0b8370a9b8ebeb2e5";
