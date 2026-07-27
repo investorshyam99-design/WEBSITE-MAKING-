@@ -19,10 +19,9 @@ export function CheckoutPage() {
   const { cart, user, clearCart, updateQuantity, removeFromCart, setIsCartOpen } = useShop();
   const navigate = useNavigate();
 
-  // Redirect to home if cart is empty or only contains t-shirts
+  // Redirect to home if cart is empty
   useEffect(() => {
-    const hasJerseys = cart.some(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
-    if (cart.length === 0 || !hasJerseys) {
+    if (cart.length === 0) {
       navigate("/");
     }
   }, [cart, navigate]);

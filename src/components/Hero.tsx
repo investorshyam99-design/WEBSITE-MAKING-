@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 export function Hero() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const navigate = useNavigate();
   const [videoUrl, setVideoUrl] = useState("/hero-video.mp4");
 
   useEffect(() => {
@@ -41,18 +39,6 @@ export function Hero() {
     }
   }, [videoUrl]);
 
-  const handleShopNowClick = () => {
-    if (window.location.pathname !== "/") {
-      navigate("/");
-    }
-    setTimeout(() => {
-      const element = document.getElementById("categories");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
-  };
-
   return (
     <section className="relative w-full h-[55vh] sm:h-[65vh] md:h-[80vh] overflow-hidden bg-[#1B1B1B] flex items-center justify-center">
       {/* Background Video */}
@@ -69,20 +55,8 @@ export function Hero() {
         className="absolute inset-0 w-full h-full object-cover z-0"
         src={videoUrl}
       />
-
       {/* Dark overlay (rgba 0,0,0,0.25) */}
       <div className="absolute inset-0 bg-black/25 z-[5]" />
-
-      {/* Centered White Pill Button */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center">
-        <button
-          onClick={handleShopNowClick}
-          className="bg-white/90 text-[#1B1B1B] px-12 py-4 rounded-full font-black text-lg sm:text-xl uppercase tracking-widest hover:scale-[1.05] hover:bg-white transition-all shadow-2xl duration-300 flex items-center gap-2 cursor-pointer active:scale-95 border-none"
-        >
-          <span>SHOP NOW</span>
-          <span>&rarr;</span>
-        </button>
-      </div>
     </section>
   );
 }

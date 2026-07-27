@@ -719,7 +719,7 @@ Always be polite, concise, and focused on helping the customer make a great purc
   // Streamable Hero Video API to handle dynamic signature expirations
   app.get("/api/hero-video", async (req, res) => {
     try {
-      const response = await fetch("https://api.streamable.com/videos/hpvnxl");
+      const response = await fetch("https://api.streamable.com/videos/m7sg3u");
       if (!response.ok) {
         throw new Error(`Failed to fetch from Streamable API: ${response.statusText}`);
       }

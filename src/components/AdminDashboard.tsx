@@ -58,7 +58,7 @@ function generateWhatsAppLink(phone: string, text: string) {
   return `https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`;
 }
 
-export function AdminDashboard({
+export function AdminOrdersDashboard({
   orders,
   refreshOrders,
 }: {

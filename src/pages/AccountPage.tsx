@@ -6,7 +6,7 @@ import { db, auth } from "../lib/firebase";
 import { collection, query, where, getDocs, doc } from "firebase/firestore";
 import { Package, Truck, X, LogOut, User, MapPin, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { AdminDashboard } from "../components/AdminDashboard";
+import { AdminOrdersDashboard } from "../components/AdminDashboard";
 import { useProducts } from "../data/products";
 import { signOut } from "firebase/auth";
 
@@ -158,7 +158,7 @@ export function AccountPage() {
         )}
 
         {user.email === "investorshyam99@gmail.com" ? (
-           <AdminDashboard orders={orders} refreshOrders={fetchOrders} />
+           <AdminOrdersDashboard orders={orders} refreshOrders={fetchOrders} />
         ) : (
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar */}

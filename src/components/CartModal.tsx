@@ -702,55 +702,16 @@ export function CartModal() {
 
                   {/* 5. Checkout Button */}
                   <div className="px-4 md:px-6 mt-6 flex flex-col gap-3">
-                    {(() => {
-                      const hasJerseys = cart.some(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
-                      const hasTShirts = cart.some(item => item.category === 'tees');
-
-                      const buttons = [];
-
-                      if (hasJerseys) {
-                        buttons.push(
-                          <button
-                            key="checkout-jerseys"
-                            onClick={() => {
-                              setIsCartOpen(false);
-                              window.location.href = "/#/checkout";
-                            }}
-                            className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
-                          >
-                            <Lock className="w-4 h-4" />
-                            {hasTShirts ? "CHECKOUT JERSEYS" : "CHECKOUT"}
-                          </button>
-                        );
-                      }
-
-                      if (hasTShirts) {
-                        buttons.push(
-                          <button
-                            key="checkout-tshirts"
-                            onClick={() => {
-                              const tShirts = cart.filter(item => item.category === 'tees');
-                              const lineItems = tShirts.map(item => {
-                                let variantMatch = item.variants?.find(v => v.title === item.selectedSize);
-                                if (item.selectedColor) {
-                                  variantMatch = item.variants?.find(v => v.title === item.selectedSize && v.color === item.selectedColor);
-                                }
-                                const vIdRaw = variantMatch ? variantMatch.id : (item.variantId || item.id);
-                                const vId = String(vIdRaw).split('/').pop();
-                                return `${vId}:${item.quantity}`;
-                              });
-                              window.location.href = `https://0qtwuu-br.myshopify.com/cart/${lineItems.join(',')}`;
-                            }}
-                            className="w-full bg-[#38D9A9] text-[#1B1B1B] h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2ebb8d] transition-all flex items-center justify-center gap-2"
-                          >
-                            <Lock className="w-4 h-4" />
-                            {hasJerseys ? "CHECKOUT T-SHIRTS" : "CHECKOUT"}
-                          </button>
-                        );
-                      }
-
-                      return buttons.length > 0 ? buttons : null;
-                    })()}
+                    <button
+                      onClick={() => {
+                        setIsCartOpen(false);
+                        window.location.href = "/#/checkout";
+                      }}
+                      className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
+                    >
+                      <Lock className="w-4 h-4" />
+                      CHECKOUT
+                    </button>
                   </div>
 
                   {/* 6. Payment Trust Section */}

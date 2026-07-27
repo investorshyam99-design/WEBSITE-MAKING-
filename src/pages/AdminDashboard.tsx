@@ -1,3 +1,5 @@
+import { AdminOrdersDashboard } from "../components/AdminDashboard";
+import { getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -19,12 +21,36 @@ export function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [avgTimeSpent, setAvgTimeSpent] = useState(0);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // Define admin email here - matching our firestore rules.
   // We can just rely on the rules returning a permission denied error, but we'll show UI as well.
   const isAdmin = user?.email === "investorshyam99@gmail.com";
+
+  const fetchOrders = async () => {
+    try {
+      const ordersRef = collection(db, "orders");
+      const q = query(ordersRef);
+      const snapshot = await getDocs(q);
+      const fetchedOrders = snapshot.docs.map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          }) as any,
+      ).sort((a: any, b: any) => {
+          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          return timeB - timeA;
+      });
+      setOrders(fetchedOrders);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -89,6 +115,7 @@ export function AdminDashboard() {
           } else {
             setAvgTimeSpent(0);
           }
+          fetchOrders();
           setLoading(false);
         },
         (err) => {
@@ -195,6 +222,10 @@ export function AdminDashboard() {
                   {formatTime(avgTimeSpent)}
                 </p>
               </div>
+            </div>
+
+            <div className="mt-8">
+              <AdminOrdersDashboard orders={orders} refreshOrders={fetchOrders} />
             </div>
 
             {/* Visitors List */}
