@@ -54,7 +54,7 @@ export function generateProductSlug(name: string): string {
 
 
 export function parseShopifyProducts(nodes: any[]): Product[] {
-  return nodes.map((node) => {
+  const parsed = nodes.map((node) => {
     let price = 0;
     const variants = (node.variants?.edges || []).map((vEdge: any) => {
         const v = vEdge.node;
@@ -110,6 +110,51 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       slug: generateProductSlug(node.title),
     };
   });
+
+  const orderList = [
+    "real madrid",
+    "barcelona",
+    "arsenal",
+    "manchester united",
+    "manchester city",
+    "spain",
+    "argentina",
+    "portugal",
+    "brazil",
+    "france"
+  ];
+
+  function getSortIndex(name: string) {
+    const lowerName = name.toLowerCase();
+    for (let i = 0; i < orderList.length; i++) {
+      if (lowerName.includes(orderList[i])) return i;
+    }
+    return 999;
+  }
+
+  function shuffle(array: any[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  const matched: Product[] = [];
+  const others: Product[] = [];
+
+  parsed.forEach(p => {
+    if (getSortIndex(p.name) !== 999) {
+      matched.push(p);
+    } else {
+      others.push(p);
+    }
+  });
+
+  matched.sort((a, b) => getSortIndex(a.name) - getSortIndex(b.name));
+  shuffle(others);
+
+  return [...matched, ...others];
 }
 
 // Global store for parsed products
