@@ -94,6 +94,13 @@ export function AccountPage() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      navigate("/");
+      setIsLoginOpen(true);
+    }
+  }, [isAuthLoading, user, navigate, setIsLoginOpen]);
   
   const handleLogout = async () => {
     try {
@@ -104,7 +111,7 @@ export function AccountPage() {
     }
   };
 
-  if (isAuthLoading) {
+  if (isAuthLoading || !user) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
@@ -116,37 +123,13 @@ export function AccountPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center bg-white p-10 shadow-sm border border-gray-100 max-w-sm rounded">
-            <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-black text-[#1B1B1B] uppercase tracking-wider mb-2">
-              Login Required
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Please sign in to view your account.
-            </p>
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full hover:bg-[#223A5E] transition-colors rounded-xl"
-            >
-              Log in to continue
-            </button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-grow max-w-[1200px] mx-auto w-full px-4 py-8 md:py-12">
-        {user.email !== "investorshyam99@gmail.com" && (
+        {user?.email !== "investorshyam99@gmail.com" && (
           <div className="flex flex-row items-center justify-between mb-8 gap-4">
             <h1 className="text-2xl sm:text-3xl font-black text-[#1B1B1B] uppercase tracking-tight">
                My Account
@@ -157,7 +140,7 @@ export function AccountPage() {
           </div>
         )}
 
-        {user.email === "investorshyam99@gmail.com" ? (
+        {user?.email === "investorshyam99@gmail.com" ? (
            <AdminOrdersDashboard orders={orders} refreshOrders={fetchOrders} />
         ) : (
           <div className="flex flex-col md:flex-row gap-8">
@@ -166,11 +149,11 @@ export function AccountPage() {
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm sticky top-24">
                 <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-[#1E2A44] text-white flex items-center justify-center font-bold text-lg">
-                    {(user.name || user.email || "U").charAt(0).toUpperCase()}
+                    {(user?.name || user?.email || "G").charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Welcome,</p>
-                    <p className="font-black text-[#1B1B1B] truncate max-w-[140px]">{user.name || user.email || user.phoneNumber}</p>
+                    <p className="font-black text-[#1B1B1B] truncate max-w-[140px]">{user?.name || user?.email || user?.phoneNumber || "Guest User"}</p>
                   </div>
                 </div>
                 <div className="flex flex-col p-2">
@@ -199,12 +182,14 @@ export function AccountPage() {
                     <Heart className="w-4 h-4" /> Wishlist
                   </button>
                   <div className="h-px bg-gray-100 my-2 mx-4"></div>
-                  <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" /> Logout
-                  </button>
+                  {user && (
+                    <button 
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" /> Logout
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -218,6 +203,22 @@ export function AccountPage() {
                     <div className="text-center py-20">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E2A44] mx-auto mb-4"></div>
                       <p className="text-gray-500 font-medium">Loading your orders...</p>
+                    </div>
+                  ) : !user ? (
+                    <div className="text-center bg-white p-12 shadow-sm border border-gray-100 rounded-xl">
+                      <Package className="h-16 w-16 mx-auto text-gray-200 mb-4" />
+                      <h2 className="text-lg font-bold text-[#1B1B1B] uppercase tracking-wider mb-2">
+                        Login Required
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-6">
+                        Sign in to track your past orders.
+                      </p>
+                      <button
+                        onClick={() => setIsLoginOpen(true)}
+                        className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full max-w-sm hover:bg-[#223A5E] transition-colors rounded-xl"
+                      >
+                        Log in to view orders
+                      </button>
                     </div>
                   ) : orders.length === 0 ? (
                     <div className="text-center bg-white p-12 shadow-sm border border-gray-100 rounded-xl">
@@ -250,19 +251,19 @@ export function AccountPage() {
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 block">Name</label>
                       <div className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 font-bold text-[#1B1B1B]">
-                        {user.name || "Not provided"}
+                        {user?.name || "Not provided"}
                       </div>
                     </div>
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 block">Email</label>
                       <div className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 font-bold text-[#1B1B1B]">
-                        {user.email || "Not provided"}
+                        {user?.email || "Not provided"}
                       </div>
                     </div>
                     <div>
                       <label className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 block">Phone Number</label>
                       <div className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 font-bold text-[#1B1B1B]">
-                        {user.phoneNumber || (user.email?.startsWith("+") ? user.email : "Not provided")}
+                        {user?.phoneNumber || (user?.email?.startsWith("+") ? user?.email : "Not provided")}
                       </div>
                     </div>
                   </div>

@@ -40,17 +40,15 @@ export function PoliciesModal({ isOpen, onClose }: PoliciesModalProps) {
           <section>
             <h3 className="text-lg font-bold uppercase tracking-wide border-b-2 border-[#F5EFE6] pb-2 mb-4">Exchange Policy</h3>
             <div className="space-y-3 text-sm md:text-base text-gray-700 leading-relaxed">
-              <p>We allow exchanges only in cases where the mistake is from our side, such as:</p>
-              <ul className="list-disc pl-5 space-y-1 mb-4">
-                <li>Wrong product received</li>
-                <li>Damaged product received</li>
-              </ul>
+              <p>Size exchanges are available within 24 hours of delivery if the selected size does not fit.</p>
               
-              <h4 className="font-semibold text-[#1E2A44] uppercase tracking-wider text-xs">Important Conditions:</h4>
+              <h4 className="font-semibold text-[#1E2A44] uppercase tracking-wider text-xs mt-4">Conditions:</h4>
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>An unboxing video is mandatory</strong> for exchange requests.</li>
-                <li>The issue must be reported within <strong>24 hours</strong> of delivery.</li>
-                <li>Without a proper unboxing video, exchange requests may not be accepted.</li>
+                <li>Exchange requests must be submitted within <strong>24 hours</strong> after delivery.</li>
+                <li>The jersey must be unused and in its original condition.</li>
+                <li><strong>Jerseys with Name & Number customization are NOT eligible for exchange.</strong></li>
+                <li>The customer is responsible for both forward and return shipping charges for size exchanges.</li>
+                <li><strong>An uncut unboxing video is mandatory</strong> for any damage, wrong product, or manufacturing defect claim.</li>
               </ul>
             </div>
           </section>

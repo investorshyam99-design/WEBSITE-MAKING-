@@ -3,7 +3,7 @@ import https from 'https';
 
 async function run() {
   try {
-    const infoRes = await fetch('https://api.streamable.com/videos/m7sg3u');
+    const infoRes = await fetch('https://api.streamable.com/videos/93ruep');
     const info = await infoRes.json();
     
     let vidUrl = (info.files['mp4-mobile'] || info.files['mp4']).url;

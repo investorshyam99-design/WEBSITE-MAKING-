@@ -46,8 +46,8 @@ export function CheckoutPage() {
   const total = subtotal;
   
   const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = 150 * itemsCount;
-  const codExtra = 50 * itemsCount;
+  const advanceAmount = itemsCount * 50;
+  const codExtra = itemsCount * 50;
 
   const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -73,7 +73,7 @@ export function CheckoutPage() {
   };
 
   const handleCheckout = async () => {
-    if (!fullName || !phone || !pincode || !houseNo || !areaStreet || !city || !state) {
+    if (!fullName || !phone || !pincode || !houseNo) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
       return;
     }
@@ -82,7 +82,7 @@ export function CheckoutPage() {
       return;
     }
 
-    const combinedAddress = `${houseNo}, ${areaStreet}, ${city}, ${state}, Pincode: ${pincode}`;
+    const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${pincode}`].filter(Boolean).join(", ");
     setIsSubmitting(true);
     
     try {
@@ -272,37 +272,14 @@ export function CheckoutPage() {
                 />
                 <input
                   type="text"
-                  placeholder="House/Flat No. & Building"
+                  placeholder="Address (House No, Area, Street)"
                   value={houseNo}
                   onChange={(e) => setHouseNo(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
 
-              <input
-                type="text"
-                placeholder="Area, Street & Landmark"
-                value={areaStreet}
-                onChange={(e) => setAreaStreet(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={city}
-                  readOnly
-                  className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-600 focus:outline-none cursor-not-allowed"
-                />
-                <input
-                  type="text"
-                  placeholder="State"
-                  value={state}
-                  readOnly
-                  className="w-full border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-600 focus:outline-none cursor-not-allowed"
-                />
-              </div>
+              {/* Hide City and State fields from UI but keep them for backend if fetched via Pincode */}
               
               {deliveryEstimate && (
                 <p className="text-xs font-bold text-green-600 flex items-center gap-1.5 mt-2">
@@ -344,13 +321,11 @@ export function CheckoutPage() {
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-sm">Pay Advance Only</span>
+                    <span className="font-bold text-sm">💳 COD Available</span>
                     {paymentMode === "partial" && <ShieldCheck className="w-5 h-5 text-[#1E2A44]" />}
                   </div>
-                  <div className="text-xs text-gray-500">Pay Rs. {advanceAmount.toFixed(2)} now. Rest on delivery.</div>
-                  <div className="mt-2 inline-block px-2 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase rounded">
-                    COD Charges Apply
-                  </div>
+                  <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceAmount} Advance Payment Required</div>
+                  <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery<br/>(₹{codExtra} COD handling charge applies)</div>
                 </button>
               </div>
             </div>

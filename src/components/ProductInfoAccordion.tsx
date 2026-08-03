@@ -69,7 +69,21 @@ export function ProductInfoAccordion({ product }: { product: any }) {
         { q: "What is the difference between Player, Master and Fan Version?", a: "Player versions are match-fit with heat-pressed logos. Master versions offer premium embroidery and durable fabric. Fan versions are relaxed fit for everyday wear." },
         { q: "Can I customize my jersey?", a: "Yes! You can add any player name and number for an additional ₹199." },
         { q: "How long does delivery take?", a: "Orders are dispatched quickly and typically arrive in 5-10 business days across India." },
-        { q: "Can I exchange my order?", a: "We offer exchange ONLY if the mistake is from our side (wrong product, wrong size sent by us, damaged product, or manufacturing defect).\n\nTo be eligible:\n• The issue must be reported within 24 hours of delivery.\n• A complete, uncut unboxing video is mandatory.\n• The product must be unused with all original tags and packaging.\n• Claims without an uncut unboxing video will not be accepted." },
+        { q: "Can I exchange or return my order?", a: (
+  <div className="space-y-2">
+    <p>Yes, we offer size exchanges if the selected size does not fit.</p>
+    <p>Exchange Conditions:</p>
+    <ul className="space-y-1 list-none">
+      <li>• Size exchange requests must be made within <strong>24 hours</strong> of delivery.</li>
+      <li>• A complete <strong>uncut unboxing video</strong> is mandatory for every exchange request.</li>
+      <li>• The product must be unused, unwashed, and returned with all original tags and packaging.</li>
+      <li>• <strong>Customized jerseys (Name & Number printed) are NOT eligible for exchange or return.</strong></li>
+      <li>• If we ship the <strong>wrong product, wrong size, damaged, or defective product</strong>, we will provide an exchange after verification.</li>
+      <li>• Claims without an uncut unboxing video will not be accepted.</li>
+      <li>• For size exchanges, the customer is responsible for the applicable shipping charges.</li>
+    </ul>
+  </div>
+) },
         { q: "How should I wash the jersey?", a: "Hand wash cold or gentle machine wash inside out. Do not iron on prints or logos." },
         { q: "Is customization refundable?", a: "No, personalized items with custom names/numbers cannot be refunded or exchanged." },
         { q: "What material is used?", a: "We use premium moisture-wicking polyester blends imported from Thailand." },
@@ -82,7 +96,21 @@ export function ProductInfoAccordion({ product }: { product: any }) {
       { q: "Does the print fade?", a: "No, we use high-quality, durable printing techniques that withstand multiple washes." },
       { q: "How should I wash it?", a: "Cold machine wash inside out. Do not bleach. Do not iron directly on the print." },
       { q: "How long is delivery?", a: "Orders are dispatched within 24-48 hours and typically arrive in 4-7 business days." },
-      { q: "Can I exchange my order?", a: "We offer exchange ONLY if the mistake is from our side (wrong product, wrong size sent by us, damaged product, or manufacturing defect).\n\nTo be eligible:\n• The issue must be reported within 24 hours of delivery.\n• A complete, uncut unboxing video is mandatory.\n• The product must be unused with all original tags and packaging.\n• Claims without an uncut unboxing video will not be accepted." }
+      { q: "Can I exchange or return my order?", a: (
+  <div className="space-y-2">
+    <p>Yes, we offer size exchanges if the selected size does not fit.</p>
+    <p>Exchange Conditions:</p>
+    <ul className="space-y-1 list-none">
+      <li>• Size exchange requests must be made within <strong>24 hours</strong> of delivery.</li>
+      <li>• A complete <strong>uncut unboxing video</strong> is mandatory for every exchange request.</li>
+      <li>• The product must be unused, unwashed, and returned with all original tags and packaging.</li>
+      <li>• <strong>Customized jerseys (Name & Number printed) are NOT eligible for exchange or return.</strong></li>
+      <li>• If we ship the <strong>wrong product, wrong size, damaged, or defective product</strong>, we will provide an exchange after verification.</li>
+      <li>• Claims without an uncut unboxing video will not be accepted.</li>
+      <li>• For size exchanges, the customer is responsible for the applicable shipping charges.</li>
+    </ul>
+  </div>
+) }
     ];
   };
 
@@ -145,7 +173,7 @@ export function ProductInfoAccordion({ product }: { product: any }) {
             {getFAQs().map((faq, i) => (
               <div key={i}>
                 <h4 className="font-bold text-[#1B1B1B] text-sm mb-1">{faq.q}</h4>
-                <p>{faq.a}</p>
+                <div className="text-sm text-gray-600">{faq.a}</div>
               </div>
             ))}
           </div>

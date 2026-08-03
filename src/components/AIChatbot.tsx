@@ -43,13 +43,16 @@ export function AIChatbot() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || "I'm having trouble connecting right now. Please try again in a moment.";
+        setMessages(prev => [...prev, { role: 'ai', text: errorMessage }]);
+        setIsLoading(false);
+        return;
       }
 
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'ai', text: data.text }]);
     } catch (error) {
-      console.error('Chat error:', error);
       setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting right now. Please try again in a moment." }]);
     } finally {
       setIsLoading(false);

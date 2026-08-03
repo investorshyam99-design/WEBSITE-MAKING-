@@ -619,7 +619,7 @@ KNOWLEDGE BASE:
 
 2. Shipping & Order Tracking:
 - If a customer asks "When will my order arrive?", "Where is my order?", or "Track my order", you MUST reply exactly:
-  "Once your order is dispatched, we will share your tracking number via your registered email. You can use that tracking number to track your shipment."
+  "📦 Tracking Number will be shared via WhatsApp after dispatch."
 - Delivery generally takes 5-10 business days.
 
 3. Exchange & Return Policy:
@@ -647,7 +647,7 @@ KNOWLEDGE BASE:
 Always be polite, concise, and focused on helping the customer make a great purchase.`;
 
       const chat = ai.chats.create({
-        model: "gemini-3.1-flash-lite",
+        model: "gemini-3.6-flash",
         config: {
           systemInstruction,
           temperature: 0.7,
@@ -719,7 +719,7 @@ Always be polite, concise, and focused on helping the customer make a great purc
   // Streamable Hero Video API to handle dynamic signature expirations
   app.get("/api/hero-video", async (req, res) => {
     try {
-      const response = await fetch("https://api.streamable.com/videos/m7sg3u");
+      const response = await fetch("https://api.streamable.com/videos/93ruep");
       if (!response.ok) {
         throw new Error(`Failed to fetch from Streamable API: ${response.statusText}`);
       }

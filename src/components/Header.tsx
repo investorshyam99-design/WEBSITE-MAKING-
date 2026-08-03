@@ -112,13 +112,6 @@ export function Header() {
                       <ShieldAlert className="h-5 w-5" /> Admin Panel
                     </Link>
                   )}
-                  <Link
-                    to="/account"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left"
-                  >
-                    <FileText className="h-5 w-5" /> My Orders
-                  </Link>
                   <button
                     onClick={() => {
                       logout();
@@ -134,6 +127,13 @@ export function Header() {
                   Loading account...
                 </div>
               )}
+              <Link
+                to="/account"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1E2A44] hover:bg-[#F5EFE6] transition-colors uppercase w-full text-left border-t border-gray-100"
+              >
+                <FileText className="h-5 w-5" /> My Orders
+              </Link>
             </div>
 
             <div className="mt-auto p-6 bg-[#F5EFE6]">
@@ -155,11 +155,9 @@ export function Header() {
         <div className="flex animate-marquee whitespace-nowrap">
           {[...Array(30)].map((_, i) => (
             <span key={i} className="flex items-center mx-4">
-              Free delivery and cod available <span className="mx-4 text-gray-400">&bull;</span>
+               🚚 Free Delivery <span className="mx-2 text-gray-400">&bull;</span> 💳 COD Available <span className="mx-2 text-gray-400">&bull;</span> 🔄 Easy Exchange <span className="mx-4 text-gray-400">&bull;</span>
             </span>
           ))}
-        </div>
-        <div className="absolute right-4 md:right-8 flex items-center gap-4 bg-[#1E2A44] pl-4 z-10">
         </div>
       </div>
 
@@ -194,6 +192,12 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
+            <Link
+              to="/account"
+              className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
+            >
+              My Orders
+            </Link>
             {!isAuthLoading && !user ? (
               <button
                 onClick={() => setIsLoginOpen(true)}
@@ -211,12 +215,6 @@ export function Header() {
                     Admin
                   </Link>
                 )}
-                <Link
-                  to="/account"
-                  className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1B1B1B] hover:text-[#1E2A44] transition-colors"
-                >
-                  Orders
-                </Link>
                 <button
                   onClick={logout}
                   className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-600 transition-colors"

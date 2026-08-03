@@ -40,7 +40,7 @@ export function Hero() {
   }, [videoUrl]);
 
   return (
-    <section className="relative w-full h-[55vh] sm:h-[65vh] md:h-[80vh] overflow-hidden bg-[#1B1B1B] flex items-center justify-center">
+    <section className="relative w-full overflow-hidden bg-[#1B1B1B] flex items-center justify-center">
       {/* Background Video */}
       <video
         ref={videoRef}
@@ -52,7 +52,7 @@ export function Hero() {
         disableRemotePlayback
         preload="auto"
         poster="/hero-poster.jpg"
-        className="absolute inset-0 w-full h-full object-cover z-0"
+        className="w-full h-auto z-0"
         src={videoUrl}
       />
       {/* Dark overlay (rgba 0,0,0,0.25) */}

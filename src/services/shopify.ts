@@ -47,11 +47,11 @@ export async function fetchShopifyProducts() {
       }
     `;
 
-    const response = await fetch(`${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`, {
+    const response = await fetch(`/api/shopify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
+        
       },
       body: JSON.stringify({ query }),
       cache: "no-cache",

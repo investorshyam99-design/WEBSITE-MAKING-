@@ -142,7 +142,7 @@ export function ProductPage() {
 
   const stats = useMemo(() => {
     if (!product) return { avgRating: "4.9", reviewCount: 120 };
-    return getProductReviewsInfo(product.id);
+    return getProductReviewsInfo(product);
   }, [product]);
 
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -186,6 +186,7 @@ export function ProductPage() {
   }, [product]);
 
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+  const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"add" | "buy" | null>(null);
 
   const variantInventory = useMemo(() => {
@@ -345,17 +346,30 @@ export function ProductPage() {
     setSelectedSize(size);
   };
 
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      setPendingAction("add");
+  const proceedToCart = (action: "add" | "buy", isCust: boolean) => {
+    if (isCust && !customName.trim()) {
+      alert("Please enter a name for customization");
+      return;
+    }
+    addToCart(
+      product!,
+      selectedSize,
+      selectedColor || undefined,
+      isCust ? { name: customName, number: customNumber } : undefined,
+    );
+    setIsCartOpen(true);
+    if (action === "buy") {
+       window.location.href = "/#/checkout";
+    }
+  };
+
+  const handleAction = (action: "add" | "buy") => {
+    if (!selectedSize || (product && ['player-version', 'master-version', 'fan-set'].includes(product.category))) {
+      setPendingAction(action);
       setIsVariantModalOpen(true);
       return;
     }
     const hasColors = product?.variants?.some(v => v.color);
-    if (hasColors && !selectedColor) {
-      // automatically pick first available color if possible, else just ignore since we removed explicit selection
-    }
-    
     // Check if selected variant is available
     if (product?.variants) {
       const selectedVariant = product.variants.find(v => v.title === selectedSize && (!hasColors || v.color === selectedColor));
@@ -365,51 +379,11 @@ export function ProductPage() {
       }
     }
 
-    if (isCustomized && !customName.trim()) {
-      alert("Please enter a name for customization");
-      return;
-    }
-    addToCart(
-      product!,
-      selectedSize,
-      selectedColor || undefined,
-      isCustomized ? { name: customName, number: customNumber } : undefined,
-    );
-    setIsCartOpen(true);
+    proceedToCart(action, false);
   };
 
-  const handleBuyNow = () => {
-    if (!selectedSize) {
-      setPendingAction("buy");
-      setIsVariantModalOpen(true);
-      return;
-    }
-    const hasColors = product?.variants?.some(v => v.color);
-    if (hasColors && !selectedColor) {
-      // automatically pick first available color if possible, else just ignore
-    }
-
-    // Check if selected variant is available
-    if (product?.variants) {
-      const selectedVariant = product.variants.find(v => v.title === selectedSize && (!hasColors || v.color === selectedColor));
-      if (selectedVariant && !selectedVariant.availableForSale) {
-        alert("Selected variation is out of stock");
-        return;
-      }
-    }
-
-    if (isCustomized && !customName.trim()) {
-      alert("Please enter a name for customization");
-      return;
-    }
-    addToCart(
-      product!,
-      selectedSize,
-      selectedColor || undefined,
-      isCustomized ? { name: customName, number: customNumber } : undefined,
-    );
-    setIsCartOpen(true);
-  };
+  const handleAddToCart = () => handleAction("add");
+  const handleBuyNow = () => handleAction("buy");
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isZoomed) return;
@@ -701,7 +675,8 @@ export function ProductPage() {
             </div>
 
                         <TrendingSalesIndicator productId={product.id} />
-                                    <div className="space-y-8 mb-10 border-t border-gray-100 pt-8">
+            
+            
               {/* Size Selection */}
               {product.variants &&
                 product.variants.length > 0 &&
@@ -784,44 +759,45 @@ export function ProductPage() {
                   </div>
                 )}
 
-               {/* Name & Number Customization */}
-               {product && ['player-version', 'master-version', 'fan-set'].includes(product.category) && (
-                 <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                   <div className="flex items-center justify-between mb-3">
-                     <h3 className="text-sm font-bold text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
-                       Customize Jersey
-                     </h3>
-                     <span className="text-xs font-bold bg-[#1E2A44] text-white px-2 py-0.5 rounded-full">+₹199</span>
-                   </div>
-                   <div className="flex flex-col gap-3">
-                     <input
-                       type="text"
-                       placeholder="Player Name (Max 12 chars)"
-                       maxLength={12}
-                       value={customName}
-                       onChange={(e) => {
-                         setCustomName(e.target.value.toUpperCase());
-                         if (!isCustomized) setIsCustomized(true);
-                       }}
-                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44]"
-                     />
-                     <input
-                       type="text"
-                       placeholder="Player Number (Max 2 digits)"
-                       maxLength={2}
-                       value={customNumber}
-                       onChange={(e) => {
-                         setCustomNumber(e.target.value.replace(/\D/g, ''));
-                         if (!isCustomized) setIsCustomized(true);
-                       }}
-                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44]"
-                     />
-                     <p className="text-[10px] text-gray-500 font-medium">Leave blank if you don't want customization.</p>
-                   </div>
-                 </div>
-               )}
+               
 
-               {/* Low Stock Badge (Task 2B) */}
+            {/* Customization Section */}
+            {product && ['player-version', 'master-version', 'fan-set'].includes(product.category) && (
+              <div className="mt-6 mb-6 p-4 md:p-5 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm md:text-base font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                    🎨 Customize Your Jersey
+                  </h3>
+                  <span className="text-[10px] md:text-xs font-bold bg-[#1E2A44] text-white px-2.5 py-1 rounded-full whitespace-nowrap">+₹199</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    placeholder="Player Name (Optional)"
+                    maxLength={12}
+                    value={customName}
+                    onChange={(e) => {
+                      setCustomName(e.target.value.toUpperCase());
+                      setIsCustomized(true);
+                    }}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Player Number (Optional)"
+                    maxLength={2}
+                    value={customNumber}
+                    onChange={(e) => {
+                      setCustomNumber(e.target.value.replace(/\D/g, ''));
+                      setIsCustomized(true);
+                    }}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Low Stock Badge (Task 2B) */}
               {product && (
                 <div className="mb-6 flex items-center gap-2.5 px-3.5 py-2.5 bg-red-50 border border-red-100 rounded-xl text-red-700 font-bold uppercase text-[11px] md:text-xs tracking-wider shadow-sm w-fit animate-pulse select-none">
                   <span className="relative flex h-2 w-2">
@@ -832,6 +808,16 @@ export function ProductPage() {
                 </div>
               )}
 
+              {/* COD Payment Rules Info */}
+              <div className="mb-6 p-4 border border-[#1E2A44] bg-[#F8FAFC] rounded-xl flex items-start gap-3">
+                <Banknote className="w-6 h-6 text-[#1E2A44] shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-black text-[#1B1B1B] uppercase tracking-wider mb-1">COD Available</span>
+                  <span className="text-xs font-bold text-gray-700 mb-1">₹50 Advance Payment Required per jersey</span>
+                  <span className="text-xs font-medium text-gray-500 leading-tight">Remaining Amount Payable on Delivery (₹50 COD handling charge applies per jersey)</span>
+                </div>
+              </div>
+
               {/* Trust Badges */}
               <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-gray-100 pb-2">
                 <div className="flex flex-col items-center justify-center text-center gap-2">
@@ -839,17 +825,16 @@ export function ProductPage() {
                   <span className="text-xs font-bold text-gray-700 tracking-wide">Free delivery</span>
                 </div>
                 <div className="flex flex-col items-center justify-center text-center gap-2">
-                  <Lock className="w-6 h-6 text-gray-700 stroke-[1.5]" />
-                  <span className="text-xs font-bold text-gray-700 tracking-wide">Secure payment</span>
-                </div>
-                <div className="flex flex-col items-center justify-center text-center gap-2">
                   <Banknote className="w-6 h-6 text-gray-700 stroke-[1.5]" />
                   <span className="text-xs font-bold text-gray-700 tracking-wide">Cod available</span>
+                </div>
+                <div className="flex flex-col items-center justify-center text-center gap-2">
+                  <RefreshCcw className="w-6 h-6 text-gray-700 stroke-[1.5]" />
+                  <span className="text-xs font-bold text-gray-700 tracking-wide">Easy exchange</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
       </main>
       
       <ProductInfoAccordion product={product} />
@@ -1065,9 +1050,45 @@ export function ProductPage() {
                     })()}
                   </div>
                 </div>
+                
+                {/* Customization inside variant modal */}
+                {['player-version', 'master-version', 'fan-set'].includes(product.category) && (
+                  <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                        🎨 Customize
+                      </h3>
+                      <span className="text-[10px] font-bold bg-[#1E2A44] text-white px-2 py-0.5 rounded-full whitespace-nowrap">+₹199</span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="text"
+                        placeholder="Player Name (Optional)"
+                        maxLength={12}
+                        value={customName}
+                        onChange={(e) => {
+                          setCustomName(e.target.value.toUpperCase());
+                          setIsCustomized(true);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Player Number (Optional)"
+                        maxLength={2}
+                        value={customNumber}
+                        onChange={(e) => {
+                          setCustomNumber(e.target.value.replace(/\D/g, ''));
+                          setIsCustomized(true);
+                        }}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="p-4 border-t border-gray-100 sticky bottom-0 bg-white">
+              <div className="p-4 border-t border-gray-100 sticky bottom-0 bg-white flex flex-col gap-2">
                 <button
                   onClick={() => {
                     if (!selectedSize) {
@@ -1077,6 +1098,9 @@ export function ProductPage() {
                     const isCust = isCustomized ? { name: customName, number: customNumber } : undefined;
                     addToCart(product!, selectedSize, selectedColor || undefined, isCust);
                     setIsCartOpen(true);
+                    if (pendingAction === "buy") {
+                      window.location.href = "/#/checkout";
+                    }
                   }}
                   className={cn(
                     "w-full py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all",
@@ -1087,6 +1111,14 @@ export function ProductPage() {
                 >
                   Continue
                 </button>
+                {['player-version', 'master-version', 'fan-set'].includes(product.category) && (
+                  <button
+                    onClick={() => setIsVariantModalOpen(false)}
+                    className="w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
             </motion.div>
           </>

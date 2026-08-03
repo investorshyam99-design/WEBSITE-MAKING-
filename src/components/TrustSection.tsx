@@ -1,4 +1,4 @@
-import { CheckCircle2, Truck, ShieldCheck, MessageCircle } from "lucide-react";
+import { CheckCircle2, Truck, ShieldCheck, MessageCircle, RefreshCcw } from "lucide-react";
 
 const features = [
   {
@@ -8,6 +8,10 @@ const features = [
   {
     name: "Fast Delivery",
     icon: Truck,
+  },
+  {
+    name: "Easy Exchange",
+    icon: RefreshCcw,
   },
   {
     name: "Trusted Shop",
@@ -23,7 +27,7 @@ export function TrustSection() {
   return (
     <div className="bg-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-[#EDE3D8] pt-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {features.map((feature) => (
             <div key={feature.name} className="flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-[#EDE3D8] rounded-full flex items-center justify-center mb-3">

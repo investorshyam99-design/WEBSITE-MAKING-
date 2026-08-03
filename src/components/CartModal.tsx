@@ -128,7 +128,7 @@ export function CartModal() {
 
     const timeoutId = setTimeout(async () => {
       try {
-        const combinedAddress = `${houseNo}, ${areaStreet}, ${city}, ${state}, Pincode: ${pincode}`;
+        const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${pincode}`].filter(Boolean).join(", ");
         const draftData: any = {
           userId: user ? user.uid : "guest",
           fullName,
@@ -233,8 +233,8 @@ export function CartModal() {
   }
 
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = 150 * itemsCount;
-  const codExtra = 50 * itemsCount;
+  const advanceAmount = itemsCount * 50;
+  const codExtra = itemsCount * 50;
 
   const handlePincodeChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -283,10 +283,7 @@ export function CartModal() {
       !fullName ||
       !phone ||
       !pincode ||
-      !houseNo ||
-      !areaStreet ||
-      !city ||
-      !state
+      !houseNo
     ) {
       alert(
         "Please fill in your full name, phone number, pincode and complete delivery address",
@@ -299,7 +296,7 @@ export function CartModal() {
       return;
     }
 
-    const combinedAddress = `${houseNo}, ${areaStreet}, ${city}, ${state}, Pincode: ${pincode}`;
+    const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${pincode}`].filter(Boolean).join(", ");
 
     setIsSubmitting(true);
     try {
@@ -552,7 +549,7 @@ export function CartModal() {
                   <div className="px-4 md:px-6 space-y-0">
                     {cart.map((item, index) => (
                       <div
-                        key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
+                        key={`${item.id}-${item.selectedSize}-${item.selectedColor}-${item.customization ? item.customization.name : "no-cust"}-${item.customization ? item.customization.number : "no-num"}`}
                         className={`bg-white py-5 flex gap-4 relative group ${index !== cart.length - 1 ? "border-b border-gray-100" : ""}`}
                       >
                         <div className="w-[90px] h-[100px] bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
@@ -700,6 +697,18 @@ export function CartModal() {
                     </div>
                   </div>
 
+                  {/* COD Payment Rules Info */}
+                  <div className="px-4 md:px-6 mt-6">
+                    <div className="p-4 border border-[#1E2A44] bg-[#F8FAFC] rounded-xl flex items-start gap-3">
+                      <Lock className="w-5 h-5 text-[#1E2A44] shrink-0 mt-0.5" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-[#1B1B1B] uppercase tracking-wider mb-1">COD Available</span>
+                        <span className="text-xs font-bold text-gray-700 mb-1">₹{advanceAmount} Advance Payment Required</span>
+                        <span className="text-[11px] font-medium text-gray-500 leading-tight">Remaining Amount Payable on Delivery (₹{codExtra} COD handling charge applies)</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* 5. Checkout Button */}
                   <div className="px-4 md:px-6 mt-6 flex flex-col gap-3">
                     <button
@@ -748,7 +757,7 @@ export function CartModal() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-base leading-none">📦</span>{" "}
-                        Tracking shared via Email
+                        Tracking Number will be shared via WhatsApp after dispatch.
                       </div>
                     </div>
                   </div>

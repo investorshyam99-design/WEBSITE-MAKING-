@@ -8,7 +8,7 @@ import { useProducts, getProductsByCategory } from '../data/products';
 import { ArrowLeft, Filter, SlidersHorizontal } from 'lucide-react';
 
 export function CollectionPage() {
-  const { products, loading, error } = useProducts();
+  const { products, isLoading } = useProducts();
   const { id } = useParams();
   const [sortBy, setSortBy] = useState('featured');
   
@@ -100,7 +100,7 @@ export function CollectionPage() {
           </div>
 
           {/* Products Grid */}
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center py-20">
               <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
             </div>
