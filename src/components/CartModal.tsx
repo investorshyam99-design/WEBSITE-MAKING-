@@ -47,6 +47,9 @@ export function CartModal() {
     setIsLoginOpen,
   } = useShop();
   const { products } = useProducts();
+  const navigate = useNavigate();
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = subtotal;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -59,142 +62,8 @@ export function CartModal() {
   const [paymentMode, setPaymentMode] = useState<"full" | "partial">("full");
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [autoCheckoutPending, setAutoCheckoutPending] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
-  const [couponMessage, setCouponMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-  const [discountAmount, setDiscountAmount] = useState(0);
 
-  // Auto-fill phone if logged in with phone number
-  useEffect(() => {
-    if (user && user.email?.startsWith("+")) {
-      setPhone(user.email.replace("+91", ""));
-    }
-  }, [user]);
 
-  const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user && autoCheckoutPending) {
-      setAutoCheckoutPending(false);
-      handleCheckout();
-    }
-  }, [user, autoCheckoutPending]);
-
-  // Custom Hook or logic to save abandoned carts
-  useEffect(() => {
-    if (user && cart.length > 0) {
-      const abandonedTimer = setTimeout(() => {
-        const cartRef = doc(db, "abandoned_carts", user.uid);
-        setDoc(
-          cartRef,
-          {
-            uid: user.uid,
-            phone: user.email?.startsWith("+") ? user.email : null,
-            name: user.name,
-            cartItems: cart.map((i) => ({
-              productId: i.id,
-              name: i.name,
-              quantity: i.quantity,
-              size: i.selectedSize,
-              price: i.price,
-              customization: i.customization || null,
-            })),
-            totalValue: cart.reduce(
-              (total, item) => total + item.price * item.quantity,
-              0,
-            ),
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true },
-        ).catch((err) => console.error("Failed to save abandoned cart:", err));
-      }, 3000); // Save after 3 seconds of inactvity
-      return () => clearTimeout(abandonedTimer);
-    }
-  }, [cart, user]);
-
-  useEffect(() => {
-    if (user && !fullName && !phone) {
-      setFullName(user.name || "");
-    }
-  }, [user]);
-
-  // Draft Order Creation
-  useEffect(() => {
-    if (!fullName || phone.length !== 10 || cart.length === 0) return;
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${pincode}`].filter(Boolean).join(", ");
-        const draftData: any = {
-          userId: user ? user.uid : "guest",
-          fullName,
-          phone,
-          address: combinedAddress,
-          cartItems: cart.map((i) => ({
-            productId: i.id,
-            name: i.name,
-            quantity: i.quantity,
-            size: i.selectedSize,
-          })),
-          status: "draft",
-          paymentMode,
-          updatedAt: serverTimestamp(),
-        };
-
-        if (draftOrderId) {
-          await updateDoc(doc(db, "draft_orders", draftOrderId), draftData);
-        } else {
-          draftData.createdAt = serverTimestamp();
-          const docRef = await addDoc(
-            collection(db, "draft_orders"),
-            draftData,
-          );
-          setDraftOrderId(docRef.id);
-        }
-      } catch (err) {
-        console.error("Failed to update draft order", err);
-      }
-    }, 1500);
-
-    return () => clearTimeout(timeoutId);
-  }, [
-    fullName,
-    phone,
-    houseNo,
-    areaStreet,
-    city,
-    state,
-    pincode,
-    cart,
-    user,
-    paymentMode,
-    draftOrderId,
-  ]);
-
-  // removed early return to allow AnimatePresence to work
-
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-  const total = Math.max(0, subtotal - discountAmount);
-  const applyCoupon = () => {
-    if (couponCode.toUpperCase() === "WELCOME10") {
-      const discount = subtotal * 0.1;
-      setDiscountAmount(discount);
-      setCouponMessage({
-        type: "success",
-        text: "Coupon applied successfully!",
-      });
-    } else {
-      setDiscountAmount(0);
-      setCouponMessage({ type: "error", text: "Invalid coupon code" });
-    }
-  };
 
   const getDominantCategory = () => {
     if (cart.length === 0) return "player-version";
@@ -649,34 +518,6 @@ export function CartModal() {
                   {/* 2. Cart Reservation Timer */}
                   <CartReservationTimer />
 
-                  {/* 3. Coupon Code */}
-                  <div className="px-4 md:px-6 mt-6">
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Coupon Code"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#1B1B1B]"
-                        />
-                        <button
-                          onClick={applyCoupon}
-                          className="bg-[#1B1B1B] text-white px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wider"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                      {couponMessage && (
-                        <p
-                          className={`mt-2 text-xs font-medium ${couponMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
-                        >
-                          {couponMessage.text}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
                   {/* 4. Order Summary */}
                   <div className="px-4 md:px-6 mt-6">
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
@@ -684,12 +525,7 @@ export function CartModal() {
                         <span>Subtotal</span>
                         <span>Rs. {subtotal.toFixed(2)}</span>
                       </div>
-                      {discountAmount > 0 && (
-                        <div className="flex justify-between text-sm text-green-600">
-                          <span>Discount</span>
-                          <span>- Rs. {discountAmount.toFixed(2)}</span>
-                        </div>
-                      )}
+
                       <div className="flex justify-between text-base font-bold text-gray-900 border-t border-gray-100 pt-3">
                         <span>Total</span>
                         <span>Rs. {total.toFixed(2)}</span>

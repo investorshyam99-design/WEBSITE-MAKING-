@@ -43,7 +43,7 @@ export function AdminDashboard() {
       ).sort((a: any, b: any) => {
           const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
           const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          return timeB - timeA;
+          return timeA - timeB;
       });
       setOrders(fetchedOrders);
     } catch (e) {

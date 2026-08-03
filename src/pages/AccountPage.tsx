@@ -41,7 +41,7 @@ export function AccountPage() {
   const { products } = useProducts();
 
   const handleImageClick = (order: Order) => {
-    const product = products.find(p => p.name === order.productName || p.id === (order as any).productId);
+    const product = products.find(p => p?.name === order?.productName || p?.id === (order as any)?.productId);
     if (product) {
       navigate(`/products/${product.slug}`);
     } else {
@@ -54,18 +54,15 @@ export function AccountPage() {
 
   const fetchOrders = useCallback(async () => {
     if (isAuthLoading) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+
 
     try {
       let q;
       const ordersRef = collection(db, "orders");
-      if (user.email === "investorshyam99@gmail.com") {
+      if (user?.email === "investorshyam99@gmail.com") {
         q = query(ordersRef);
       } else {
-        q = query(ordersRef, where("userId", "==", user.uid));
+        q = query(ordersRef, where("userId", "==", user ? user.uid : "guest"));
       }
 
       const snapshot = await getDocs(q);
@@ -80,7 +77,7 @@ export function AccountPage() {
       fetchedOrders.sort((a, b) => {
         const dateA = a.createdAt?.toDate?.() || new Date(0);
         const dateB = b.createdAt?.toDate?.() || new Date(0);
-        return dateB.getTime() - dateA.getTime();
+        return dateA.getTime() - dateB.getTime();
       });
 
       setOrders(fetchedOrders);
@@ -95,12 +92,7 @@ export function AccountPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  useEffect(() => {
-    if (!isAuthLoading && !user) {
-      navigate("/");
-      setIsLoginOpen(true);
-    }
-  }, [isAuthLoading, user, navigate, setIsLoginOpen]);
+  
   
   const handleLogout = async () => {
     try {
@@ -111,7 +103,7 @@ export function AccountPage() {
     }
   };
 
-  if (isAuthLoading || !user) {
+  if (isAuthLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
@@ -314,7 +306,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
       else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
       else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
       else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
-      else effectiveQuantity = Math.max(1, Math.round(order.price / (order.productName?.toLowerCase().includes('player') ? 1499 : 999)));
+      else effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes('player') ? 1499 : 999)));
     } else {
       effectiveQuantity = 1;
     }
@@ -374,7 +366,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               <div className="mt-2 space-y-1">
                 {order.cartItems.map((item: any, idx: number) => (
                   <p key={idx} className="text-gray-600 text-sm font-medium">
-                    {item.quantity}x {item.name} (Size: {item.size})
+                    {item?.quantity}x {item?.name} (Size: {item?.size})
                   </p>
                 ))}
               </div>

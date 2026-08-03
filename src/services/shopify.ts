@@ -47,7 +47,7 @@ export async function fetchShopifyProducts() {
       }
     `;
 
-    const response = await fetch(`/api/shopify`, {
+    const response = await fetch(`/api/catalog`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

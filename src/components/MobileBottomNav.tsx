@@ -82,12 +82,8 @@ export function MobileBottomNav() {
   const handleAccountClick = () => {
     setIsSearchOpen(false);
     setIsCartOpen(false);
-    if (user) {
-      setIsLoginOpen(false);
-      navigate("/account");
-    } else {
-      setIsLoginOpen(!isLoginOpen);
-    }
+    setIsLoginOpen(false);
+    navigate("/account");
   };
 
   const handleCartClick = () => {

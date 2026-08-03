@@ -61,6 +61,7 @@ export function AIChatbot() {
 
   return (
     <>
+      {!isOpen && (
       <button 
         onClick={() => setIsOpen(true)}
         className="fixed bottom-[160px] md:bottom-[100px] right-6 z-[200] w-14 h-14 bg-gradient-to-tr from-[#14213D] to-[#1E2A44] text-[#E6C9A8] rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(20,33,61,0.3)] hover:shadow-[0_8px_40px_rgb(230,201,168,0.2)] hover:-translate-y-1 active:scale-95 transition-all duration-300 group"
@@ -68,6 +69,7 @@ export function AIChatbot() {
       >
         <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
       </button>
+      )}
 
       <AnimatePresence>
         {isOpen && (
@@ -76,7 +78,7 @@ export function AIChatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed bottom-24 right-4 md:right-6 z-[200] w-[340px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
+            className="fixed inset-0 z-[1000] bg-white flex flex-col overflow-hidden"
           >
             <div className="bg-gradient-to-r from-[#14213D] to-[#1E2A44] p-4 flex items-center justify-between text-[#E6C9A8] shrink-0 shadow-sm relative overflow-hidden">
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />

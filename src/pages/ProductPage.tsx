@@ -1111,14 +1111,7 @@ export function ProductPage() {
                 >
                   Continue
                 </button>
-                {['player-version', 'master-version', 'fan-set'].includes(product.category) && (
-                  <button
-                    onClick={() => setIsVariantModalOpen(false)}
-                    className="w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                )}
+
               </div>
             </motion.div>
           </>
