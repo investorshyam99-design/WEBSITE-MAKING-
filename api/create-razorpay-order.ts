@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
 
     if (paymentMode === 'partial') {
-      amount = 150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0); // 150 advance per item
+      amount = 50 * items.reduce((sum: any, item: any) => sum + item.quantity, 0); // 50 advance per item
     } else {
       amount = itemsTotal; // free delivery
     }
