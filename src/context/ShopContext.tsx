@@ -16,7 +16,7 @@ type CartItem = Product & {
 const safeGetItem = (key: string) => { try { return window.localStorage.getItem(key); } catch (e) { return null; } };
 const safeSetItem = (key: string, value: string) => { try { window.localStorage.setItem(key, value); } catch (e) {} };
 
-const getGuestId = () => {
+export const getGuestId = () => {
   let gid = safeGetItem('guest_id');
   if (!gid) {
     gid = 'guest_' + Math.random().toString(36).substr(2, 9);

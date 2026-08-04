@@ -39,6 +39,11 @@ service cloud.firestore {
       allow create: if request.auth != null;
     }
 
+    match /chats/{chatId} {
+      allow read: if isAdmin();
+      allow create, update: if true;
+    }
+
     match /abandoned_carts/{cartId} {
       allow read: if isAdmin();
       allow create, update, delete: if request.auth != null && request.auth.uid == cartId;

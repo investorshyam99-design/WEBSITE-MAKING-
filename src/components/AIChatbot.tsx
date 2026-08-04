@@ -1,8 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Sparkles, X, Send, Bot, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useShop, getGuestId } from '../context/ShopContext';
+import { db } from '../lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 export function AIChatbot() {
+  const { user } = useShop();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'ai' | 'user', text: string }[]>([
     { role: 'ai', text: 'Hi! I am the Jersey Unicorn Smart Assistant. How can I help you find the perfect fit, track your order, or learn about our collections?' }
@@ -19,12 +23,29 @@ export function AIChatbot() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const saveChatToDb = async (updatedMessages: { role: 'ai' | 'user', text: string }[]) => {
+    try {
+      const uId = user ? user.uid : getGuestId();
+      const uName = user ? user.name : 'Guest Customer';
+      await setDoc(doc(db, 'chats', uId), {
+        userId: uId,
+        userName: uName,
+        messages: updatedMessages,
+        lastUpdated: new Date()
+      });
+    } catch (e) {
+      console.error("Failed to save chat", e);
+    }
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
     
     const userMessage = input.trim();
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    const newMessagesUser = [...messages, { role: 'user' as const, text: userMessage }];
+    setMessages(newMessagesUser);
+    saveChatToDb(newMessagesUser);
     setInput('');
     setIsLoading(true);
 
@@ -45,15 +66,21 @@ export function AIChatbot() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error || "I'm having trouble connecting right now. Please try again in a moment.";
-        setMessages(prev => [...prev, { role: 'ai', text: errorMessage }]);
+        const newMessagesError = [...newMessagesUser, { role: 'ai' as const, text: errorMessage }];
+        setMessages(newMessagesError);
+        saveChatToDb(newMessagesError);
         setIsLoading(false);
         return;
       }
 
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'ai', text: data.text }]);
+      const newMessagesAi = [...newMessagesUser, { role: 'ai' as const, text: data.text }];
+      setMessages(newMessagesAi);
+      saveChatToDb(newMessagesAi);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting right now. Please try again in a moment." }]);
+      const newMessagesError = [...newMessagesUser, { role: 'ai' as const, text: "I'm having trouble connecting right now. Please try again in a moment." }];
+      setMessages(newMessagesError);
+      saveChatToDb(newMessagesError);
     } finally {
       setIsLoading(false);
     }

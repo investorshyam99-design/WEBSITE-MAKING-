@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminProfitsDashboard } from "./AdminProfitsDashboard";
+import { AdminChatsList } from "./AdminChatsList";
 import { useProducts } from "../data/products";
 
 interface Order {
@@ -46,6 +47,7 @@ const TABS = [
   { id: "new", label: "New Orders" },
   { id: "drafts", label: "Draft Orders" },
   { id: "abandoned", label: "Abandoned Carts" },
+  { id: "chats", label: "🤖 AI Chats" },
   { id: "placed", label: "Order Placed" },
   { id: "delivered", label: "Delivered" },
   { id: "profits", label: "📊 My Profits" },
@@ -258,6 +260,8 @@ export function AdminOrdersDashboard({
             orders={orders}
             updateOrderCost={handleUpdateOrderCost}
           />
+        ) : activeTab === "chats" ? (
+          <AdminChatsList />
         ) : currentOrders.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
             <Package className="h-12 w-12 mx-auto text-gray-300 mb-3" />
