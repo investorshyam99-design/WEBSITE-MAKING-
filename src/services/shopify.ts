@@ -2,51 +2,52 @@ export const SHOPIFY_DOMAIN = "https://0qtwuu-br.myshopify.com";
 export const SHOPIFY_STOREFRONT_TOKEN = "e711ef4603f75af0b8370a9b8ebeb2e5"; // Provided by user
 
 export async function fetchShopifyProducts() {
-  try {
-    const query = `
-      {
-        products(first: 250, sortKey: CREATED_AT, reverse: true) {
-          edges {
-            node {
-              id
-              title
-              description
-              descriptionHtml
-              productType
-              tags
-              variants(first: 50) {
-                edges {
-                  node {
-                    id
-                    title
-                    availableForSale
-                    price {
-                      amount
-                      currencyCode
-                    }
-                    image {
-                      url
-                    }
-                    selectedOptions {
-                      name
-                      value
-                    }
+  const query = `
+    {
+      products(first: 250, sortKey: CREATED_AT, reverse: true) {
+        edges {
+          node {
+            id
+            title
+            description
+            descriptionHtml
+            productType
+            tags
+            variants(first: 50) {
+              edges {
+                node {
+                  id
+                  title
+                  availableForSale
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  image {
+                    url
+                  }
+                  selectedOptions {
+                    name
+                    value
                   }
                 }
               }
-              images(first: 50) {
-                edges {
-                  node {
-                    url
-                  }
+            }
+            images(first: 50) {
+              edges {
+                node {
+                  url
                 }
               }
             }
           }
         }
       }
-    `;
+    }
+  `;
 
+  // 1. Try local proxy /api/catalog first
+  try {
     const response = await fetch(`/api/catalog`, {
       method: "POST",
       headers: {
@@ -55,19 +56,41 @@ export async function fetchShopifyProducts() {
       body: JSON.stringify({ query }),
     });
 
-    if (!response.ok) {
-        console.error("Invalid response from Shopify:", await response.text());
-        return [];
+    if (response.ok) {
+      const json = await response.json();
+      if (json.data && json.data.products && json.data.products.edges.length > 0) {
+        return json.data.products.edges.map((edge: any) => edge.node);
+      }
     }
-
-    const json = await response.json();
-    if (!json.data || !json.data.products) {
-      console.error("Invalid response from Shopify:", json);
-      return [];
-    }
-    return json.data.products.edges.map((edge: any) => edge.node);
   } catch (error) {
-    console.error("Error fetching Shopify products:", error);
-    return [];
+    console.warn("Proxy endpoint /api/catalog failed, attempting direct Shopify Storefront API...", error);
   }
+
+  // 2. Direct fallback to Shopify Storefront GraphQL API
+  try {
+    const domain = import.meta.env.VITE_SHOPIFY_DOMAIN || SHOPIFY_DOMAIN;
+    const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || SHOPIFY_STOREFRONT_TOKEN;
+
+    const directResponse = await fetch(`${domain}/api/2024-01/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": token,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    if (directResponse.ok) {
+      const json = await directResponse.json();
+      if (json.data && json.data.products) {
+        return json.data.products.edges.map((edge: any) => edge.node);
+      }
+    } else {
+      console.error("Direct Shopify Storefront API response not OK:", directResponse.status, await directResponse.text());
+    }
+  } catch (error) {
+    console.error("Error fetching Shopify products directly:", error);
+  }
+
+  return [];
 }
