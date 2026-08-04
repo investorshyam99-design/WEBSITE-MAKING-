@@ -153,9 +153,9 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
         revenue = o.price || 0;
         razorpayFee = revenue * 0.0236;
       } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
-        const advanceReceived = 50;
+        const advanceReceived = 50 * effectiveQty;
         razorpayFee = advanceReceived * 0.0236;
-        const codAmount = (o.price || 0) + 50 - advanceReceived;
+        const codAmount = (o.price || 0) + (50 * effectiveQty) - advanceReceived;
         revenue = advanceReceived + codAmount;
       }
 
@@ -368,9 +368,9 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
              rev = order.price || 0;
              rFee = rev * 0.0236;
           } else {
-             const advance = 50;
+             const advance = 50 * eq;
              rFee = advance * 0.0236;
-             const codAmount = (order.price || 0) + 50 - advance;
+             const codAmount = (order.price || 0) + (50 * eq) - advance;
              rev = advance + codAmount;
           }
           

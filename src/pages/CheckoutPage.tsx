@@ -46,8 +46,8 @@ export function CheckoutPage() {
   const total = subtotal;
   
   const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = 50;
-  const codExtra = 50;
+  const advanceAmount = itemsCount * 50;
+  const codExtra = itemsCount * 50;
 
   const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");

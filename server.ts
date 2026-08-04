@@ -43,7 +43,9 @@ async function startServer() {
         );
 
         if (paymentMode === "partial") {
-          amount = 50;
+          const baseAdvance =
+            50 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+          amount = baseAdvance;
         } else {
           amount = itemsTotal;
         }
