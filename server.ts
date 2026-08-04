@@ -701,23 +701,13 @@ ${allUrls
         process.env.G6,
         process.env.G7,
         process.env.GEMINI_API_KEY
-      ].filter(Boolean);
+      ].filter(Boolean) as string[];
 
-      const apiKey = apiKeys.length > 0 ? apiKeys[Math.floor(Math.random() * apiKeys.length)] : null;
-      if (!apiKey) {
+      if (apiKeys.length === 0) {
         return res
           .status(500)
           .json({ error: "Missing GEMINI_API_KEY on the server." });
       }
-
-      const ai = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
-      });
 
       const systemInstruction = `You are the official AI Shopping Assistant for JERSEY UNICORN.
 
@@ -817,6 +807,17 @@ Explain:
 • The remaining amount is payable at the time of delivery.
 
 ==================================================
+PAYMENT ISSUES
+==================================================
+
+If a customer mentions that FamPay is not working, or they are having trouble making a payment:
+
+Explain:
+
+• If FamPay is not working, you can message us directly on WhatsApp to make your payment.
+• Or, you can place the order and we will message you on WhatsApp to complete the payment.
+
+==================================================
 ORDER PROCESSING
 ==================================================
 
@@ -884,21 +885,10 @@ If you do not know something, politely tell the customer instead of guessing.
 
 Your goal is to provide a premium shopping experience that builds trust and helps customers choose the right product.`;
 
-      const chat = ai.chats.create({
-        model: "gemini-2.5-flash",
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
-      });
-
       let history = messages.slice(0, -1);
       const currentMessage = messages[messages.length - 1];
 
       // Restore history if this is a continued conversation.
-      // The GenAI SDK supports multiple turns. However, it's easier to reconstruct chat history manually or use the multi-turn API.
-      // But let's build the full context into a single string for simpler logic, or just send recent exchanges.
-
       let contextStr = history
         .map(
           (m: any) =>
@@ -912,40 +902,49 @@ Your goal is to provide a premium shopping experience that builds trust and help
         prompt = currentMessage.content;
       }
 
-      const response = await chat.sendMessage({ message: prompt });
-      const responseText = response.text;
+      let responseText = "";
+      let lastError = null;
 
-      let audioData = null;
-      // Disabling Gemini TTS to allow the client to use the browser's native SpeechSynthesis.
-      // The browser's native Google voices (e.g. Google हिन्दी and en-IN accents) sound significantly
-      // more like a real Indian speaker for Hindi and Indian English than current generic Gemini AI voices.
-      /*
-      if (req.body.voice === true) {
+      // Shuffle keys to load balance
+      const shuffledKeys = apiKeys.sort(() => Math.random() - 0.5);
+
+      for (const key of shuffledKeys) {
         try {
-          const ttsResponse = await ai.models.generateContent({
-            model: "gemini-3.1-flash-tts-preview",
-            contents: [{ parts: [{ text: responseText }] }],
-            config: {
-              responseModalities: [Modality.AUDIO],
-              speechConfig: {
-                voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Zephyr' }, // Zephyr sounds professional and friendly
-                },
+          const ai = new GoogleGenAI({
+            apiKey: key,
+            httpOptions: {
+              headers: {
+                "User-Agent": "aistudio-build",
               },
             },
           });
-          audioData = ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        } catch (e: any) {
-          if (e?.status === 429 || e?.message?.includes('429') || e?.message?.includes('Quota') || e?.message?.includes('quota') || e?.status === 'RESOURCE_EXHAUSTED' || e?.statusText === 'Too Many Requests') {
-            console.warn("TTS Quota exceeded. Falling back to browser SpeechSynthesis.");
-          } else {
-            console.error("TTS Error:", e);
+
+          const chat = ai.chats.create({
+            model: "gemini-2.5-flash",
+            config: {
+              systemInstruction,
+              temperature: 0.7,
+            },
+          });
+
+          const response = await chat.sendMessage({ message: prompt });
+          responseText = response.text || "";
+          
+          if (responseText) {
+             lastError = null;
+             break; // Success!
           }
+        } catch (err: any) {
+          console.warn("Key failed, trying next...");
+          lastError = err;
         }
       }
-      */
 
-      res.json({ text: responseText, audio: audioData });
+      if (lastError || !responseText) {
+        throw lastError || new Error("Failed to generate response from all available API keys.");
+      }
+
+      res.json({ text: responseText, audio: null });
     } catch (error: any) {
       console.error("AI Error: ", error);
       res

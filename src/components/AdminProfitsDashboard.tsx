@@ -127,7 +127,6 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
   const stats = useMemo(() => {
     let totalRevenue = 0;
     let totalCosts = 0;
-    let totalRazorpayCharges = 0;
     let netProfit = 0;
     
     // For calculating Best Selling Product
@@ -147,22 +146,18 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       const tCost = pCost + sCost + aCost;
 
       let revenue = 0;
-      let razorpayFee = 0;
 
       if (o.paymentMode === 'full') {
         revenue = o.price || 0;
-        razorpayFee = revenue * 0.0236;
       } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
         const advanceReceived = 50 * effectiveQty;
-        razorpayFee = advanceReceived * 0.0236;
         const codAmount = (o.price || 0) + (50 * effectiveQty) - advanceReceived;
         revenue = advanceReceived + codAmount;
       }
 
       totalRevenue += revenue;
       totalCosts += tCost;
-      totalRazorpayCharges += razorpayFee;
-      netProfit += (revenue - razorpayFee - tCost);
+      netProfit += (revenue - tCost);
 
       if (o.productName) {
         productCounts[o.productName] = (productCounts[o.productName] || 0) + effectiveQty;
@@ -181,7 +176,6 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
     return {
       totalRevenue: totalRevenue + manualRevenue,
       totalCosts: totalCosts + manualCost,
-      totalRazorpayCharges,
       netProfit: netProfit + manualRevenue - manualCost,
       totalOrders: filteredOrders.length,
       averageProfit: filteredOrders.length > 0 ? (netProfit + manualRevenue - manualCost) / filteredOrders.length : 0,
@@ -283,10 +277,6 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
              <p className="text-lg font-black text-gray-800">₹{stats.totalCosts.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
           </div>
           <div className="bg-gray-50 p-4 rounded-xl">
-             <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Razorpay Fees</p>
-             <p className="text-lg font-black text-gray-600">₹{stats.totalRazorpayCharges.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-xl">
              <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Net Profit</p>
              <p className={`text-lg font-black ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>₹{stats.netProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
           </div>
@@ -362,19 +352,19 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
           const tCost = pCost + sCost + aCost;
           
           let rev = 0;
-          let rFee = 0;
+          
 
           if (order.paymentMode === 'full') {
              rev = order.price || 0;
-             rFee = rev * 0.0236;
+             
           } else {
              const advance = 50 * eq;
-             rFee = advance * 0.0236;
+             
              const codAmount = (order.price || 0) + (50 * eq) - advance;
              rev = advance + codAmount;
           }
           
-          const profit = rev - rFee - tCost;
+          const profit = rev - tCost;
           const hasCosts = pCost > 0 || sCost > 0 || aCost > 0;
 
           return (
@@ -449,7 +439,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                   </div>
                 ) : (
                   <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 w-full lg:flex-1">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4 w-full lg:flex-1">
                         <div>
                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">Order Amount</p>
                            <p className="font-semibold text-gray-800 text-sm">₹{rev.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
@@ -465,10 +455,6 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                         <div>
                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">Additional Cost</p>
                            <p className="font-semibold text-red-600 text-sm">-₹{aCost.toLocaleString()}</p>
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">Razorpay Fee</p>
-                           <p className="font-semibold text-red-600 text-sm">-₹{rFee.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                         </div>
                     </div>
                     <button onClick={() => openEditor(order)} className="mt-4 lg:mt-0 px-5 py-2 text-[10px] font-bold uppercase tracking-wider bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 text-[#1E2A44] w-full lg:w-auto transition-colors ml-0 lg:ml-4">

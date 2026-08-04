@@ -16,6 +16,15 @@ type CartItem = Product & {
 const safeGetItem = (key: string) => { try { return window.localStorage.getItem(key); } catch (e) { return null; } };
 const safeSetItem = (key: string, value: string) => { try { window.localStorage.setItem(key, value); } catch (e) {} };
 
+const getGuestId = () => {
+  let gid = safeGetItem('guest_id');
+  if (!gid) {
+    gid = 'guest_' + Math.random().toString(36).substr(2, 9);
+    safeSetItem('guest_id', gid);
+  }
+  return gid;
+};
+
 interface ShopContextType {
   cart: CartItem[];
   wishlist: Product[];
@@ -176,18 +185,20 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     safeSetItem('cart', JSON.stringify(cart));
     
     async function syncAbandonedCarts() {
-      if (!user) return;
+      const uId = user ? user.uid : getGuestId();
+      const uName = user ? user.name : 'Guest Customer';
+
       try {
-        const q = query(collection(db, 'orders'), where('userId', '==', user.uid), where('status', '==', 'pending_cart'));
+        const q = query(collection(db, 'orders'), where('userId', '==', uId), where('status', '==', 'pending_cart'));
         const snapshot = await getDocs(q);
         const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, 'orders', d.id)));
         await Promise.all(deletePromises);
 
         if (cart.length > 0) {
            const addPromises = cart.map((item, index) => {
-              const orderId = `cart_${user.uid}_${Date.now()}_${index}`;
+              const orderId = `cart_${uId}_${Date.now()}_${index}`;
               return setDoc(doc(db, 'orders', orderId), {
-                 userId: user.uid,
+                 userId: uId,
                  productName: `${item.quantity}x ${item.name}`,
                  image: item.image,
                  size: item.selectedSize || 'N/A',
@@ -195,7 +206,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
                  price: item.price * item.quantity,
                  status: 'pending_cart',
                  createdAt: new Date(),
-                 fullName: user.name
+                 fullName: uName
               });
            });
            await Promise.all(addPromises);
