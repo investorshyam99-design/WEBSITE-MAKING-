@@ -701,7 +701,7 @@ ${allUrls
         process.env.G6,
         process.env.G7,
         process.env.GEMINI_API_KEY
-      ].filter(Boolean) as string[];
+      ].map(k => k?.trim()).filter(Boolean) as string[];
 
       if (apiKeys.length === 0) {
         return res
@@ -941,15 +941,24 @@ Your goal is to provide a premium shopping experience that builds trust and help
       }
 
       if (lastError || !responseText) {
-        throw lastError || new Error("Failed to generate response from all available API keys.");
+        throw lastError || new Error("All available API keys failed or hit rate limits. Please try again later.");
       }
 
       res.json({ text: responseText, audio: null });
     } catch (error: any) {
       console.error("AI Error: ", error);
+      let errMsg = "Failed to generate AI response";
+      if (error?.message) {
+        try {
+          const parsed = JSON.parse(error.message);
+          errMsg = parsed?.error?.message || error.message;
+        } catch (e) {
+          errMsg = error.message;
+        }
+      }
       res
         .status(500)
-        .json({ error: error.message || "Failed to generate AI response" });
+        .json({ error: errMsg });
     }
   });
 
