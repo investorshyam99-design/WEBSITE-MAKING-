@@ -189,9 +189,11 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       const uName = user ? user.name : 'Guest Customer';
 
       try {
-        const q = query(collection(db, 'orders'), where('userId', '==', uId), where('status', '==', 'pending_cart'));
+        const q = query(collection(db, 'orders'), where('userId', '==', uId));
         const snapshot = await getDocs(q);
-        const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, 'orders', d.id)));
+        const deletePromises = snapshot.docs
+          .filter(d => d.data().status === 'pending_cart')
+          .map(d => deleteDoc(doc(db, 'orders', d.id)));
         await Promise.all(deletePromises);
 
         if (cart.length > 0) {
