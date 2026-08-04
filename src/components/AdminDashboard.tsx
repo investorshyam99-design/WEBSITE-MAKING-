@@ -413,7 +413,7 @@ function AdminOrderCard({
   const templates = {
     orderReceived: `Hey ${customerName} 👋\n\nYour Jersey Unicorn order has been received successfully ⚽\n\nWe’ll update you once shipped 🚚`,
     draftReminder: `Hey ${customerName},\n\nYour Jersey Unicorn order is waiting for confirmation ⚽\n\nComplete your order here:\n${paymentLink}`,
-    codConfirm: `Please complete the ₹150 confirmation payment to process your COD order ⚽\n\nLink: ${paymentLink}`,
+    codConfirm: `Please complete the ₹50 confirmation payment to process your COD order ⚽\n\nLink: ${paymentLink}`,
     shipped: `Your Jersey Unicorn order has been shipped 🚚\n\nTracking ID: ${trackingId}\nCourier: ${courierName}`,
     delivery: `Your Jersey Unicorn order has been delivered ⚽🔥\n\nTag us on Instagram @jerseyunicorn1 to get featured ❤️`,
   };
@@ -472,7 +472,7 @@ function AdminOrderCard({
                   {(
                     (order.price || 0) +
                     50 * effectiveQuantity -
-                    150 * effectiveQuantity
+                    50 * effectiveQuantity
                   ).toLocaleString("en-IN")}
                 </p>
               )}
@@ -521,7 +521,7 @@ function AdminOrderCard({
                     ? order.price || 0
                     : order.paymentMode === "partial" ||
                         String(order.status).toLowerCase().includes("advance")
-                      ? 150 * effectiveQuantity
+                      ? 50 * effectiveQuantity
                       : 0
                   ).toLocaleString("en-IN")}
                 </p>
@@ -537,7 +537,7 @@ function AdminOrderCard({
                     {(
                       (order.price || 0) +
                       50 * effectiveQuantity -
-                      150 * effectiveQuantity
+                      50 * effectiveQuantity
                     ).toLocaleString("en-IN")}
                   </p>
                 </div>

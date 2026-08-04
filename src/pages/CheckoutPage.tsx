@@ -96,7 +96,7 @@ export function CheckoutPage() {
       const createdOrderIds = [];
       for (const item of jerseyCart) {
         const itemFinalPrice = item.price;
-        const itemAdvance = 150 * item.quantity;
+        const itemAdvance = 50 * item.quantity;
         const itemCodExtra = 50 * item.quantity;
         const itemRemainingCod = paymentMode === "full" ? 0 : itemFinalPrice * item.quantity - itemAdvance + itemCodExtra;
 

@@ -44,7 +44,7 @@ async function startServer() {
 
         if (paymentMode === "partial") {
           const baseAdvance =
-            150 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+            50 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
           amount = baseAdvance;
         } else {
           amount = itemsTotal;
@@ -777,7 +777,7 @@ If you do not know something, politely tell the customer instead of guessing.
 Your goal is to provide a premium shopping experience that builds trust and helps customers choose the right product.`;
 
       const chat = ai.chats.create({
-        model: "gemini-3.6-flash",
+        model: "gemini-2.5-flash",
         config: {
           systemInstruction,
           temperature: 0.7,

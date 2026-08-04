@@ -184,7 +184,7 @@ export function CartModal() {
         const itemFinalPrice = item.price * item.quantity;
         const itemCodExtra = paymentMode === "partial" ? 50 * item.quantity : 0;
         const itemAdvance =
-          paymentMode === "partial" ? 150 * item.quantity : itemFinalPrice;
+          paymentMode === "partial" ? 50 * item.quantity : itemFinalPrice;
         const itemRemainingCod =
           paymentMode === "partial"
             ? itemFinalPrice + itemCodExtra - itemAdvance
