@@ -176,6 +176,13 @@ export function AdminOrdersDashboard({
   if (activeTab === "placed") currentOrders = placedOrders;
   if (activeTab === "delivered") currentOrders = deliveredOrders;
 
+  // Sort orders newest first
+  currentOrders.sort((a, b) => {
+    const timeA = a.createdAt?.toMillis?.() || new Date(a.createdAt).getTime() || 0;
+    const timeB = b.createdAt?.toMillis?.() || new Date(b.createdAt).getTime() || 0;
+    return timeB - timeA;
+  });
+
   // Apply search
   if (search) {
     const searchLower = search.toLowerCase();

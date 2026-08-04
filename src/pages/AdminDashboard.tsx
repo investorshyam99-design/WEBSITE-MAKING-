@@ -41,9 +41,9 @@ export function AdminDashboard() {
             ...doc.data(),
           }) as any,
       ).sort((a: any, b: any) => {
-          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          return timeA - timeB;
+          const timeA = a.createdAt?.toMillis?.() || new Date(a.createdAt).getTime() || 0;
+          const timeB = b.createdAt?.toMillis?.() || new Date(b.createdAt).getTime() || 0;
+          return timeB - timeA;
       });
       setOrders(fetchedOrders);
     } catch (e) {
