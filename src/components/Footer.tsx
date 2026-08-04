@@ -34,13 +34,11 @@ export function Footer() {
 
             {/* Support */}
             <div>
-              <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-6">Support</h4>
+              <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-6">Support & Guides</h4>
               <ul className="space-y-4 text-sm font-medium">
                 <li><Link to="/pages/about-us" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/pages/shipping-policy" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">Shipping Policy</Link></li>
-                <li><Link to="/pages/exchange-return-policy" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">Exchange Policy</Link></li>
-                <li><Link to="/pages/privacy-policy" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/pages/terms-conditions" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">Terms & Conditions</Link></li>
+                <li><Link to="/blog" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">Football Journal (Blog)</Link></li>
+                <li><Link to="/policy" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">📄 Policy</Link></li>
               </ul>
             </div>
           </div>

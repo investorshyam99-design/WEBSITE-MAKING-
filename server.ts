@@ -579,6 +579,114 @@ async function startServer() {
     }
   });
 
+  // Dynamic Robots.txt API
+  app.get("/robots.txt", (req, res) => {
+    res.header("Content-Type", "text/plain");
+    res.status(200).send(`User-agent: *
+Allow: /
+Allow: /collections/
+Allow: /products/
+Allow: /pages/
+Allow: /policy
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://jerseyunicorn.com/sitemap.xml
+`);
+  });
+
+  // Dynamic XML Sitemap Route
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const baseUrl = "https://jerseyunicorn.com";
+      const today = new Date().toISOString().split("T")[0];
+
+      const staticUrls = [
+        { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/world-cup-2026`, priority: "0.9", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/argentina`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/portugal`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/real-madrid`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/manchester-city`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/manchester-united`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/barcelona`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/liverpool`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/italy`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/japan`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/mexico`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/uruguay`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/france`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/retro-jerseys`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/player-version`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/fan-version`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/collections/all`, priority: "0.8", changefreq: "daily" },
+        { loc: `${baseUrl}/policy`, priority: "0.5", changefreq: "monthly" },
+        { loc: `${baseUrl}/pages/about-us`, priority: "0.5", changefreq: "monthly" },
+        { loc: `${baseUrl}/pages/faq`, priority: "0.5", changefreq: "monthly" },
+        { loc: `${baseUrl}/pages/shipping-policy`, priority: "0.5", changefreq: "monthly" },
+        { loc: `${baseUrl}/pages/return-refund-policy`, priority: "0.5", changefreq: "monthly" },
+        { loc: `${baseUrl}/pages/contact`, priority: "0.5", changefreq: "monthly" },
+      ];
+
+      // Fetch products from Shopify Storefront API
+      let productUrls: { loc: string; priority: string; changefreq: string }[] = [];
+      try {
+        const SHOPIFY_DOMAIN = "https://0qtwuu-br.myshopify.com";
+        const SHOPIFY_STOREFRONT_TOKEN = "e711ef4603f75af0b8370a9b8ebeb2e5";
+        const query = `{ products(first: 250) { edges { node { title handle } } } }`;
+
+        const shopifyRes = await fetch(`${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_TOKEN,
+          },
+          body: JSON.stringify({ query }),
+        });
+
+        if (shopifyRes.ok) {
+          const json = await shopifyRes.json();
+          const edges = json.data?.products?.edges || [];
+          productUrls = edges.map((e: any) => {
+            const handle = e.node.handle || e.node.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+            return {
+              loc: `${baseUrl}/products/${handle}`,
+              priority: "0.8",
+              changefreq: "weekly",
+            };
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching products for sitemap:", err);
+      }
+
+      const allUrls = [...staticUrls, ...productUrls];
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls
+  .map(
+    (item) => `  <url>
+    <loc>${item.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${item.changefreq}</changefreq>
+    <priority>${item.priority}</priority>
+  </url>`
+  )
+  .join("\n")}
+</urlset>`;
+
+      res.header("Content-Type", "application/xml");
+      res.status(200).send(xml);
+    } catch (error: any) {
+      console.error("Sitemap error:", error);
+      res.status(500).send("Failed to generate sitemap");
+    }
+  });
+
   // AI Assistant API Route
   app.post("/api/gemini/chat", async (req, res) => {
     try {

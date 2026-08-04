@@ -6,6 +6,9 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { CollectionPage } from "./pages/CollectionPage";
 import { GenericPage } from "./pages/GenericPage";
+import { PolicyPage } from "./pages/PolicyPage";
+import { BlogListPage } from "./pages/BlogListPage";
+import { BlogPostPage } from "./pages/BlogPostPage";
 import { Home } from "./pages/Home";
 import { ProductPage } from "./pages/ProductPage";
 import { AccountPage } from "./pages/AccountPage";
@@ -31,7 +34,10 @@ export default function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/collections/:id" element={<CollectionPage />} />
+            <Route path="/blog" element={<BlogListPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/pages/:id" element={<GenericPage />} />
+            <Route path="/policy" element={<PolicyPage />} />
             <Route path="*" element={<Home />} />
           </Routes>
           <CartModal />

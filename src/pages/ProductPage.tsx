@@ -22,6 +22,7 @@ import { LiveViewerCount } from "../components/LiveViewerCount";
 import { TrendingSalesIndicator } from "../components/TrendingSalesIndicator";
 
 import { ProductInfoAccordion } from "../components/ProductInfoAccordion";
+import { generateProductSEO } from "../lib/productSeoHelper";
 
 // Size reservation warning component with 10 minute countdown timer
 function SizeReservationWarning({ selectedSize }: { selectedSize: string }) {
@@ -105,26 +106,9 @@ export function ProductPage() {
     [decodedKey, products],
   );
 
-  const seoData = useMemo(() => {
-    if (!product) return {};
-    
-    let catName = "Worddrip";
-    if (product.category === "player-version") catName = "Football Banter";
-    else if (product.category === "master-version") catName = "F1 Fan";
-    else if (product.category === "fan-set") catName = "Anime";
-    else if (product.category === "tees") catName = "Artist Rapper";
-
-    const title = `${product.name} | Oversized ${catName} Tee - Jersey Unicorn`;
-    
-    const cleanDesc = product.description 
-      ? product.description.replace(/<[^>]*>/g, "").substring(0, 150) 
-      : `Buy the premium ${product.name} oversized t-shirt at Jersey Unicorn. Features a bold quote design. Heavyweight streetwear fit for Indian Gen Z.`;
-      
-    const description = `Buy the premium ${product.name} oversized t-shirt at Jersey Unicorn. Features a bold '${product.name}' back-print. Heavyweight streetwear fit for Indian Gen Z. ${cleanDesc}...`;
-    
-    const keywords = `${product.name.toLowerCase()} tee, oversized t-shirt india, ${catName.toLowerCase()} t-shirt india, gen z streetwear, back print quote tee`;
-    
-    return { title, description, keywords };
+  const seoDetails = useMemo(() => {
+    if (!product) return null;
+    return generateProductSEO(product);
   }, [product]);
 
   // If visited via legacy ID route /product/:id, redirect to custom slug route /products/:slug
@@ -425,12 +409,12 @@ export function ProductPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white relative">
       <SEO 
-        title={seoData.title}
-        description={seoData.description}
-        keywords={seoData.keywords}
+        title={seoDetails?.seoTitle}
+        description={seoDetails?.metaDescription}
         image={product?.image}
         type="product"
         product={product}
+        canonicalUrl={`https://jerseyunicorn.com/products/${product?.slug || product?.id}`}
       />
       {toastMessage && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-[#1E2A44] border border-[#1E2A44]/20 text-white px-6 py-3.5 rounded-full font-black uppercase text-xs tracking-widest flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
@@ -480,7 +464,7 @@ export function ProductPage() {
               >
                 <img
                   src={activeImage || undefined}
-                  alt={product.name}
+                  alt={seoDetails?.mainImageAlt || `${product.name} – Jersey Unicorn`}
                   fetchPriority="high"
                   className="w-full h-full object-cover transition-transform duration-200 ease-out pointer-events-none md:pointer-events-auto"
                   style={zoomStyle}

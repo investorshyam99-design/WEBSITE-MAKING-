@@ -10,9 +10,11 @@ export function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <SEO 
-        title="Jersey Unicorn | Gen Z Streetwear & Oversized Back-Print Tees"
-        description="Buy premium oversized back-print quote t-shirts in India. Bold banter tees for football, F1, anime, music artists, and wordplay. Elevate your street style."
-        keywords="football fan tees india, f1 tees india, anime tshirts india, artist graphic tees india, quote tshirts india, oversized back print tees india, gen z streetwear india"
+        title="Buy Football Jerseys Online India | Jersey Unicorn"
+        description="Buy premium football jerseys & fan sets in India. World Cup 2026, player versions, master retro kits & streetwear. Fast delivery & COD. Shop now!"
+        keywords="buy football jersey online India, Argentina World Cup 2026 jersey, Portugal 60th anniversary set, retro football jersey India, player version jersey India, football jersey with shorts set India"
+        canonicalUrl="https://jerseyunicorn.com"
+        isHome={true}
       />
       <Header />
       <main className="flex-grow">
