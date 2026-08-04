@@ -66,9 +66,24 @@
   }
 }
 
+@keyframes attention-pulse {
+  0%, 85%, 100% { transform: scale(1); }
+  90% { transform: scale(1.03); }
+  95% { transform: scale(0.98); }
+}
+
+@keyframes checkout-wiggle { 0%, 80%, 100% { transform: translateX(0); } 84% { transform: translateX(-4px); } 88% { transform: translateX(4px); } 92% { transform: translateX(-4px); } 96% { transform: translateX(4px); } } .animate-checkout-wiggle { animation: checkout-wiggle 3s ease-in-out infinite; } .animate-checkout-wiggle:hover, .animate-checkout-wiggle:active, .animate-checkout-wiggle:focus { animation-play-state: paused; } .animate-attention {
+  animation: attention-pulse 5s ease-in-out infinite;
+}
+
+.animate-attention:hover,
+.animate-attention:active,
+.animate-attention:focus {
+  animation-play-state: paused;
+}
+
 @layer utilities {
   .hide-scrollbar {
-    -ms-overflow-style: none;
     scrollbar-width: none;
   }
   .hide-scrollbar::-webkit-scrollbar {

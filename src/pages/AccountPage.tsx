@@ -82,7 +82,7 @@ export function AccountPage() {
 
       setOrders(fetchedOrders);
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.warn("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }

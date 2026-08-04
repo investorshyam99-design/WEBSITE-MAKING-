@@ -343,7 +343,7 @@ export function ProductPage() {
     );
     setIsCartOpen(true);
     if (action === "buy") {
-       window.location.href = "/#/checkout";
+       navigate("/checkout");
     }
   };
 
@@ -1083,7 +1083,7 @@ export function ProductPage() {
                     addToCart(product!, selectedSize, selectedColor || undefined, isCust);
                     setIsCartOpen(true);
                     if (pendingAction === "buy") {
-                      window.location.href = "/#/checkout";
+                      navigate("/checkout");
                     }
                   }}
                   className={cn(

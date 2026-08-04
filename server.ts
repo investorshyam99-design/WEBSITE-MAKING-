@@ -692,16 +692,24 @@ ${allUrls
     try {
       const { messages } = req.body;
 
-            const apiKeys = [
-        process.env.G1,
-        process.env.G2,
-        process.env.G3,
-        process.env.G4,
-        process.env.G5,
-        process.env.G6,
-        process.env.G7,
-        process.env.GEMINI_API_KEY
-      ].map(k => k?.trim()).filter(Boolean) as string[];
+      // Dynamically collect all possible Gemini API keys from environment variables
+      const apiKeys = Object.entries(process.env)
+        .filter(([key, value]) => {
+          const k = key.toUpperCase();
+          // Include GEMINI_API_KEY, GEMINI_API_KEY_1, G1, API_KEY_1 (but exclude known other APIs)
+          return (
+            k.includes("GEMINI") || 
+            k.match(/^G[0-9]+$/) || 
+            (k.includes("API_KEY") && !k.includes("RAZORPAY") && !k.includes("QIKINK"))
+          ) && value && value.trim().length > 0;
+        })
+        .map(([_, value]) => value?.trim())
+        .filter(Boolean) as string[];
+
+      // Fallback to GEMINI_API_KEY if dynamic collection misses it
+      if (process.env.GEMINI_API_KEY && !apiKeys.includes(process.env.GEMINI_API_KEY.trim())) {
+        apiKeys.push(process.env.GEMINI_API_KEY.trim());
+      }
 
       if (apiKeys.length === 0) {
         return res

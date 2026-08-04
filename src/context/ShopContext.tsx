@@ -51,8 +51,18 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export function ShopProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = safeGetItem('cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [wishlist, setWishlist] = useState<Product[]>(() => {
+    try {
+      const saved = safeGetItem('wishlist');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -147,17 +157,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   const { products, isLoading: isProductsLoading } = useProducts();
 
-  // Load from LocalStorage
-  useEffect(() => {
-    try {
-      const savedCart = safeGetItem('cart');
-      const savedWishlist = safeGetItem('wishlist');
-      if (savedCart) setCart(JSON.parse(savedCart));
-      if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
-    } catch (e) {
-      console.error('Failed to load from local storage', e);
-    }
-  }, []);
+  // Initial states already loaded synchronously
 
   // Sync Cart prices with fresh products from Shopify
   useEffect(() => {
@@ -180,44 +180,9 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     });
   }, [products, isProductsLoading]);
 
-  // Save to LocalStorage and Sync Abandoned Carts to Firestore
+  // Save to LocalStorage
   useEffect(() => {
     safeSetItem('cart', JSON.stringify(cart));
-    
-    async function syncAbandonedCarts() {
-      const uId = user ? user.uid : getGuestId();
-      const uName = user ? user.name : 'Guest Customer';
-
-      try {
-        const q = query(collection(db, 'orders'), where('userId', '==', uId));
-        const snapshot = await getDocs(q);
-        const deletePromises = snapshot.docs
-          .filter(d => d.data().status === 'pending_cart')
-          .map(d => deleteDoc(doc(db, 'orders', d.id)));
-        await Promise.all(deletePromises);
-
-        if (cart.length > 0) {
-           const addPromises = cart.map((item, index) => {
-              const orderId = `cart_${uId}_${Date.now()}_${index}`;
-              return setDoc(doc(db, 'orders', orderId), {
-                 userId: uId,
-                 productName: `${item.quantity}x ${item.name}`,
-                 image: item.image,
-                 size: item.selectedSize || 'N/A',
-                 customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
-                 price: item.price * item.quantity,
-                 status: 'pending_cart',
-                 createdAt: new Date(),
-                 fullName: uName
-              });
-           });
-           await Promise.all(addPromises);
-        }
-      } catch (e) {
-        console.error("Failed to sync abandoned cart", e);
-      }
-    }
-    syncAbandonedCarts();
   }, [cart, user]);
 
   useEffect(() => {

@@ -91,7 +91,7 @@ export function CategoryNav() {
               <button
                 key={`nav-${item.id}`}
                 onClick={() => scrollToSection(item.id, item.sectionId)}
-                className={`flex-1 aspect-square flex items-center justify-center text-center p-1 md:p-2 text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-tighter sm:tracking-wide rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 leading-[1.1] ${
+                className={`flex-1 aspect-[2/1] flex items-center justify-center text-center p-1 md:p-2 text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-tighter sm:tracking-wide rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 leading-[1.1] ${
                   isActive
                     ? "bg-[#1E2A44] text-white border-[#1E2A44] shadow-inner"
                     : "bg-[#EDE3D8] text-[#1E2A44] border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white shadow-[2px_2px_0px_0px_#1E2A44]"

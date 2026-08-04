@@ -6,6 +6,11 @@ import { cn } from "../lib/utils";
 
 export function MobileBottomNav() {
   const location = useLocation();
+
+
+  if (location.pathname === "/checkout") return null;
+
+
   const navigate = useNavigate();
   const {
     cart,

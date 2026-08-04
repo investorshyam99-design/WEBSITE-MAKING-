@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useShop } from "../context/ShopContext";
-import { Lock, Truck, ShieldCheck, ChevronLeft } from "lucide-react";
+import { Lock, Truck, ShieldCheck, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, setDoc } from "firebase/firestore";
@@ -70,13 +70,14 @@ export function CheckoutPage() {
       setState("");
       setDeliveryEstimate("");
     }
-  };
+  };  const handleCheckout = async (overrideMode?: "full" | "partial") => {
+    const currentMode = overrideMode || paymentMode;
 
-  const handleCheckout = async () => {
     if (!fullName || !phone || !pincode || !houseNo) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
       return;
     }
+
     if (phone.length !== 10) {
       alert("Please enter a valid 10-digit phone number");
       return;
@@ -98,7 +99,7 @@ export function CheckoutPage() {
         const itemFinalPrice = item.price;
         const itemAdvance = 50 * item.quantity;
         const itemCodExtra = 50 * item.quantity;
-        const itemRemainingCod = paymentMode === "full" ? 0 : itemFinalPrice * item.quantity - itemAdvance + itemCodExtra;
+        const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice * item.quantity - itemAdvance + itemCodExtra;
 
         const docRef = await addDoc(collection(db, "orders"), {
           userId: user ? user.uid : "guest",
@@ -115,8 +116,8 @@ export function CheckoutPage() {
           advancePaid: itemAdvance,
           remainingCodAmount: itemRemainingCod,
           finalTotal: itemFinalPrice + itemCodExtra,
-          status: paymentMode === "full" ? "pending full payment" : "pending advance payment",
-          paymentMode,
+          status: currentMode === "full" ? "pending full payment" : "pending advance payment",
+          paymentMode: currentMode,
           createdAt: serverTimestamp(),
           fullName,
           address: combinedAddress,
@@ -130,7 +131,7 @@ export function CheckoutPage() {
         createdOrderIds.push(docRef.id);
       }
 
-      const finalAmountToPay = paymentMode === "full" ? total : advanceAmount;
+      const finalAmountToPay = currentMode === "full" ? total : advanceAmount;
 
       const response = await fetch("/api/create-razorpay-order", {
         method: "POST",
@@ -140,7 +141,7 @@ export function CheckoutPage() {
           fullName,
           address: combinedAddress,
           phone,
-          paymentMode,
+          paymentMode: currentMode,
           finalAmount: finalAmountToPay,
         }),
       });
@@ -171,11 +172,11 @@ export function CheckoutPage() {
             if (verifyData.success) {
               for (const id of createdOrderIds) {
                 await updateDoc(doc(db, "orders", id), {
-                  status: paymentMode === "full" ? "Fully Paid" : "Advance Paid",
+                  status: currentMode === "full" ? "Fully Paid" : "Advance Paid",
                   paymentId: response.razorpay_payment_id,
                 });
               }
-              if (paymentMode === "full") {
+              if (currentMode === "full") {
                 alert(`Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order.`);
               } else {
                 alert(`Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nRemaining COD Amount: ₹${total - advanceAmount + codExtra}\nPay remaining amount during delivery.`);
@@ -222,7 +223,7 @@ export function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-[72px] pb-[80px]">
+    <div className="min-h-screen bg-gray-50 pt-[72px] pb-[200px]">
       <div className="max-w-2xl mx-auto p-4 sm:p-6 lg:p-8">
         <button onClick={() => { setIsCartOpen(true); navigate(-1); }} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-black mb-6">
           <ChevronLeft className="w-4 h-4" /> Back to Cart
@@ -356,8 +357,8 @@ export function CheckoutPage() {
 
             <button
               disabled={isSubmitting}
-              onClick={handleCheckout}
-              className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-md hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
+              onClick={() => handleCheckout()}
+              className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-md hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2 animate-checkout-wiggle"
             >
               <Lock className="w-4 h-4" />
               {isSubmitting ? "PROCESSING..." : `PAY RS. ${(paymentMode === "full" ? total : advanceAmount).toFixed(2)} SECURELY`}
@@ -368,6 +369,57 @@ export function CheckoutPage() {
               <img src="https://razorpay.com/assets/razorpay-logo.svg" alt="Razorpay" className="h-4" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Permanent Sticky Payment Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:p-6 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)] z-50 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-xl mx-auto px-4 sm:px-0 flex gap-4 md:gap-6">
+          {/* LEFT BUTTON - COD */}
+          <button
+            disabled={isSubmitting}
+            onClick={() => {
+              setPaymentMode("partial");
+              handleCheckout("partial");
+            }}
+            className={`flex-1 relative rounded-2xl border-2 transition-all duration-300 py-2 px-4 flex flex-col items-center justify-center text-center animate-attention disabled:opacity-50 disabled:animate-none ${
+              paymentMode === "partial" 
+                ? "border-[#1E2A44] shadow-[0_8px_20px_-5px_rgba(30,42,68,0.3)] bg-gray-50 scale-[1.02] z-10" 
+                : "border-gray-200 bg-white opacity-90 hover:opacity-100 hover:border-[#1E2A44]/50"
+            }`}
+          >
+            {paymentMode === "partial" && (
+              <div className="absolute -top-3 -right-3 bg-[#1E2A44] text-white rounded-full p-1 shadow-lg">
+                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+            )}
+            <span className="text-xs md:text-sm font-black tracking-wider text-[#1E2A44] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><Truck className="w-4 h-4 md:w-5 md:h-5"/> COD</span>
+            <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{advanceAmount.toFixed(0)}</span>
+            <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Remaining on<br/>Delivery</span>
+          </button>
+
+          {/* RIGHT BUTTON - PREPAID */}
+          <button
+            disabled={isSubmitting}
+            onClick={() => {
+              setPaymentMode("full");
+              handleCheckout("full");
+            }}
+            className={`flex-1 relative rounded-2xl border-2 transition-all duration-300 py-2 px-4 flex flex-col items-center justify-center text-center animate-attention disabled:opacity-50 disabled:animate-none ${
+              paymentMode === "full" 
+                ? "border-[#38D9A9] shadow-[0_8px_20px_-5px_rgba(56,217,169,0.4)] bg-[#1E2A44] text-white scale-[1.02] z-10" 
+                : "border-[#1E2A44] bg-[#1E2A44] text-white opacity-90 hover:opacity-100"
+            }`}
+          >
+            {paymentMode === "full" && (
+              <div className="absolute -top-3 -right-3 bg-[#38D9A9] text-[#1E2A44] rounded-full p-1 shadow-lg">
+                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+            )}
+            <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID</span>
+            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay Full</span>
+            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">Free<br/>Delivery</span>
+          </button>
         </div>
       </div>
     </div>

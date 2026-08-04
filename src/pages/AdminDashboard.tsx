@@ -47,7 +47,7 @@ export function AdminDashboard() {
       });
       setOrders(fetchedOrders);
     } catch (e) {
-      console.error(e);
+      console.warn(e);
     }
   };
 
@@ -79,8 +79,9 @@ export function AdminDashboard() {
           setUsers(usersData);
         },
         (err) => {
-          console.error("Error fetching users:", err);
-          setError("Failed to fetch users. " + err.message);
+          console.warn("Error fetching users:", err);
+          // setError("Failed to fetch users. " + err.message);
+          setLoading(false);
         },
       );
 
@@ -119,14 +120,15 @@ export function AdminDashboard() {
           setLoading(false);
         },
         (err) => {
-          console.error("Error fetching visitors:", err);
-          setError("Failed to fetch visitors. " + err.message);
+          console.warn("Error fetching visitors:", err);
+          // setError("Failed to fetch visitors. " + err.message);
+          fetchOrders();
           setLoading(false);
         },
       );
     } catch (err: any) {
-      console.error("Error setting up listeners:", err);
-      setError("Failed to fetch data. " + err.message);
+      console.warn("Error setting up listeners:", err);
+      // setError("Failed to fetch data. " + err.message);
       setLoading(false);
     }
 

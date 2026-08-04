@@ -545,26 +545,12 @@ export function CartModal() {
                     </div>
                   </div>
 
-                  {/* 5. Checkout Button */}
-                  <div className="px-4 md:px-6 mt-6 flex flex-col gap-3">
-                    <button
-                      onClick={() => {
-                        setIsCartOpen(false);
-                        window.location.href = "/#/checkout";
-                      }}
-                      className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-sm hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
-                    >
-                      <Lock className="w-4 h-4" />
-                      CHECKOUT
-                    </button>
-                  </div>
-
                   {/* 6. Payment Trust Section */}
-                  <div className="px-4 md:px-6 mt-8 text-center">
+                  <div className="px-4 md:px-6 mt-8 mb-6 text-center">
                     <div className="flex items-center justify-center gap-2 mb-4">
                       <Lock className="w-4 h-4 text-[#38D9A9]" />
                       <span className="text-sm font-bold text-gray-800">
-                        Secure Checkout
+                        Secure Payments
                       </span>
                     </div>
                     <div className="flex justify-center flex-wrap gap-2 mb-5">
@@ -655,6 +641,22 @@ export function CartModal() {
                 </div>
               )}
             </div>
+            
+            {/* Sticky Checkout Bottom Bar */}
+            {cart.length > 0 && (
+              <div className="bg-white border-t border-gray-100 p-4 md:p-6 shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.05)] z-20 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+                <button
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    navigate("/checkout");
+                  }}
+                  className="animate-attention w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-lg hover:scale-[1.01] active:scale-[0.99] hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2"
+                >
+                  <Lock className="w-4 h-4" />
+                  Secure Checkout
+                </button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
