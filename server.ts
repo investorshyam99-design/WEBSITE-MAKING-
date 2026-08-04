@@ -43,9 +43,7 @@ async function startServer() {
         );
 
         if (paymentMode === "partial") {
-          const baseAdvance =
-            50 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
-          amount = baseAdvance;
+          amount = 50;
         } else {
           amount = itemsTotal;
         }
@@ -813,7 +811,7 @@ Explain:
 
 • COD is available.
 • ₹50 COD handling charge is added per jersey.
-• ₹49 advance payment is required per jersey to confirm the order and reduce fake orders.
+• ₹50 advance payment is required to confirm the order and reduce fake orders.
 • The remaining amount is payable at the time of delivery.
 
 ==================================================
