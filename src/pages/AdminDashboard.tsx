@@ -46,8 +46,9 @@ export function AdminDashboard() {
           return timeB - timeA;
       });
       setOrders(fetchedOrders);
-    } catch (e) {
+    } catch (e: any) {
       console.warn(e);
+      setError((prev) => (prev ? prev + " | " : "") + "Failed to fetch orders: " + e.message);
     }
   };
 
@@ -80,7 +81,7 @@ export function AdminDashboard() {
         },
         (err) => {
           console.warn("Error fetching users:", err);
-          // setError("Failed to fetch users. " + err.message);
+          setError("Failed to fetch users. " + err.message);
           setLoading(false);
         },
       );
@@ -121,14 +122,14 @@ export function AdminDashboard() {
         },
         (err) => {
           console.warn("Error fetching visitors:", err);
-          // setError("Failed to fetch visitors. " + err.message);
+          setError("Failed to fetch visitors. " + err.message);
           fetchOrders();
           setLoading(false);
         },
       );
     } catch (err: any) {
       console.warn("Error setting up listeners:", err);
-      // setError("Failed to fetch data. " + err.message);
+      setError("Failed to fetch data. " + err.message);
       setLoading(false);
     }
 
@@ -180,12 +181,13 @@ export function AdminDashboard() {
           <div className="flex justify-center items-center h-48">
             <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
           </div>
-        ) : error ? (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm font-medium">
-            {error}
-          </div>
         ) : (
           <div className="space-y-6">
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm font-medium">
+                {error}
+              </div>
+            )}
             {/* Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">

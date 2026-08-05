@@ -6,6 +6,7 @@ import { Loader2, User, MessageCircle, Clock, ChevronDown, ChevronUp } from 'luc
 export function AdminChatsList() {
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedChat, setExpandedChat] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,8 +26,10 @@ export function AdminChatsList() {
 
       setChats(fetchedChats);
       setLoading(false);
+      setError(null);
     }, (error) => {
-      console.error("Error fetching chats:", error);
+      console.warn("Error fetching chats:", error);
+      setError("Failed to fetch chats: " + error.message);
       setLoading(false);
     });
 
@@ -37,6 +40,14 @@ export function AdminChatsList() {
     return (
       <div className="flex justify-center items-center h-48">
         <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm font-medium">
+        {error}
       </div>
     );
   }

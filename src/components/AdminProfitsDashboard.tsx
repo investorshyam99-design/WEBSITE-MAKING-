@@ -30,7 +30,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
         });
         setManualEntries(entries);
       } catch (err) {
-         console.error('Failed to fetch manual stats', err);
+         console.warn('Failed to fetch manual stats', err);
       }
     }
     fetchManualStats();
@@ -81,7 +81,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       
       setIsEditingManual(false);
     } catch (err) {
-      console.error(err);
+      console.warn(err);
       alert('Failed to save manual adjustments');
     }
     setIsSavingManual(false);

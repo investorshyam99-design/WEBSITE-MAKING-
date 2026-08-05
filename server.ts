@@ -928,7 +928,7 @@ Your goal is to provide a premium shopping experience that builds trust and help
           });
 
           const chat = ai.chats.create({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.0-flash",
             config: {
               systemInstruction,
               temperature: 0.7,

@@ -34,7 +34,7 @@ export function AIChatbot() {
         lastUpdated: new Date()
       });
     } catch (e) {
-      console.error("Failed to save chat", e);
+      console.warn("Failed to save chat", e);
     }
   };
 
