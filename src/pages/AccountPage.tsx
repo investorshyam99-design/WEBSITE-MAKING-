@@ -3,7 +3,7 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useShop } from "../context/ShopContext";
 import { db, auth } from "../lib/firebase";
-import { collection, query, where, getDocs, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, documentId } from "firebase/firestore";
 import { Package, Truck, X, LogOut, User, MapPin, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AdminOrdersDashboard } from "../components/AdminDashboard";
@@ -58,26 +58,93 @@ export function AccountPage() {
 
     try {
       let q;
+      let fetchedOrders: Order[] = [];
       const ordersRef = collection(db, "orders");
       if (user?.email === "investorshyam99@gmail.com") {
         q = query(ordersRef);
+        
+        // Fetch abandoned carts
+        let fetchedAbandoned: any[] = [];
+        try {
+          const abandonedSnap = await getDocs(query(collection(db, "abandoned_carts")));
+          fetchedAbandoned = abandonedSnap.docs.map((doc) => {
+            const data = doc.data();
+            const firstItem = data.items?.[0] || {};
+            return {
+              id: doc.id,
+              userId: data.userId || doc.id,
+              productName: data.productName || (data.items?.map((i: any) => i.name).join(", ")) || "Abandoned Cart",
+              image: firstItem.image || "",
+              size: firstItem.selectedSize || "N/A",
+              quantity: data.itemCount || data.items?.length || 1,
+              cartItems: data.items || [],
+              price: data.total || 0,
+              status: "abandoned",
+              createdAt: data.updatedAt || data.createdAt || new Date().toISOString(),
+              address: data.address || "",
+              phone: data.phone || data.userPhone || "",
+              fullName: data.fullName || data.userName || "Guest Customer",
+            };
+          });
+        } catch (e) {
+          console.warn("Error fetching abandoned carts:", e);
+        }
+
+        // Fetch draft orders
+        let fetchedDrafts: any[] = [];
+        try {
+          const draftsSnap = await getDocs(query(collection(db, "draft_orders")));
+          fetchedDrafts = draftsSnap.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              userId: data.userId || doc.id,
+              productName: data.productName || "Draft Order",
+              status: "pending draft",
+              ...data,
+            };
+          });
+        } catch (e) {
+          console.warn("Error fetching draft orders:", e);
+        }
+
+        const snapshot = await getDocs(q);
+        const regularOrders = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...(doc.data() as any) } as Order)
+        );
+
+        fetchedOrders = [...regularOrders, ...fetchedAbandoned, ...fetchedDrafts];
+
+      } else if (user) {
+        q = query(ordersRef, where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+        fetchedOrders = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...(doc.data() as any) } as Order)
+        );
       } else {
-        q = query(ordersRef, where("userId", "==", user ? user.uid : "guest"));
+        const guestOrderIds = JSON.parse(localStorage.getItem("guest_orders") || "[]");
+        const guestPhone = localStorage.getItem("guest_phone");
+        
+        if (guestPhone) {
+          q = query(ordersRef, where("phone", "==", guestPhone));
+        } else if (guestOrderIds.length > 0) {
+          q = query(ordersRef, where(documentId(), "in", guestOrderIds.slice(0, 30)));
+        } else {
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+        
+        const snapshot = await getDocs(q);
+        fetchedOrders = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...(doc.data() as any) } as Order)
+        );
       }
 
-      const snapshot = await getDocs(q);
-      const fetchedOrders = snapshot.docs.map(
-        (doc) =>
-          ({
-            id: doc.id,
-            ...(doc.data() as any),
-          } as Order)
-      );
-
       fetchedOrders.sort((a, b) => {
-        const dateA = a.createdAt?.toDate?.() || new Date(0);
-        const dateB = b.createdAt?.toDate?.() || new Date(0);
-        return dateA.getTime() - dateB.getTime();
+        const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
       });
 
       setOrders(fetchedOrders);
@@ -155,31 +222,46 @@ export function AccountPage() {
                   >
                     <Package className="w-4 h-4" /> My Orders
                   </button>
-                  <button 
-                    onClick={() => setActiveTab('profile')}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'profile' ? 'bg-gray-100 text-[#1B1B1B]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-                  >
-                    <User className="w-4 h-4" /> Profile Details
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('addresses')}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'addresses' ? 'bg-gray-100 text-[#1B1B1B]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-                  >
-                    <MapPin className="w-4 h-4" /> Saved Addresses
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('wishlist')}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'wishlist' ? 'bg-gray-100 text-[#1B1B1B]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-                  >
-                    <Heart className="w-4 h-4" /> Wishlist
-                  </button>
-                  <div className="h-px bg-gray-100 my-2 mx-4"></div>
                   {user && (
+                    <>
+                      <button 
+                        onClick={() => setActiveTab('profile')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'profile' ? 'bg-gray-100 text-[#1B1B1B]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                      >
+                        <User className="w-4 h-4" /> Profile Details
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('addresses')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'addresses' ? 'bg-gray-100 text-[#1B1B1B]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                      >
+                        <MapPin className="w-4 h-4" /> Saved Addresses
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('wishlist')}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'wishlist' ? 'bg-gray-100 text-[#1B1B1B]' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                      >
+                        <Heart className="w-4 h-4" /> Wishlist
+                      </button>
+                    </>
+                  )}
+                  <div className="h-px bg-gray-100 my-2 mx-4"></div>
+                  {user ? (
                     <button 
                       onClick={handleLogout}
                       className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <LogOut className="w-4 h-4" /> Logout
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        localStorage.removeItem('guest_phone');
+                        localStorage.removeItem('guest_orders');
+                        window.location.reload();
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" /> Exit Tracking
                     </button>
                   )}
                 </div>
@@ -196,40 +278,63 @@ export function AccountPage() {
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E2A44] mx-auto mb-4"></div>
                       <p className="text-gray-500 font-medium">Loading your orders...</p>
                     </div>
-                  ) : !user ? (
-                    <div className="text-center bg-white p-12 shadow-sm border border-gray-100 rounded-xl">
-                      <Package className="h-16 w-16 mx-auto text-gray-200 mb-4" />
-                      <h2 className="text-lg font-bold text-[#1B1B1B] uppercase tracking-wider mb-2">
-                        Login Required
-                      </h2>
-                      <p className="text-sm text-gray-500 mb-6">
-                        Sign in to track your past orders.
-                      </p>
-                      <button
-                        onClick={() => setIsLoginOpen(true)}
-                        className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full max-w-sm hover:bg-[#223A5E] transition-colors rounded-xl"
-                      >
-                        Log in to view orders
-                      </button>
-                    </div>
                   ) : orders.length === 0 ? (
                     <div className="text-center bg-white p-12 shadow-sm border border-gray-100 rounded-xl">
                       <Package className="h-16 w-16 mx-auto text-gray-200 mb-4" />
                       <h2 className="text-lg font-bold text-[#1B1B1B] uppercase tracking-wider mb-2">
-                        No orders found
+                        {user ? "No orders found" : "Track Your Order"}
                       </h2>
                       <p className="text-sm text-gray-500 mb-6">
-                        You haven't placed any orders yet.
+                        {user ? "You haven't placed any orders yet." : "Sign in or enter your phone number to track your order."}
                       </p>
-                      <Link
-                        to="/"
-                        className="inline-block bg-[#1B1B1B] text-white px-8 py-3 font-bold uppercase text-sm tracking-widest hover:bg-[#2A2A2A] transition-colors rounded-lg"
-                      >
-                        Start Shopping
-                      </Link>
+                      {!user ? (
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto w-full">
+                          <button
+                            onClick={() => setIsLoginOpen(true)}
+                            className="bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm w-full sm:w-1/2 hover:bg-[#223A5E] transition-colors rounded-xl"
+                          >
+                            Log in
+                          </button>
+                          <button
+                            onClick={() => {
+                              const phone = window.prompt("Enter the phone number used during checkout:");
+                              if (phone?.trim()) {
+                                localStorage.setItem('guest_phone', phone.trim());
+                                window.location.reload();
+                              }
+                            }}
+                            className="bg-white border-2 border-[#1E2A44] text-[#1E2A44] px-6 py-3 font-bold uppercase text-sm w-full sm:w-1/2 hover:bg-gray-50 transition-colors rounded-xl"
+                          >
+                            Track Order
+                          </button>
+                        </div>
+                      ) : (
+                        <Link
+                          to="/"
+                          className="inline-block bg-[#1E2A44] text-white px-6 py-3 font-bold uppercase text-sm rounded-xl hover:bg-[#223A5E] transition-colors"
+                        >
+                          Start Shopping
+                        </Link>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-6">
+                      {!user && (
+                        <div className="flex justify-end mb-4">
+                          <button
+                            onClick={() => {
+                              const phone = window.prompt("Enter the phone number used during checkout:");
+                              if (phone?.trim()) {
+                                localStorage.setItem('guest_phone', phone.trim());
+                                window.location.reload();
+                              }
+                            }}
+                            className="text-xs font-bold uppercase tracking-wider text-[#1E2A44] hover:underline"
+                          >
+                            + Track Another Order
+                          </button>
+                        </div>
+                      )}
                       {orders.map((order) => <OrderCard key={order.id} order={order} user={user} handleImageClick={handleImageClick} />)}
                     </div>
                   )}

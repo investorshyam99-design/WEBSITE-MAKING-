@@ -84,16 +84,18 @@ export function AdminOrdersDashboard({
   const handleDelete = async (orderId: string) => {
     if (
       !confirm(
-        "Are you sure you want to delete this order? This cannot be undone.",
+        "Are you sure you want to delete this item? This cannot be undone.",
       )
     )
       return;
     try {
-      await deleteDoc(doc(db, "orders", orderId));
+      await deleteDoc(doc(db, "orders", orderId)).catch(() => {});
+      await deleteDoc(doc(db, "abandoned_carts", orderId)).catch(() => {});
+      await deleteDoc(doc(db, "draft_orders", orderId)).catch(() => {});
       refreshOrders();
     } catch (e: any) {
       console.error(e);
-      alert("Failed to delete order. " + e.message);
+      alert("Failed to delete item. " + e.message);
     }
   };
 
@@ -150,17 +152,23 @@ export function AdminOrdersDashboard({
   const newOrders = orders.filter(
     (o) =>
       !o.status?.toLowerCase().includes("pending") &&
+      !o.status?.toLowerCase().includes("abandoned") &&
+      !o.status?.toLowerCase().includes("draft") &&
       o.status?.toLowerCase() !== "delivered" &&
       o.status?.toLowerCase() !== "order placed" &&
       o.address,
   );
 
   const draftOrders = orders.filter(
-    (o) => o.status?.toLowerCase().includes("pending") && o.address,
+    (o) =>
+      (o.status?.toLowerCase().includes("pending") || o.status?.toLowerCase().includes("draft")) &&
+      o.address,
   );
 
   const abandonedCarts = orders.filter(
-    (o) => o.status?.toLowerCase().includes("pending") && !o.address,
+    (o) =>
+      o.status?.toLowerCase().includes("abandoned") ||
+      ((o.status?.toLowerCase().includes("pending") || o.status?.toLowerCase().includes("draft")) && !o.address),
   );
 
   const placedOrders = orders.filter(
@@ -246,6 +254,11 @@ export function AdminOrdersDashboard({
               {tab.id === "drafts" && draftOrders.length > 0 && (
                 <span className="ml-2 bg-amber-100 text-amber-800 py-0.5 px-2 rounded-full text-[10px]">
                   {draftOrders.length}
+                </span>
+              )}
+              {tab.id === "abandoned" && abandonedCarts.length > 0 && (
+                <span className="ml-2 bg-rose-100 text-rose-800 py-0.5 px-2 rounded-full text-[10px]">
+                  {abandonedCarts.length}
                 </span>
               )}
             </button>

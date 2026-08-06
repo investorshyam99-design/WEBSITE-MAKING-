@@ -693,29 +693,41 @@ ${allUrls
       const { messages } = req.body;
 
       // Dynamically collect all possible Gemini API keys from environment variables
-      const apiKeys = Object.entries(process.env)
-        .filter(([key, value]) => {
-          const k = key.toUpperCase();
-          // Include GEMINI_API_KEY, GEMINI_API_KEY_1, G1, API_KEY_1 (but exclude known other APIs)
-          return (
-            k.includes("GEMINI") || 
-            k.match(/^G[0-9]+$/) || 
-            (k.includes("API_KEY") && !k.includes("RAZORPAY") && !k.includes("QIKINK"))
-          ) && value && value.trim().length > 0;
-        })
-        .map(([_, value]) => value?.trim())
-        .filter(Boolean) as string[];
-
-      // Fallback to GEMINI_API_KEY if dynamic collection misses it
-      if (process.env.GEMINI_API_KEY && !apiKeys.includes(process.env.GEMINI_API_KEY.trim())) {
-        apiKeys.push(process.env.GEMINI_API_KEY.trim());
+      const targetKeys = ["G1", "G3", "G5", "G6", "G7", "GEMINI_API_KEY"];
+      const apiKeys = [];
+      
+      // Verify each specified variable
+      for (const k of targetKeys) {
+        if (process.env[k] && process.env[k].trim().length > 0) {
+          if (!apiKeys.includes(process.env[k].trim())) {
+            apiKeys.push(process.env[k].trim());
+          }
+        } else {
+          console.warn(`[Gemini AI] Environment variable ${k} is missing or empty in production.`);
+        }
       }
+
+      // Also dynamically collect any other matching keys just in case
+      Object.entries(process.env).forEach(([key, value]) => {
+        const k = key.toUpperCase();
+        if (
+          (k.includes("GEMINI") || k.match(/^G[0-9]+$/) || (k.includes("API_KEY") && !k.includes("RAZORPAY") && !k.includes("QIKINK"))) &&
+          value && typeof value === 'string' && value.trim().length > 0
+        ) {
+          if (!apiKeys.includes(value.trim())) {
+            apiKeys.push(value.trim());
+          }
+        }
+      });
 
       if (apiKeys.length === 0) {
+        console.error("[Gemini AI] FATAL: No Gemini API keys found in environment variables.");
         return res
           .status(500)
-          .json({ error: "Missing GEMINI_API_KEY on the server." });
+          .json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
       }
+      
+      console.log(`[Gemini AI] Loaded ${apiKeys.length} API keys for rotation.`);
 
       const systemInstruction = `You are the official AI Shopping Assistant for JERSEY UNICORN.
 Your primary goal is to help customers confidently purchase the right product by answering questions accurately, recommending the correct size, explaining product differences, and providing excellent customer support.
@@ -796,13 +808,11 @@ Whenever a customer asks:
 The AI must NEVER guess the size immediately.
 
 First ask:
-
 1. What is your height?
 2. What is your weight?
 3. Which version are you buying?
 
 Options:
-
 • Player Version
 • Master Version
 • Fan Version
@@ -810,15 +820,12 @@ Options:
 After receiving the customer's height, weight, and selected version:
 
 If Player Version:
-
 Recommend the best size according to the official Player Version size chart.
 
 If Master Version or Fan Version:
-
 Recommend the best size according to the official Master/Fan Version size chart.
 
 After recommending a size, always add:
-
 "For the most accurate fit, please refer to the Size Chart available on the product page before placing your order."
 
 Never recommend a size without asking these questions first.
@@ -828,7 +835,6 @@ CUSTOMIZATION
 ==================================================
 
 Player Version, Master Version and Fan Version jerseys can be customized.
-
 Customization includes:
 • Player Name
 • Player Number
@@ -843,7 +849,6 @@ COD POLICY
 ==================================================
 
 If customers ask about Cash on Delivery:
-
 Explain:
 • COD is available.
 • ₹50 COD handling charge is added per jersey.
@@ -855,7 +860,6 @@ PAYMENT ISSUES
 ==================================================
 
 If a customer mentions that FamPay is not working, or they are having trouble making a payment:
-
 Explain:
 • If FamPay is not working, you can message us directly on WhatsApp to make your payment.
 • Or, you can place the order and we will message you on WhatsApp to complete the payment.
@@ -872,7 +876,6 @@ Tracking number is shared through WhatsApp after dispatch.
 
 If customers ask:
 "When will I receive my tracking?"
-
 Reply:
 "Once your order is dispatched, we will share your tracking number on your WhatsApp number."
 
@@ -881,7 +884,6 @@ EXCHANGE POLICY
 ==================================================
 
 If customers ask about exchange or return:
-
 Explain:
 • Size exchanges are available within 24 hours of delivery.
 • A complete uncut unboxing video is mandatory.
@@ -910,7 +912,6 @@ Never invent discounts.
 Never provide legal or financial advice.
 Always answer honestly.
 If you do not know something, politely tell the customer instead of guessing.
-
 Your goal is to provide a premium shopping experience that builds trust and helps customers choose the right product.`;
 
       let history = messages.slice(0, -1);
@@ -1005,14 +1006,14 @@ Your goal is to provide a premium shopping experience that builds trust and help
 
       if (lastError || !responseText) {
         console.error("[Gemini AI] FINAL REASON: All API keys exhausted or failed.");
-        return res.status(500).json({ error: "Our AI assistant is currently unavailable due to high demand. Please try again later, or contact us on WhatsApp for support." });
+        return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
       }
 
       return res.status(200).json({ text: responseText, audio: null });
 
     } catch (error: any) {
       console.error("[Gemini AI] Unexpected Server Error: ", error);
-      return res.status(500).json({ error: "Our AI assistant encountered an unexpected error. Please try again later." });
+      return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
     }
   });
 

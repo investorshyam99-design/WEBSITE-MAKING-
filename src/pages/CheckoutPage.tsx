@@ -131,6 +131,11 @@ export function CheckoutPage() {
         createdOrderIds.push(docRef.id);
       }
 
+      if (!user) {
+        const existingGuestOrders = JSON.parse(localStorage.getItem("guest_orders") || "[]");
+        localStorage.setItem("guest_orders", JSON.stringify([...existingGuestOrders, ...createdOrderIds]));
+      }
+
       const finalAmountToPay = currentMode === "full" ? total : advanceAmount;
 
       const response = await fetch("/api/create-razorpay-order", {
@@ -186,11 +191,7 @@ export function CheckoutPage() {
                  removeFromCart(item.id, item.selectedSize, item.selectedColor, item.customization);
               });
               
-              if (user) {
-                navigate("/account");
-              } else {
-                navigate("/");
-              }
+              navigate("/account");
             } else {
               alert("Payment verification failed. Please contact support.");
             }

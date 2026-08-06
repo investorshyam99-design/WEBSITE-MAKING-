@@ -180,9 +180,43 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     });
   }, [products, isProductsLoading]);
 
-  // Save to LocalStorage
+  // Save to LocalStorage & Sync Abandoned Cart to Firestore
   useEffect(() => {
     safeSetItem('cart', JSON.stringify(cart));
+
+    const syncAbandonedCart = async () => {
+      const gid = user ? user.uid : getGuestId();
+      if (!gid) return;
+
+      if (cart.length === 0) {
+        try {
+          await deleteDoc(doc(db, 'abandoned_carts', gid));
+        } catch (e) {}
+      } else {
+        try {
+          const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+          const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+          const itemNames = cart.map(i => `${i.name}${i.selectedSize ? ` (${i.selectedSize})` : ''} x ${i.quantity}`).join(', ');
+
+          await setDoc(doc(db, 'abandoned_carts', gid), {
+            userId: gid,
+            userName: user ? user.name : 'Guest Customer',
+            userPhone: user ? user.email : '',
+            items: cart,
+            productName: itemNames,
+            itemCount: totalCount,
+            total: subtotal,
+            status: 'abandoned',
+            updatedAt: new Date().toISOString(),
+          }, { merge: true });
+        } catch (e) {
+          console.warn("Failed to sync abandoned cart", e);
+        }
+      }
+    };
+
+    const timer = setTimeout(syncAbandonedCart, 1000);
+    return () => clearTimeout(timer);
   }, [cart, user]);
 
   useEffect(() => {

@@ -40,12 +40,62 @@ export function AdminDashboard() {
             id: doc.id,
             ...doc.data(),
           }) as any,
-      ).sort((a: any, b: any) => {
-          const timeA = a.createdAt?.toMillis?.() || new Date(a.createdAt).getTime() || 0;
-          const timeB = b.createdAt?.toMillis?.() || new Date(b.createdAt).getTime() || 0;
-          return timeB - timeA;
+      );
+
+      // Fetch abandoned_carts collection
+      let fetchedAbandoned: any[] = [];
+      try {
+        const abandonedRef = collection(db, "abandoned_carts");
+        const abandonedSnap = await getDocs(query(abandonedRef));
+        fetchedAbandoned = abandonedSnap.docs.map((doc) => {
+          const data = doc.data();
+          const firstItem = data.items?.[0] || {};
+          return {
+            id: doc.id,
+            userId: data.userId || doc.id,
+            productName: data.productName || (data.items?.map((i: any) => i.name).join(", ")) || "Abandoned Cart",
+            image: firstItem.image || "",
+            size: firstItem.selectedSize || "N/A",
+            quantity: data.itemCount || data.items?.length || 1,
+            cartItems: data.items || [],
+            price: data.total || 0,
+            status: "abandoned",
+            createdAt: data.updatedAt || data.createdAt || new Date().toISOString(),
+            address: data.address || "",
+            phone: data.phone || data.userPhone || "",
+            fullName: data.fullName || data.userName || "Guest Customer",
+          };
+        });
+      } catch (e) {
+        console.warn("Error fetching abandoned_carts:", e);
+      }
+
+      // Fetch draft_orders collection
+      let fetchedDrafts: any[] = [];
+      try {
+        const draftsRef = collection(db, "draft_orders");
+        const draftsSnap = await getDocs(query(draftsRef));
+        fetchedDrafts = draftsSnap.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            userId: data.userId || doc.id,
+            productName: data.productName || "Draft Order",
+            status: "pending draft",
+            ...data,
+          };
+        });
+      } catch (e) {
+        console.warn("Error fetching draft_orders:", e);
+      }
+
+      const allOrders = [...fetchedOrders, ...fetchedAbandoned, ...fetchedDrafts].sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toMillis?.() || new Date(a.createdAt).getTime() || 0;
+        const timeB = b.createdAt?.toMillis?.() || new Date(b.createdAt).getTime() || 0;
+        return timeB - timeA;
       });
-      setOrders(fetchedOrders);
+
+      setOrders(allOrders);
     } catch (e: any) {
       console.warn(e);
       setError((prev) => (prev ? prev + " | " : "") + "Failed to fetch orders: " + e.message);
