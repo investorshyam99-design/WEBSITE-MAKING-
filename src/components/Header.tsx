@@ -134,6 +134,26 @@ export function Header() {
               >
                 <FileText className="h-5 w-5" /> My Orders
               </Link>
+
+              <a
+                href="https://wa.me/919930234467"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-green-700 hover:bg-[#F5EFE6] transition-colors w-full text-left border-t border-gray-100"
+              >
+                <MessageCircle className="h-5 w-5 text-green-600" /> 📱 WhatsApp: +91 99302 34467
+              </a>
+
+              <a
+                href="https://chat.whatsapp.com/IsSp5rdtYC5H9CjhLXbga2"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-green-800 hover:bg-[#F5EFE6] transition-colors w-full text-left border-t border-gray-100"
+              >
+                <Users className="h-5 w-5 text-green-600" /> 👥 WhatsApp Community
+              </a>
             </div>
 
             <div className="mt-auto p-6 bg-[#F5EFE6]">

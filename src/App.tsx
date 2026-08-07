@@ -20,6 +20,7 @@ import { LoginModal } from "./components/LoginModal";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { RecentOrdersTicker } from "./components/RecentOrdersTicker";
 import { AIChatbot } from "./components/AIChatbot";
+import { WhatsAppCommunityButton } from "./components/WhatsAppCommunityButton";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
           <LoginModal />
           <MobileBottomNav />
           <RecentOrdersTicker />
+          <WhatsAppCommunityButton />
           <AIChatbot />
         </div>
       </Router>

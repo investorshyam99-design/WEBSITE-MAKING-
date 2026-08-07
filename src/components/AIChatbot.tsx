@@ -1,12 +1,18 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Sparkles, X, Send, Bot, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLocation } from 'react-router-dom';
 import { useShop, getGuestId } from '../context/ShopContext';
 import { db } from '../lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
 export function AIChatbot() {
+  const location = useLocation();
   const { user } = useShop();
+
+  if (location.pathname === '/checkout') {
+    return null;
+  }
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'ai' | 'user', text: string }[]>([
     { role: 'ai', text: 'Hi! I am the Jersey Unicorn Smart Assistant. How can I help you find the perfect fit, track your order, or learn about our collections?' }
@@ -91,7 +97,7 @@ export function AIChatbot() {
       {!isOpen && (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-[160px] md:bottom-[100px] right-6 z-[200] w-14 h-14 bg-gradient-to-tr from-[#14213D] to-[#1E2A44] text-[#E6C9A8] rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(20,33,61,0.3)] hover:shadow-[0_8px_40px_rgb(230,201,168,0.2)] hover:-translate-y-1 active:scale-95 transition-all duration-300 group"
+        className="fixed bottom-[193px] md:bottom-[138px] right-6 z-[200] w-14 h-14 bg-gradient-to-tr from-[#14213D] to-[#1E2A44] text-[#E6C9A8] rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(20,33,61,0.3)] hover:shadow-[0_8px_40px_rgb(230,201,168,0.2)] hover:-translate-y-1 active:scale-95 transition-all duration-300 group"
         aria-label="Open AI Assistant"
       >
         <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />

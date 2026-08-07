@@ -693,30 +693,38 @@ ${allUrls
       const { messages } = req.body;
 
       // Dynamically collect all possible Gemini API keys from environment variables
-      const targetKeys = ["G1", "G3", "G5", "G6", "G7", "GEMINI_API_KEY"];
-      const apiKeys = [];
+      const targetKeys = ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "GEMINI_API_KEY", "VITE_GEMINI_API_KEY", "GOOGLE_API_KEY"];
+      const apiKeys: string[] = [];
       
-      // Verify each specified variable
-      for (const k of targetKeys) {
-        if (process.env[k] && process.env[k].trim().length > 0) {
-          if (!apiKeys.includes(process.env[k].trim())) {
-            apiKeys.push(process.env[k].trim());
+      const addKeyCandidate = (val: string) => {
+        if (!val) return;
+        const parts = val.split(",");
+        for (const raw of parts) {
+          const trimmed = raw.trim();
+          if (
+            trimmed.length > 0 &&
+            trimmed !== "MY_GEMINI_API_KEY" &&
+            trimmed !== "undefined" &&
+            !apiKeys.includes(trimmed)
+          ) {
+            apiKeys.push(trimmed);
           }
-        } else {
-          console.warn(`[Gemini AI] Environment variable ${k} is missing or empty in production.`);
+        }
+      };
+
+      for (const k of targetKeys) {
+        if (process.env[k]) {
+          addKeyCandidate(process.env[k]!);
         }
       }
 
-      // Also dynamically collect any other matching keys just in case
       Object.entries(process.env).forEach(([key, value]) => {
         const k = key.toUpperCase();
         if (
           (k.includes("GEMINI") || k.match(/^G[0-9]+$/) || (k.includes("API_KEY") && !k.includes("RAZORPAY") && !k.includes("QIKINK"))) &&
-          value && typeof value === 'string' && value.trim().length > 0
+          typeof value === "string"
         ) {
-          if (!apiKeys.includes(value.trim())) {
-            apiKeys.push(value.trim());
-          }
+          addKeyCandidate(value);
         }
       });
 
@@ -727,7 +735,7 @@ ${allUrls
           .json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
       }
       
-      console.log(`[Gemini AI] Loaded ${apiKeys.length} API keys for rotation.`);
+      console.log(`[Gemini AI] Loaded ${apiKeys.length} API key candidate(s) for rotation.`);
 
       const systemInstruction = `You are the official AI Shopping Assistant for JERSEY UNICORN.
 Your primary goal is to help customers confidently purchase the right product by answering questions accurately, recommending the correct size, explaining product differences, and providing excellent customer support.
@@ -933,20 +941,17 @@ Your goal is to provide a premium shopping experience that builds trust and help
 
       let responseText = "";
       let lastError = null;
-      
-      const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+      const MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.1-flash-lite", "gemini-3.1-pro-preview"];
 
       for (let i = 0; i < apiKeys.length; i++) {
         const key = apiKeys[i];
-        let maxRetriesPerKey = 1;
-        let attempt = 0;
         let successWithKey = false;
-        
-        while (attempt <= maxRetriesPerKey) {
-          attempt++;
+
+        for (const modelName of MODELS_TO_TRY) {
           try {
-            console.log(`[Gemini AI] Attempting API key index ${i}, Retry attempt ${attempt}`);
-            
+            console.log(`[Gemini AI] Trying Key #${i + 1} with Model: ${modelName}`);
+
             const ai = new GoogleGenAI({
               apiKey: key,
               httpOptions: {
@@ -956,56 +961,38 @@ Your goal is to provide a premium shopping experience that builds trust and help
               },
             });
 
-            const chat = ai.chats.create({
-              model: "gemini-2.0-flash",
+            const response = await ai.models.generateContent({
+              model: modelName,
+              contents: prompt,
               config: {
                 systemInstruction,
                 temperature: 0.7,
               },
             });
 
-            const response = await chat.sendMessage({ message: prompt });
             responseText = response.text || "";
-            
-            if (responseText) {
+
+            if (responseText && responseText.trim().length > 0) {
+              console.log(`[Gemini AI] SUCCESS: Key #${i + 1} generated response with model ${modelName}`);
               successWithKey = true;
-              break; // Break the retry loop for this key
+              lastError = null;
+              break;
             }
           } catch (err: any) {
-            const status = err?.status || err?.response?.status || 'unknown';
-            const errMsg = err?.message || err?.toString() || 'Unknown Error';
-            
-            console.error(`[Gemini AI] API key index ${i} failed on attempt ${attempt}. HTTP Status: ${status}. Error: ${errMsg}`);
+            const status = err?.status || err?.response?.status || "unknown";
+            const errMsg = err?.message || err?.toString() || "Unknown Error";
+            console.warn(`[Gemini AI] Key #${i + 1} with model ${modelName} failed (HTTP ${status}): ${errMsg}`);
             lastError = err;
-            
-            if (
-              status === 400 || 
-              status === 401 || 
-              status === 403 || 
-              status === 404 || 
-              status === 429
-            ) {
-              console.log(`[Gemini AI] Fatal or Quota error (${status}). Skipping to next key.`);
-              break; // Break the retry loop for this key, move to next key
-            }
-
-            if (attempt <= maxRetriesPerKey) {
-              const backoffMs = Math.pow(2, attempt) * 500; 
-              console.log(`[Gemini AI] Temporary failure. Waiting ${backoffMs}ms before retrying same key...`);
-              await sleep(backoffMs);
-            }
           }
         }
 
         if (successWithKey) {
-          console.log(`[Gemini AI] Successfully generated response using API key index ${i}.`);
-          lastError = null;
-          break; // Success! Break the main key loop
+          break;
         }
       }
 
-      if (lastError || !responseText) {
-        console.error("[Gemini AI] FINAL REASON: All API keys exhausted or failed.");
+      if (!responseText) {
+        console.error("[Gemini AI] All configured keys and model attempts failed. Last error:", lastError);
         return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
       }
 

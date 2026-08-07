@@ -39,6 +39,23 @@ export function CheckoutPage() {
 
   const jerseyCart = cart.filter(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
   
+  const hasCustomization = jerseyCart.some(item => {
+    if (!item.customization) return false;
+    if (typeof item.customization === 'object') {
+      return Boolean(item.customization.name?.trim()) || Boolean(item.customization.number?.trim());
+    }
+    if (typeof item.customization === 'string') {
+      return (item.customization as string).trim().length > 0;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (hasCustomization) {
+      setPaymentMode("full");
+    }
+  }, [hasCustomization]);
+
   const subtotal = jerseyCart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -295,6 +312,16 @@ export function CheckoutPage() {
               <h2 className="font-bold text-[#1B1B1B] uppercase tracking-wider text-sm flex items-center gap-2">
                 <Lock className="w-4 h-4" /> Payment Options
               </h2>
+
+              {hasCustomization && (
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs leading-relaxed flex items-start gap-2.5 shadow-sm">
+                  <span className="text-base leading-none">ℹ️</span>
+                  <span className="font-medium">
+                    Customized jerseys are made exclusively for you. Therefore, Name & Number customized jerseys are available only on Prepaid orders.
+                  </span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <button
                   onClick={() => setPaymentMode("full")}
@@ -305,7 +332,7 @@ export function CheckoutPage() {
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-sm">Pay Full Amount</span>
+                    <span className="font-bold text-sm">Pay Full Amount (Prepaid)</span>
                     {paymentMode === "full" && <ShieldCheck className="w-5 h-5 text-green-600" />}
                   </div>
                   <div className="text-xs text-gray-500">Pay Rs. {total.toFixed(2)} securely now.</div>
@@ -314,21 +341,31 @@ export function CheckoutPage() {
                   </div>
                 </button>
 
-                <button
-                  onClick={() => setPaymentMode("partial")}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    paymentMode === "partial"
-                      ? "border-[#1E2A44] bg-[#1E2A44]/5"
-                      : "border-gray-200 hover:border-[#1E2A44]/20"
-                  }`}
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-sm">💳 COD Available</span>
-                    {paymentMode === "partial" && <ShieldCheck className="w-5 h-5 text-[#1E2A44]" />}
+                {!hasCustomization ? (
+                  <button
+                    onClick={() => setPaymentMode("partial")}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      paymentMode === "partial"
+                        ? "border-[#1E2A44] bg-[#1E2A44]/5"
+                        : "border-gray-200 hover:border-[#1E2A44]/20"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-sm">💳 COD Available</span>
+                      {paymentMode === "partial" && <ShieldCheck className="w-5 h-5 text-[#1E2A44]" />}
+                    </div>
+                    <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceAmount} Advance Payment Required</div>
+                    <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery<br/>(₹{codExtra} COD handling charge applies)</div>
+                  </button>
+                ) : (
+                  <div className="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 opacity-60 text-left cursor-not-allowed">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-sm text-gray-500">💳 COD Unavailable</span>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Prepaid Only</span>
+                    </div>
+                    <div className="text-xs text-gray-500">COD is disabled for Name & Number customized jerseys.</div>
                   </div>
-                  <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceAmount} Advance Payment Required</div>
-                  <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery<br/>(₹{codExtra} COD handling charge applies)</div>
-                </button>
+                )}
               </div>
             </div>
 
@@ -377,27 +414,29 @@ export function CheckoutPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:p-6 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)] z-50 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-xl mx-auto px-4 sm:px-0 flex gap-4 md:gap-6">
           {/* LEFT BUTTON - COD */}
-          <button
-            disabled={isSubmitting}
-            onClick={() => {
-              setPaymentMode("partial");
-              handleCheckout("partial");
-            }}
-            className={`flex-1 relative rounded-2xl border-2 transition-all duration-300 py-2 px-4 flex flex-col items-center justify-center text-center animate-attention disabled:opacity-50 disabled:animate-none ${
-              paymentMode === "partial" 
-                ? "border-[#1E2A44] shadow-[0_8px_20px_-5px_rgba(30,42,68,0.3)] bg-gray-50 scale-[1.02] z-10" 
-                : "border-gray-200 bg-white opacity-90 hover:opacity-100 hover:border-[#1E2A44]/50"
-            }`}
-          >
-            {paymentMode === "partial" && (
-              <div className="absolute -top-3 -right-3 bg-[#1E2A44] text-white rounded-full p-1 shadow-lg">
-                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
-              </div>
-            )}
-            <span className="text-xs md:text-sm font-black tracking-wider text-[#1E2A44] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><Truck className="w-4 h-4 md:w-5 md:h-5"/> COD</span>
-            <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{advanceAmount.toFixed(0)}</span>
-            <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Remaining on<br/>Delivery</span>
-          </button>
+          {!hasCustomization && (
+            <button
+              disabled={isSubmitting}
+              onClick={() => {
+                setPaymentMode("partial");
+                handleCheckout("partial");
+              }}
+              className={`flex-1 relative rounded-2xl border-2 transition-all duration-300 py-2 px-4 flex flex-col items-center justify-center text-center animate-attention disabled:opacity-50 disabled:animate-none ${
+                paymentMode === "partial" 
+                  ? "border-[#1E2A44] shadow-[0_8px_20px_-5px_rgba(30,42,68,0.3)] bg-gray-50 scale-[1.02] z-10" 
+                  : "border-gray-200 bg-white opacity-90 hover:opacity-100 hover:border-[#1E2A44]/50"
+              }`}
+            >
+              {paymentMode === "partial" && (
+                <div className="absolute -top-3 -right-3 bg-[#1E2A44] text-white rounded-full p-1 shadow-lg">
+                  <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+              )}
+              <span className="text-xs md:text-sm font-black tracking-wider text-[#1E2A44] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><Truck className="w-4 h-4 md:w-5 md:h-5"/> COD</span>
+              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{advanceAmount.toFixed(0)}</span>
+              <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Remaining on<br/>Delivery</span>
+            </button>
+          )}
 
           {/* RIGHT BUTTON - PREPAID */}
           <button
@@ -417,9 +456,9 @@ export function CheckoutPage() {
                 <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
               </div>
             )}
-            <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID</span>
-            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay Full</span>
-            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">Free<br/>Delivery</span>
+            <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID ONLY</span>
+            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay Rs. {total.toFixed(0)}</span>
+            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">Free Delivery</span>
           </button>
         </div>
       </div>
