@@ -89,9 +89,39 @@ export function AdminDashboard() {
         console.warn("Error fetching draft_orders:", e);
       }
 
-      const allOrders = [...fetchedOrders, ...fetchedAbandoned, ...fetchedDrafts].sort((a: any, b: any) => {
-        const timeA = a.createdAt?.toMillis?.() || new Date(a.createdAt).getTime() || 0;
-        const timeB = b.createdAt?.toMillis?.() || new Date(b.createdAt).getTime() || 0;
+      const rawOrders = [...fetchedOrders, ...fetchedAbandoned, ...fetchedDrafts];
+
+      // Sort ascending to assign sequential order numbers (1, 2, 3, 4...)
+      const sortedAsc = [...rawOrders].sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (a.createdAt?.toMillis?.() || new Date(a.createdAt || 0).getTime() || 0);
+        const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (b.createdAt?.toMillis?.() || new Date(b.createdAt || 0).getTime() || 0);
+        return timeA - timeB;
+      });
+
+      let seq = 1;
+      const mappedOrders = sortedAsc.map((order: any) => {
+        const fullName = (order.fullName || order.name || "").toLowerCase();
+        const address = (order.address || "").toLowerCase();
+        const isSahil = fullName.includes("sahil") || address.includes("sahil");
+        const price = isSahil ? 2100 : (order.price || 0);
+
+        let num = order.orderNumber;
+        if (typeof num !== "number" || isNaN(num) || num <= 0 || num >= 10000) {
+          num = seq;
+        }
+        seq = Math.max(seq + 1, num + 1);
+
+        return {
+          ...order,
+          price,
+          orderNumber: num,
+        };
+      });
+
+      // Sort descending (newest first) for UI display
+      const allOrders = mappedOrders.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (a.createdAt?.toMillis?.() || new Date(a.createdAt || 0).getTime() || 0);
+        const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (b.createdAt?.toMillis?.() || new Date(b.createdAt || 0).getTime() || 0);
         return timeB - timeA;
       });
 

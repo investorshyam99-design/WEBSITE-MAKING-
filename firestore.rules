@@ -43,6 +43,10 @@ service cloud.firestore {
       allow read, create, update, delete, write: if true;
     }
 
+    match /counters/{counterId} {
+      allow read, create, update: if true;
+    }
+
     match /abandoned_carts/{cartId} {
       allow read, create, update, delete, write: if true;
     }

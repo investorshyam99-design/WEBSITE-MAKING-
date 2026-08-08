@@ -142,13 +142,58 @@ export function AccountPage() {
         );
       }
 
-      fetchedOrders.sort((a, b) => {
+      if (user?.email !== "investorshyam99@gmail.com") {
+        fetchedOrders = fetchedOrders.filter((order) => {
+          const s = (order.status || "").toLowerCase();
+          const payStatus = ((order as any).paymentStatus || "").toLowerCase();
+
+          // Reject draft, pending, or abandoned orders
+          if (s.includes("draft") || s.includes("abandoned") || s.includes("pending")) return false;
+          if (payStatus.includes("pending") || payStatus.includes("failed")) return false;
+
+          // Accept paid or advance paid or active fulfillment status
+          return (
+            s.includes("paid") ||
+            s.includes("shipped") ||
+            s.includes("delivered") ||
+            s.includes("processing") ||
+            s.includes("confirmed") ||
+            s.includes("completed") ||
+            payStatus.includes("paid") ||
+            payStatus.includes("success") ||
+            payStatus.includes("captured")
+          );
+        });
+      }
+
+      // Sort ascending to assign sequential order numbers (1, 2, 3, 4...)
+      const sortedAsc = [...fetchedOrders].sort((a, b) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      let seq = 1;
+      const mappedOrders = sortedAsc.map((order) => {
+        let num = order.orderNumber;
+        if (typeof num !== "number" || isNaN(num) || num <= 0 || num >= 10000) {
+          num = seq;
+        }
+        seq = Math.max(seq + 1, num + 1);
+        return {
+          ...order,
+          orderNumber: num,
+        };
+      });
+
+      // Sort descending (newest first)
+      const sortedOrders = mappedOrders.sort((a, b) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       });
 
-      setOrders(fetchedOrders);
+      setOrders(sortedOrders);
     } catch (error) {
       console.warn("Error fetching orders:", error);
     } finally {
@@ -432,7 +477,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
               Order #
             </p>
-            <p className="font-semibold text-[#1B1B1B]">{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
+            <p className="font-semibold text-[#1B1B1B]">{order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}</p>
           </div>
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">

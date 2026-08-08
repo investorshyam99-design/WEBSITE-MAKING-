@@ -20,6 +20,10 @@ import {
   updateDoc,
   setDoc,
   runTransaction,
+  getDocs,
+  query,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
@@ -179,22 +183,36 @@ export function CartModal() {
         return;
       }
 
-      let nextOrderNumber = 1;
+      let nextOrderNumber = 396;
       try {
         await runTransaction(db, async (transaction) => {
           const counterRef = doc(db, "counters", "orderCounter");
           const counterDoc = await transaction.get(counterRef);
           if (!counterDoc.exists()) {
-            transaction.set(counterRef, { count: 1 });
-            nextOrderNumber = 1;
+            nextOrderNumber = 396;
+            transaction.set(counterRef, { count: nextOrderNumber });
           } else {
-            nextOrderNumber = counterDoc.data().count + 1;
+            const current = counterDoc.data().count || 0;
+            nextOrderNumber = Math.max(current + 1, 396);
             transaction.update(counterRef, { count: nextOrderNumber });
           }
         });
       } catch (e) {
         console.error("Failed to generate order number", e);
-        nextOrderNumber = Math.floor(Math.random() * 900000) + 100000;
+        try {
+          const q = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(20));
+          const snap = await getDocs(q);
+          let maxNum = 395;
+          snap.forEach((d) => {
+            const num = d.data().orderNumber;
+            if (typeof num === "number" && num < 10000 && num > maxNum) {
+              maxNum = num;
+            }
+          });
+          nextOrderNumber = maxNum + 1;
+        } catch (err) {
+          nextOrderNumber = 396;
+        }
       }
 
       // 1. Create order in Firestore as Pending

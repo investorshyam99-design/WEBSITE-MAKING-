@@ -330,7 +330,7 @@ function AdminOrderCard({
 
   const handleQikinkFulfillment = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Are you sure you want to send Order #${order.orderNumber || order.id.slice(-6).toUpperCase()} to Qikink Fulfillment?`)) {
+    if (!confirm(`Are you sure you want to send Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`} to Qikink Fulfillment?`)) {
       return;
     }
     setIsFulfilling(true);
@@ -437,7 +437,7 @@ function AdminOrderCard({
   };
 
   // WhatsApp Templates
-  const displayOrderNumber = order.orderNumber ? `#${order.orderNumber}` : `#${order.id.slice(-6).toUpperCase()}`;
+  const displayOrderNumber = order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`;
   const templates = {
     orderReceived: `Hey ${customerName} 👋\n\nYour Jersey Unicorn order ${displayOrderNumber} has been received successfully ⚽\n\nWe’ll update you once shipped 🚚`,
     draftReminder: `Hey ${customerName},\n\nYour Jersey Unicorn order ${displayOrderNumber} is waiting for confirmation ⚽\n\nComplete your order here:\n${paymentLink}`,
@@ -471,7 +471,7 @@ function AdminOrderCard({
           <div className="flex justify-between items-start">
             <div>
               <p className="font-bold text-[#1E2A44] text-sm truncate pr-2 flex items-center gap-2">
-                <span className="text-[#38D9A9]">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
+                <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}</span>
                 {customerName}
               </p>
               <p className="text-xs text-gray-500 truncate">

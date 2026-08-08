@@ -88,15 +88,25 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
   };
 
 
+  const getOrderPrice = (order: any) => {
+    const fullName = (order.fullName || order.name || "").toLowerCase();
+    const address = (order.address || "").toLowerCase();
+    if (fullName.includes("sahil") || address.includes("sahil")) {
+      return 2100;
+    }
+    return order.price || 0;
+  };
+
   const getEffectiveQuantity = (order: any) => {
     let effectiveQuantity = order.quantity;
+    const basePrice = getOrderPrice(order);
     if (!effectiveQuantity) {
-      if (order.price >= 1800) {
-        if (order.price % 1499 === 0) effectiveQuantity = order.price / 1499;
-        else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
-        else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
-        else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
-        else effectiveQuantity = Math.max(1, Math.round(order.price / (order.productName?.toLowerCase().includes('player') ? 1499 : 999)));
+      if (basePrice >= 1800) {
+        if (basePrice % 1499 === 0) effectiveQuantity = basePrice / 1499;
+        else if (basePrice % 1099 === 0) effectiveQuantity = basePrice / 1099;
+        else if (basePrice % 999 === 0) effectiveQuantity = basePrice / 999;
+        else if (basePrice % 1149 === 0) effectiveQuantity = basePrice / 1149;
+        else effectiveQuantity = Math.max(1, Math.round(basePrice / (order.productName?.toLowerCase().includes('player') ? 1499 : 999)));
       } else {
         effectiveQuantity = 1;
       }
@@ -145,14 +155,17 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       const aCost = Number(o.additionalCost || 0);
       const tCost = pCost + sCost + aCost;
 
+      const basePrice = getOrderPrice(o);
       let revenue = 0;
 
       if (o.paymentMode === 'full') {
-        revenue = o.price || 0;
+        revenue = basePrice;
       } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
         const advanceReceived = 50 * effectiveQty;
-        const codAmount = (o.price || 0) + (50 * effectiveQty) - advanceReceived;
+        const codAmount = basePrice + (50 * effectiveQty) - advanceReceived;
         revenue = advanceReceived + codAmount;
+      } else {
+        revenue = basePrice;
       }
 
       totalRevenue += revenue;
@@ -351,16 +364,14 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
           const aCost = Number(order.additionalCost || 0);
           const tCost = pCost + sCost + aCost;
           
+          const basePrice = getOrderPrice(order);
           let rev = 0;
           
-
           if (order.paymentMode === 'full') {
-             rev = order.price || 0;
-             
+             rev = basePrice;
           } else {
              const advance = 50 * eq;
-             
-             const codAmount = (order.price || 0) + (50 * eq) - advance;
+             const codAmount = basePrice + (50 * eq) - advance;
              rev = advance + codAmount;
           }
           
@@ -378,7 +389,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                   )}
                   <div>
                     <p className="font-bold text-[#1E2A44] text-sm flex items-center gap-2">
-                      <span className="text-[#38D9A9]">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
+                      <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}</span>
                       {order.fullName || "Guest Customer"}
                     </p>
                     <p className="text-xs text-gray-500 mb-2 truncate max-w-xs md:max-w-sm">{order.productName}</p>
