@@ -12,6 +12,7 @@ import { signOut } from "firebase/auth";
 
 interface Order {
   id: string;
+  orderNumber?: number;
   userId: string;
   productName: string;
   image?: string;

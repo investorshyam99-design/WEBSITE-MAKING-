@@ -23,6 +23,7 @@ import { TrendingSalesIndicator } from "../components/TrendingSalesIndicator";
 
 import { ProductInfoAccordion } from "../components/ProductInfoAccordion";
 import { generateProductSEO } from "../lib/productSeoHelper";
+import { trackViewContent } from "../lib/pixel";
 
 // Size reservation warning component with 10 minute countdown timer
 function SizeReservationWarning({ selectedSize }: { selectedSize: string }) {
@@ -121,6 +122,7 @@ export function ProductPage() {
   useEffect(() => {
     if (product?.id) {
       addRecentlyViewed(product.id);
+      trackViewContent(product);
     }
   }, [product?.id]);
 

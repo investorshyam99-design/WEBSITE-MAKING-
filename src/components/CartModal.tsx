@@ -25,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { CartReservationTimer } from "./CartReservationTimer";
 import { getProductReviewsInfo } from "./ReviewsSection";
+import { trackInitiateCheckout, trackPurchase } from "../lib/pixel";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -293,6 +294,11 @@ export function CartModal() {
                   paymentId: response.razorpay_payment_id,
                 });
               }
+
+              // Fire Meta Pixel Purchase event with order ID, total INR value, and item list
+              const paidAmount = paymentMode === "full" ? total : advanceAmount;
+              trackPurchase(nextOrderNumber, paidAmount, cart);
+
               if (paymentMode === "full") {
                 alert(
                   `Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order #${nextOrderNumber}.`,
@@ -664,6 +670,7 @@ export function CartModal() {
               <div className="bg-white border-t border-gray-100 p-4 md:p-6 shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.05)] z-20 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
                 <button
                   onClick={() => {
+                    trackInitiateCheckout(cart, total);
                     setIsCartOpen(false);
                     navigate("/checkout");
                   }}

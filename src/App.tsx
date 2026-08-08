@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { HashRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { trackPageView } from "./lib/pixel";
 import { CollectionPage } from "./pages/CollectionPage";
 import { GenericPage } from "./pages/GenericPage";
 import { PolicyPage } from "./pages/PolicyPage";
@@ -22,10 +24,21 @@ import { RecentOrdersTicker } from "./components/RecentOrdersTicker";
 import { AIChatbot } from "./components/AIChatbot";
 import { WhatsAppCommunityButton } from "./components/WhatsAppCommunityButton";
 
+function PixelPageViewTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView();
+  }, [location.pathname, location.search]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <ShopProvider>
       <Router>
+        <PixelPageViewTracker />
         <div className="pb-[60px] md:pb-0 min-h-screen flex flex-col bg-brand-bg text-brand-text">
           <Routes>
             <Route path="/" element={<Home />} />

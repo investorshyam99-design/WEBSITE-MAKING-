@@ -24,6 +24,7 @@ import { useProducts } from "../data/products";
 
 interface Order {
   id: string;
+  orderNumber?: number;
   userId: string;
   productName: string;
   image?: string;
@@ -32,6 +33,7 @@ interface Order {
   cartItems?: any[];
   customization?: string;
   price: number;
+  remainingCodAmount?: number;
   status: string;
   createdAt: any;
   address?: string;

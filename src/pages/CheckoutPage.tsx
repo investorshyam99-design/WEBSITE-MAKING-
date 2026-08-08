@@ -4,6 +4,7 @@ import { Lock, Truck, ShieldCheck, ChevronLeft, CheckCircle2 } from "lucide-reac
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, setDoc, runTransaction } from "firebase/firestore";
+import { trackInitiateCheckout, trackPurchase } from "../lib/pixel";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -19,12 +20,16 @@ export function CheckoutPage() {
   const { cart, user, clearCart, updateQuantity, removeFromCart, setIsCartOpen } = useShop();
   const navigate = useNavigate();
 
-  // Redirect to home if cart is empty
+  // Redirect to home if cart is empty and track InitiateCheckout
   useEffect(() => {
     if (cart.length === 0) {
       navigate("/");
+    } else {
+      const itemsToTrack = jerseyCart.length > 0 ? jerseyCart : cart;
+      const totalVal = itemsToTrack.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      trackInitiateCheckout(itemsToTrack, totalVal);
     }
-  }, [cart, navigate]);
+  }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState(user?.name || "");
@@ -217,6 +222,11 @@ export function CheckoutPage() {
                   paymentId: response.razorpay_payment_id,
                 });
               }
+
+              // Fire Meta Pixel Purchase event with order ID, total INR value, and item list
+              const paidAmount = currentMode === "full" ? total : advanceAmount;
+              trackPurchase(nextOrderNumber, paidAmount, jerseyCart);
+
               if (currentMode === "full") {
                 alert(`Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order #${nextOrderNumber}.`);
               } else {

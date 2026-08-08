@@ -5,6 +5,7 @@ import { useProducts } from '../data/products';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, User, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { trackAddToCart } from '../lib/pixel';
 
 type CartItem = Product & { 
   quantity: number; 
@@ -226,6 +227,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const clearCart = () => setCart([]);
 
   const addToCart = (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => {
+    trackAddToCart(product);
     setCart((prev) => {
       const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
         if (!itemCustom && !targetCustom) return true;
