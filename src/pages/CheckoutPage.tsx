@@ -3,7 +3,7 @@ import { useShop } from "../context/ShopContext";
 import { Lock, Truck, ShieldCheck, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
-import { collection, addDoc, serverTimestamp, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, updateDoc, setDoc, runTransaction } from "firebase/firestore";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -64,7 +64,6 @@ export function CheckoutPage() {
   
   const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
   const advanceAmount = itemsCount * 50;
-  const codExtra = itemsCount * 50;
 
   const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -111,41 +110,61 @@ export function CheckoutPage() {
         return;
       }
 
+      let nextOrderNumber = 1;
+      try {
+        await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, "counters", "orderCounter");
+          const counterDoc = await transaction.get(counterRef);
+          if (!counterDoc.exists()) {
+            transaction.set(counterRef, { count: 1 });
+            nextOrderNumber = 1;
+          } else {
+            nextOrderNumber = counterDoc.data().count + 1;
+            transaction.update(counterRef, { count: nextOrderNumber });
+          }
+        });
+      } catch (e) {
+        console.error("Failed to generate order number", e);
+        nextOrderNumber = Math.floor(Math.random() * 900000) + 100000;
+      }
+
       const createdOrderIds = [];
       for (const item of jerseyCart) {
-        const itemFinalPrice = item.price;
-        const itemAdvance = 50 * item.quantity;
-        const itemCodExtra = 50 * item.quantity;
-        const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice * item.quantity - itemAdvance + itemCodExtra;
+        for (let i = 0; i < item.quantity; i++) {
+          const itemFinalPrice = item.price;
+          const itemAdvance = 50;
+          const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice;
 
-        const docRef = await addDoc(collection(db, "orders"), {
-          userId: user ? user.uid : "guest",
-          productId: item.id,
-          productName: item.name,
-          image: item.image,
-          size: item.selectedSize || "N/A",
-          color: item.selectedColor || "N/A",
-          quantity: item.quantity || 1,
-          customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
-          price: itemFinalPrice,
-          originalPrice: item.price * item.quantity,
-          codCharges: itemCodExtra,
-          advancePaid: itemAdvance,
-          remainingCodAmount: itemRemainingCod,
-          finalTotal: itemFinalPrice + itemCodExtra,
-          status: currentMode === "full" ? "pending full payment" : "pending advance payment",
-          paymentMode: currentMode,
-          createdAt: serverTimestamp(),
-          fullName,
-          address: combinedAddress,
-          phone,
-          pincode,
-          houseNo,
-          areaStreet,
-          city,
-          state,
-        });
-        createdOrderIds.push(docRef.id);
+          const docRef = await addDoc(collection(db, "orders"), {
+            orderNumber: nextOrderNumber,
+            userId: user ? user.uid : "guest",
+            productId: item.id,
+            productName: item.name,
+            image: item.image,
+            size: item.selectedSize || "N/A",
+            color: item.selectedColor || "N/A",
+            quantity: 1,
+            customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
+            price: itemFinalPrice,
+            originalPrice: item.price,
+            codCharges: 0,
+            advancePaid: itemAdvance,
+            remainingCodAmount: itemRemainingCod,
+            finalTotal: itemFinalPrice,
+            status: currentMode === "full" ? "pending full payment" : "pending advance payment",
+            paymentMode: currentMode,
+            createdAt: serverTimestamp(),
+            fullName,
+            address: combinedAddress,
+            phone,
+            pincode,
+            houseNo,
+            areaStreet,
+            city,
+            state,
+          });
+          createdOrderIds.push(docRef.id);
+        }
       }
 
       if (!user) {
@@ -199,9 +218,9 @@ export function CheckoutPage() {
                 });
               }
               if (currentMode === "full") {
-                alert(`Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order.`);
+                alert(`Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order #${nextOrderNumber}.`);
               } else {
-                alert(`Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nRemaining COD Amount: ₹${total - advanceAmount + codExtra}\nPay remaining amount during delivery.`);
+                alert(`Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nOrder #${nextOrderNumber} Confirmed\nRemaining COD Amount: ₹${total}\nPay remaining amount during delivery.`);
               }
               // Clear only jersey items from cart
               jerseyCart.forEach(item => {
@@ -355,7 +374,7 @@ export function CheckoutPage() {
                       {paymentMode === "partial" && <ShieldCheck className="w-5 h-5 text-[#1E2A44]" />}
                     </div>
                     <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceAmount} Advance Payment Required</div>
-                    <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery<br/>(₹{codExtra} COD handling charge applies)</div>
+                    <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery</div>
                   </button>
                 ) : (
                   <div className="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 opacity-60 text-left cursor-not-allowed">
@@ -375,12 +394,6 @@ export function CheckoutPage() {
                 <span>Subtotal ({itemsCount} items)</span>
                 <span>Rs. {total.toFixed(2)}</span>
               </div>
-              {paymentMode === "partial" && (
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>COD Charges</span>
-                  <span>+ Rs. {codExtra.toFixed(2)}</span>
-                </div>
-              )}
               <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">
                 <span>Amount to Pay Now</span>
                 <span className="text-xl">Rs. {(paymentMode === "full" ? total : advanceAmount).toFixed(2)}</span>
@@ -388,7 +401,7 @@ export function CheckoutPage() {
               {paymentMode === "partial" && (
                 <div className="flex justify-between text-xs font-bold text-red-600">
                   <span>To pay on delivery</span>
-                  <span>Rs. {(total - advanceAmount + codExtra).toFixed(2)}</span>
+                  <span>Rs. {total.toFixed(2)}</span>
                 </div>
               )}
             </div>

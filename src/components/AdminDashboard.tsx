@@ -198,6 +198,7 @@ export function AdminOrdersDashboard({
     const searchLower = search.toLowerCase();
     currentOrders = currentOrders.filter(
       (o) =>
+        (o.orderNumber && o.orderNumber.toString().includes(searchLower)) ||
         o.id.toLowerCase().includes(searchLower) ||
         (o.phone && o.phone.toLowerCase().includes(searchLower)) ||
         (o.fullName && o.fullName.toLowerCase().includes(searchLower)) ||
@@ -327,7 +328,7 @@ function AdminOrderCard({
 
   const handleQikinkFulfillment = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Are you sure you want to send Order #${order.id} to Qikink Fulfillment?`)) {
+    if (!confirm(`Are you sure you want to send Order #${order.orderNumber || order.id.slice(-6).toUpperCase()} to Qikink Fulfillment?`)) {
       return;
     }
     setIsFulfilling(true);
@@ -434,12 +435,13 @@ function AdminOrderCard({
   };
 
   // WhatsApp Templates
+  const displayOrderNumber = order.orderNumber ? `#${order.orderNumber}` : `#${order.id.slice(-6).toUpperCase()}`;
   const templates = {
-    orderReceived: `Hey ${customerName} 👋\n\nYour Jersey Unicorn order has been received successfully ⚽\n\nWe’ll update you once shipped 🚚`,
-    draftReminder: `Hey ${customerName},\n\nYour Jersey Unicorn order is waiting for confirmation ⚽\n\nComplete your order here:\n${paymentLink}`,
-    codConfirm: `Please complete the ₹50 confirmation payment to process your COD order ⚽\n\nLink: ${paymentLink}`,
-    shipped: `Your Jersey Unicorn order has been shipped 🚚\n\nTracking ID: ${trackingId}\nCourier: ${courierName}`,
-    delivery: `Your Jersey Unicorn order has been delivered ⚽🔥\n\nTag us on Instagram @jerseyunicorn1 to get featured ❤️`,
+    orderReceived: `Hey ${customerName} 👋\n\nYour Jersey Unicorn order ${displayOrderNumber} has been received successfully ⚽\n\nWe’ll update you once shipped 🚚`,
+    draftReminder: `Hey ${customerName},\n\nYour Jersey Unicorn order ${displayOrderNumber} is waiting for confirmation ⚽\n\nComplete your order here:\n${paymentLink}`,
+    codConfirm: `Please complete the ₹50 confirmation payment to process your COD order ${displayOrderNumber} ⚽\n\nLink: ${paymentLink}`,
+    shipped: `Your Jersey Unicorn order ${displayOrderNumber} has been shipped 🚚\n\nTracking ID: ${trackingId}\nCourier: ${courierName}`,
+    delivery: `Your Jersey Unicorn order ${displayOrderNumber} has been delivered ⚽🔥\n\nTag us on Instagram @jerseyunicorn1 to get featured ❤️`,
   };
 
   return (
@@ -466,7 +468,8 @@ function AdminOrderCard({
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-bold text-[#1E2A44] text-sm truncate pr-2">
+              <p className="font-bold text-[#1E2A44] text-sm truncate pr-2 flex items-center gap-2">
+                <span className="text-[#38D9A9]">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
                 {customerName}
               </p>
               <p className="text-xs text-gray-500 truncate">
@@ -559,9 +562,7 @@ function AdminOrderCard({
                   <p className="font-black text-red-600 text-sm">
                     ₹
                     {(
-                      (order.price || 0) +
-                      50 * effectiveQuantity -
-                      50 * effectiveQuantity
+                      order.remainingCodAmount ?? ((order.price || 0) * effectiveQuantity)
                     ).toLocaleString("en-IN")}
                   </p>
                 </div>

@@ -249,7 +249,7 @@ async function startServer() {
       const lastName = nameParts.slice(1).join(" ") || "Customer";
 
       const qikinkPayload = {
-        order_number: order.id,
+        order_number: order.orderNumber ? order.orderNumber.toString() : order.id,
         qikink_shipping: "1",
         gateway: (order.paymentMode === "full" || order.status?.toLowerCase().includes("fampay") || order.status?.toLowerCase().includes("confirmed")) ? "Prepaid" : "COD",
         total_order_value: order.totalAmount || 0,

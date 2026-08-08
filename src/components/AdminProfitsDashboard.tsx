@@ -377,7 +377,10 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
                     </div>
                   )}
                   <div>
-                    <p className="font-bold text-[#1E2A44] text-sm">{order.fullName || "Guest Customer"}</p>
+                    <p className="font-bold text-[#1E2A44] text-sm flex items-center gap-2">
+                      <span className="text-[#38D9A9]">#{order.orderNumber || order.id.slice(-6).toUpperCase()}</span>
+                      {order.fullName || "Guest Customer"}
+                    </p>
                     <p className="text-xs text-gray-500 mb-2 truncate max-w-xs md:max-w-sm">{order.productName}</p>
                     <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-200 text-gray-700">
                       {order.paymentMode === 'full' ? 'Prepaid (Full)' : 'COD (Partial)'}

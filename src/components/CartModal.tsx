@@ -19,6 +19,7 @@ import {
   doc,
   updateDoc,
   setDoc,
+  runTransaction,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
@@ -103,7 +104,6 @@ export function CartModal() {
 
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const advanceAmount = itemsCount * 50;
-  const codExtra = itemsCount * 50;
 
   const handlePincodeChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -178,51 +178,68 @@ export function CartModal() {
         return;
       }
 
+      let nextOrderNumber = 1;
+      try {
+        await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, "counters", "orderCounter");
+          const counterDoc = await transaction.get(counterRef);
+          if (!counterDoc.exists()) {
+            transaction.set(counterRef, { count: 1 });
+            nextOrderNumber = 1;
+          } else {
+            nextOrderNumber = counterDoc.data().count + 1;
+            transaction.update(counterRef, { count: nextOrderNumber });
+          }
+        });
+      } catch (e) {
+        console.error("Failed to generate order number", e);
+        nextOrderNumber = Math.floor(Math.random() * 900000) + 100000;
+      }
+
       // 1. Create order in Firestore as Pending
       const createdOrderIds: string[] = [];
       for (const item of cart) {
-        const itemFinalPrice = item.price * item.quantity;
-        const itemCodExtra = paymentMode === "partial" ? 50 * item.quantity : 0;
-        const itemAdvance =
-          paymentMode === "partial" ? 50 * item.quantity : itemFinalPrice;
-        const itemRemainingCod =
-          paymentMode === "partial"
-            ? itemFinalPrice + itemCodExtra - itemAdvance
-            : 0;
+        for (let i = 0; i < item.quantity; i++) {
+          const itemFinalPrice = item.price;
+          const itemCodExtra = 0;
+          const itemAdvance = paymentMode === "partial" ? 50 : itemFinalPrice;
+          const itemRemainingCod = paymentMode === "partial" ? itemFinalPrice : 0;
 
-        const docRef = await addDoc(collection(db, "orders"), {
-          userId: user ? user.uid : "guest",
-          productId: item.id,
-          productName: item.name,
-          image: item.image,
-          size: item.selectedSize || "N/A",
-          color: item.selectedColor || "N/A",
-          quantity: item.quantity || 1,
-          customization: item.customization
-            ? `${item.customization.name} (${item.customization.number})`
-            : null,
-          price: itemFinalPrice,
-          originalPrice: item.price * item.quantity,
-          codCharges: itemCodExtra,
-          advancePaid: itemAdvance,
-          remainingCodAmount: itemRemainingCod,
-          finalTotal: itemFinalPrice + itemCodExtra,
-          status:
-            paymentMode === "full"
-              ? "pending full payment"
-              : "pending advance payment",
-          paymentMode,
-          createdAt: serverTimestamp(),
-          fullName,
-          address: combinedAddress,
-          phone,
-          pincode,
-          houseNo,
-          areaStreet,
-          city,
-          state,
-        });
-        createdOrderIds.push(docRef.id);
+          const docRef = await addDoc(collection(db, "orders"), {
+            orderNumber: nextOrderNumber,
+            userId: user ? user.uid : "guest",
+            productId: item.id,
+            productName: item.name,
+            image: item.image,
+            size: item.selectedSize || "N/A",
+            color: item.selectedColor || "N/A",
+            quantity: 1,
+            customization: item.customization
+              ? `${item.customization.name} (${item.customization.number})`
+              : null,
+            price: itemFinalPrice,
+            originalPrice: item.price,
+            codCharges: itemCodExtra,
+            advancePaid: itemAdvance,
+            remainingCodAmount: itemRemainingCod,
+            finalTotal: itemFinalPrice + itemCodExtra,
+            status:
+              paymentMode === "full"
+                ? "pending full payment"
+                : "pending advance payment",
+            paymentMode,
+            createdAt: serverTimestamp(),
+            fullName,
+            address: combinedAddress,
+            phone,
+            pincode,
+            houseNo,
+            areaStreet,
+            city,
+            state,
+          });
+          createdOrderIds.push(docRef.id);
+        }
       }
 
       const finalAmountToPay = paymentMode === "full" ? total : advanceAmount;
@@ -278,11 +295,11 @@ export function CartModal() {
               }
               if (paymentMode === "full") {
                 alert(
-                  `Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order.`,
+                  `Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order #${nextOrderNumber}.`,
                 );
               } else {
                 alert(
-                  `Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nRemaining COD Amount: ₹${total - advanceAmount + codExtra}\nPay remaining amount during delivery.`,
+                  `Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nOrder #${nextOrderNumber} Confirmed\nRemaining COD Amount: ₹${total}\nPay remaining amount during delivery.`,
                 );
               }
               setIsCartOpen(false);
@@ -540,7 +557,7 @@ export function CartModal() {
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-[#1B1B1B] uppercase tracking-wider mb-1">COD Available</span>
                         <span className="text-xs font-bold text-gray-700 mb-1">₹{advanceAmount} Advance Payment Required</span>
-                        <span className="text-[11px] font-medium text-gray-500 leading-tight">Remaining Amount Payable on Delivery (₹{codExtra} COD handling charge applies)</span>
+                        <span className="text-[11px] font-medium text-gray-500 leading-tight">Remaining Amount Payable on Delivery</span>
                       </div>
                     </div>
                   </div>

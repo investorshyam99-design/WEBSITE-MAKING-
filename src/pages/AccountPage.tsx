@@ -431,7 +431,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
               Order #
             </p>
-            <p className="font-semibold text-[#1B1B1B]">{order.id.slice(-6).toUpperCase()}</p>
+            <p className="font-semibold text-[#1B1B1B]">{order.orderNumber || order.id.slice(-6).toUpperCase()}</p>
           </div>
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">

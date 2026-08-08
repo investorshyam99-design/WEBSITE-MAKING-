@@ -83,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const qikinkPayload = {
       apikey: apiKey,
-      order_id: order.id || Date.now().toString(),
+      order_id: order.orderNumber ? order.orderNumber.toString() : (order.id || Date.now().toString()),
       shipping_firstname: firstName,
       shipping_lastname: lastName,
       shipping_address_1: houseNo || order.address?.split(",")[0] || "Address 1",
