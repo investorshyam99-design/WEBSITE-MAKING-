@@ -28,7 +28,7 @@ export function BlogPostPage() {
       name: "Jersey Unicorn",
       logo: {
         "@type": "ImageObject",
-        url: "https://i.imgur.com/VaSs3Xd.png"
+        url: "https://i.imgur.com/ZrEPSNI.jpeg"
       }
     },
     description: post.metaDescription,

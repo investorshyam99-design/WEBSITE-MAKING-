@@ -42,7 +42,7 @@ export function SEO({
       "buy football jersey online India, Argentina jersey India, Portugal World Cup 2026 jersey, retro football jersey India, player version vs fan version jersey, football jersey with shorts set India, authentic football jersey India";
 
     // 4. Default Image
-    const finalImage = image || "https://i.imgur.com/VaSs3Xd.png";
+    const finalImage = image || "https://i.imgur.com/ZrEPSNI.jpeg";
 
     // Set document title
     document.title = finalTitle;
@@ -106,7 +106,7 @@ export function SEO({
         "@type": "Organization",
         name: "Jersey Unicorn",
         url: "https://jerseyunicorn.com",
-        logo: "https://i.imgur.com/VaSs3Xd.png",
+        logo: "https://i.imgur.com/ZrEPSNI.jpeg",
         sameAs: [
           "https://instagram.com/jerseyunicorn",
           "https://facebook.com/jerseyunicorn",

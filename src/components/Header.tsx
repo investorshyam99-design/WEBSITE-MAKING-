@@ -159,7 +159,7 @@ export function Header() {
             <div className="mt-auto p-6 bg-[#F5EFE6]">
               <div className="flex justify-center items-center gap-2 text-xs font-bold text-[#F5EFE6]0 uppercase">
                 <img
-                  src="https://i.imgur.com/VaSs3Xd.png"
+                  src="https://i.imgur.com/ZrEPSNI.jpeg"
                   alt="Logo"
                   className="w-[35px] h-[35px] rounded-full opacity-50 grayscale object-cover"
                 />
@@ -190,7 +190,7 @@ export function Header() {
               className="text-2xl md:text-3xl font-black tracking-tighter text-[#1E2A44] flex items-center gap-3"
             >
               <img
-                src="https://i.imgur.com/VaSs3Xd.png"
+                src="https://i.imgur.com/ZrEPSNI.jpeg"
                 alt="Jersey Unicorn Logo"
                 className="w-[53px] h-[53px] md:w-[70px] md:h-[70px] rounded-full object-cover"
               />
