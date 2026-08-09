@@ -160,17 +160,15 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       const aCost = Number(o.additionalCost || 0);
       const tCost = pCost + sCost + aCost;
 
-      const basePrice = o.price || o.finalTotal || getOrderPrice(o);
-      let revenue = 0;
+      const basePrice = o.finalTotalAmount ?? o.price ?? o.finalTotal ?? getOrderPrice(o);
+      let revenue = basePrice;
 
-      if (o.paymentMode === 'full') {
-        revenue = basePrice;
-      } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
-        const advanceReceived = 50 * effectiveQty;
-        const codAmount = o.remainingCodAmount !== undefined ? o.remainingCodAmount : Math.max(0, basePrice - advanceReceived);
+      if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
+        const advanceReceived = o.amountPaid !== undefined ? o.amountPaid : (o.advancePaid !== undefined ? o.advancePaid : 50 * effectiveQty);
+        const codAmount = o.codAmount !== undefined ? o.codAmount : (o.remainingCodAmount !== undefined ? o.remainingCodAmount : Math.max(0, basePrice - advanceReceived));
         revenue = advanceReceived + codAmount;
-      } else {
-        revenue = basePrice;
+      } else if (o.paymentMode === 'full') {
+         revenue = basePrice;
       }
 
       totalRevenue += revenue;

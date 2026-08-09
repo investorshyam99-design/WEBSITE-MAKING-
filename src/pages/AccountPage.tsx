@@ -428,7 +428,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               Order Total
             </p>
             <p className="font-semibold text-[#1B1B1B]">
-              ₹{(order.price || 0).toLocaleString("en-IN")}
+              ₹{(order.finalTotalAmount ?? order.price ?? 0).toLocaleString("en-IN")}
             </p>
           </div>
           <div>
@@ -476,7 +476,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
                <div className="mt-1 text-right">
                  <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">COD Remaining</p>
                  <p className="font-black text-rose-600 text-sm">₹{(
-                   order.codAmount !== undefined ? order.codAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))))
+                   order.codAmount !== undefined ? order.codAmount : (order.adjustedAmount !== undefined ? order.adjustedAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0))))))
                  ).toLocaleString("en-IN")}</p>
                </div>
             )}

@@ -137,39 +137,42 @@ export function AdminOrdersDashboard({
     }
   };
 
-  const handleUpdatePrice = async (orderId: string, currentPrice: number) => {
+  const handleUpdatePrice = async (orderId: string, currentAdjustedAmount: number) => {
     const newPrice = prompt(
-      "Enter the new FINAL TOTAL ORDER VALUE:",
-      currentPrice.toString(),
+      "Enter the new adjusted amount (FINAL AMOUNT BEFORE ADDING EXISTING ADVANCE PAYMENT):",
+      currentAdjustedAmount.toString(),
     );
     if (newPrice && !isNaN(Number(newPrice))) {
       try {
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
-        const finalPrice = Number(newPrice);
-        const updateData: any = {
-          price: finalPrice,
-          finalTotal: finalPrice,
-          finalTotalAmount: finalPrice,
-        };
         
         let effectiveQuantity = order.quantity || 1;
         if (!order.quantity && order.price >= 1800) {
            effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
         }
         
-        let currentPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
+        const amountPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
         
-        if (order.customizationStatus === "YES" && currentPaid === 0) {
-            currentPaid = 199;
-        }
-
-        if (order.paymentMode !== "full" || order.remainingCodAmount !== undefined || order.codAmount !== undefined) {
-          updateData.remainingCodAmount = Math.max(0, finalPrice - currentPaid);
-          updateData.codAmount = Math.max(0, finalPrice - currentPaid);
-          updateData.amountPaid = currentPaid;
-          updateData.advancePaid = currentPaid;
-        }
+        const adjustedAmount = Number(newPrice);
+        const originalAmount = order.originalAmount !== undefined ? order.originalAmount : order.price;
+        const deductionAmount = originalAmount - adjustedAmount;
+        const finalTotalAmount = adjustedAmount + amountPaid;
+        const codAmount = adjustedAmount;
+        
+        const updateData: any = {
+          adjustedAmount,
+          deductionAmount,
+          priceAdjustment: deductionAmount,
+          finalTotalAmount,
+          codAmount,
+          amountPaid,
+          originalAmount,
+          // Update price and finalTotal for backward compatibility in other parts of the app
+          price: finalTotalAmount,
+          finalTotal: finalTotalAmount
+        };
+        
         await updateDoc(doc(db, "orders", orderId), updateData);
         refreshOrders();
       } catch (e) {
@@ -184,33 +187,40 @@ export function AdminOrdersDashboard({
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
       
-      const updateData: any = { customizationStatus: status };
-      
       let effectiveQuantity = order.quantity || 1;
       if (!order.quantity && order.price >= 1800) {
          effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
       }
       
-      let currentPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
+      const amountPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
       
-      if (status === "YES") {
-          updateData.customizationAmount = 199;
-          if (currentPaid === 0) {
-              currentPaid = 199;
-          }
-      } else if (status === "NO") {
-          updateData.customizationAmount = 0;
-          if (currentPaid === 199) {
-              currentPaid = 0;
-          }
+      const originalAmount = order.originalAmount !== undefined ? order.originalAmount : order.price;
+      
+      let deductionAmount = order.deductionAmount || 0;
+      const wasYes = order.customizationStatus !== "NO";
+      
+      if (status === "NO" && wasYes) {
+          deductionAmount = 199;
+      } else if (status === "YES" && !wasYes) {
+          deductionAmount = 0;
       }
       
-      updateData.amountPaid = currentPaid;
-      updateData.advancePaid = currentPaid;
+      const adjustedAmount = originalAmount - deductionAmount;
+      const finalTotalAmount = adjustedAmount + amountPaid;
+      const codAmount = adjustedAmount;
       
-      const finalTotal = order.finalTotalAmount ?? order.finalTotal ?? order.price ?? 0;
-      updateData.codAmount = Math.max(0, finalTotal - currentPaid);
-      updateData.remainingCodAmount = updateData.codAmount;
+      const updateData: any = {
+        customizationStatus: status,
+        adjustedAmount,
+        deductionAmount,
+        priceAdjustment: deductionAmount,
+        finalTotalAmount,
+        codAmount,
+        amountPaid,
+        originalAmount,
+        price: finalTotalAmount,
+        finalTotal: finalTotalAmount
+      };
 
       await updateDoc(doc(db, "orders", orderId), updateData);
       refreshOrders();
@@ -572,13 +582,13 @@ function AdminOrderCard({
             <div className="text-right">
               <div className="flex justify-end items-center gap-2">
                 <p className="font-black text-[#1B1B1B] text-sm">
-                  ₹{(order.price || 0).toLocaleString("en-IN")}
+                  ₹{(order.finalTotalAmount ?? order.price ?? 0).toLocaleString("en-IN")}
                 </p>
                 <button
                   title="Edit Price"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onUpdatePrice(order.price || 0);
+                    onUpdatePrice(order.adjustedAmount ?? order.codAmount ?? order.remainingCodAmount ?? Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))));
                   }}
                   className="text-gray-400 hover:text-[#1E2A44] transition-colors"
                 >
@@ -590,7 +600,7 @@ function AdminOrderCard({
                 <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">
                   COD: ₹
                   {(
-                      order.codAmount !== undefined ? order.codAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))))
+                      order.codAmount !== undefined ? order.codAmount : (order.adjustedAmount !== undefined ? order.adjustedAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0))))))
                     ).toLocaleString("en-IN")}
                 </p>
               )}
@@ -615,65 +625,58 @@ function AdminOrderCard({
         <div className="border-t border-gray-100 bg-gray-50/50 p-4 space-y-4">
           {/* Detailed Info Grid */}
           <div className="grid grid-cols-2 gap-3 text-xs bg-white p-3 rounded-lg border border-gray-100">
-            <div className="col-span-2 flex justify-between items-center bg-gray-50 px-3 py-2 rounded border border-gray-100">
-              <div>
+            <div className="col-span-2 flex flex-col gap-2 bg-gray-50 p-3 rounded border border-gray-100">
+              <div className="flex justify-between items-center">
                 <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                  Payment
+                  TOTAL ORDER VALUE
                 </p>
-                <p className="font-semibold text-gray-800 uppercase text-[10px]">
-                  {order.paymentMode === "full"
-                    ? "Prepaid (Full)"
-                    : order.paymentMode === "partial" ||
-                        String(order.status).toLowerCase().includes("advance")
-                      ? "Advance Paid (Partial)"
-                      : order.paymentMode || "Unknown"}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-gray-800 text-sm">
+                    ₹{(order.finalTotalAmount ?? order.price ?? 0).toLocaleString("en-IN")}
+                  </p>
+                  <button
+                    title="Edit Total"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdatePrice(order.adjustedAmount ?? order.codAmount ?? order.remainingCodAmount ?? Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))));
+                    }}
+                    className="text-gray-400 hover:text-[#1E2A44] transition-colors"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-              <div className="text-right">
+              
+              <div className="flex justify-between items-center">
                 <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                  Paid
+                  PAID / ADVANCE
                 </p>
                 <p className="font-black text-green-600 text-sm">
-                  ₹
-                  {(order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined 
-                     ? order.advancePaid 
-                     : (order.paymentMode === "full" ? (order.price || 0) : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0)))
-                  ).toLocaleString("en-IN")}
+                  ₹{(order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "full" ? (order.price || 0) : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0)))).toLocaleString("en-IN")}
                 </p>
               </div>
-              {((order.paymentMode === "partial" ||
-                String(order.status).toLowerCase().includes("advance") || String(order.status).toLowerCase() === "fampay") && order.paymentMode !== "full") && (
-                <div className="text-right">
+              
+              {order.paymentMode !== "full" && (
+                <div className="flex justify-between items-center">
                   <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                    To Collect (COD)
+                    TO COLLECT (COD)
                   </p>
                   <p className="font-black text-red-600 text-sm">
-                    ₹
-                    {(
-                      order.codAmount !== undefined ? order.codAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))))
-                    ).toLocaleString("en-IN")}
+                    ₹{(order.codAmount !== undefined ? order.codAmount : (order.adjustedAmount !== undefined ? order.adjustedAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0))))))).toLocaleString("en-IN")}
                   </p>
                 </div>
               )}
-            </div>
-
-            <div className="col-span-2 flex justify-between items-center bg-blue-50/50 p-2 rounded border border-blue-100">
-              <div>
-                <p className="text-blue-800 font-bold uppercase tracking-wider text-[10px] mb-0.5">Final Total Amount</p>
-                <p className="font-black text-blue-900 text-sm">₹{(order.price || 0).toLocaleString("en-IN")}</p>
+              
+              <div className="flex justify-between items-center">
+                <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+                  PRICE DEDUCTION
+                </p>
+                <p className="font-black text-gray-800 text-sm">
+                  ₹{order.deductionAmount || order.priceAdjustment || (order.customizationStatus === "NO" ? "199" : "0")}
+                </p>
               </div>
-              <button
-                  title="Edit Final Total"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdatePrice(order.price || 0);
-                  }}
-                  className="bg-white border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded text-xs font-bold transition-colors"
-                >
-                  Edit Total
-                </button>
             </div>
-
+            
             <div className="col-span-2">
               <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">
                 Items
