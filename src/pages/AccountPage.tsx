@@ -20,6 +20,10 @@ interface Order {
   quantity?: number;
   cartItems?: any[];
   customization?: string;
+  customizationStatus?: string;
+  advancePaid?: number;
+  remainingCodAmount?: number;
+  finalTotal?: number;
   price: number;
   status: string;
   createdAt: any;
@@ -55,72 +59,17 @@ export function AccountPage() {
 
   const fetchOrders = useCallback(async () => {
     if (isAuthLoading) return;
-
-
     try {
+      setLoading(true);
       let q;
-      let fetchedOrders: Order[] = [];
+      let fetchedOrders = [];
       const ordersRef = collection(db, "orders");
-      if (user?.email === "investorshyam99@gmail.com") {
-        q = query(ordersRef);
-        
-        // Fetch abandoned carts
-        let fetchedAbandoned: any[] = [];
-        try {
-          const abandonedSnap = await getDocs(query(collection(db, "abandoned_carts")));
-          fetchedAbandoned = abandonedSnap.docs.map((doc) => {
-            const data = doc.data();
-            const firstItem = data.items?.[0] || {};
-            return {
-              id: doc.id,
-              userId: data.userId || doc.id,
-              productName: data.productName || (data.items?.map((i: any) => i.name).join(", ")) || "Abandoned Cart",
-              image: firstItem.image || "",
-              size: firstItem.selectedSize || "N/A",
-              quantity: data.itemCount || data.items?.length || 1,
-              cartItems: data.items || [],
-              price: data.total || 0,
-              status: "abandoned",
-              createdAt: data.updatedAt || data.createdAt || new Date().toISOString(),
-              address: data.address || "",
-              phone: data.phone || data.userPhone || "",
-              fullName: data.fullName || data.userName || "Guest Customer",
-            };
-          });
-        } catch (e) {
-          console.warn("Error fetching abandoned carts:", e);
-        }
-
-        // Fetch draft orders
-        let fetchedDrafts: any[] = [];
-        try {
-          const draftsSnap = await getDocs(query(collection(db, "draft_orders")));
-          fetchedDrafts = draftsSnap.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              userId: data.userId || doc.id,
-              productName: data.productName || "Draft Order",
-              status: "pending draft",
-              ...data,
-            };
-          });
-        } catch (e) {
-          console.warn("Error fetching draft orders:", e);
-        }
-
-        const snapshot = await getDocs(q);
-        const regularOrders = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...(doc.data() as any) } as Order)
-        );
-
-        fetchedOrders = [...regularOrders, ...fetchedAbandoned, ...fetchedDrafts];
-
-      } else if (user) {
+      
+      if (user) {
         q = query(ordersRef, where("userId", "==", user.uid));
         const snapshot = await getDocs(q);
         fetchedOrders = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...(doc.data() as any) } as Order)
+          (doc) => ({ id: doc.id, ...(doc.data() as any) })
         );
       } else {
         const guestOrderIds = JSON.parse(localStorage.getItem("guest_orders") || "[]");
@@ -138,41 +87,38 @@ export function AccountPage() {
         
         const snapshot = await getDocs(q);
         fetchedOrders = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...(doc.data() as any) } as Order)
+          (doc) => ({ id: doc.id, ...(doc.data() as any) })
         );
       }
-
-      if (user?.email !== "investorshyam99@gmail.com") {
-        fetchedOrders = fetchedOrders.filter((order) => {
-          const s = (order.status || "").toLowerCase();
-          const payStatus = ((order as any).paymentStatus || "").toLowerCase();
-
-          // Reject draft, pending, or abandoned orders
-          if (s.includes("draft") || s.includes("abandoned") || s.includes("pending")) return false;
-          if (payStatus.includes("pending") || payStatus.includes("failed")) return false;
-
-          // Accept paid or advance paid or active fulfillment status
-          return (
-            s.includes("paid") ||
-            s.includes("shipped") ||
-            s.includes("delivered") ||
-            s.includes("processing") ||
-            s.includes("confirmed") ||
-            s.includes("completed") ||
-            payStatus.includes("paid") ||
-            payStatus.includes("success") ||
-            payStatus.includes("captured")
-          );
-        });
-      }
-
+      
+      // Always filter out drafts and internal statuses
+      fetchedOrders = fetchedOrders.filter((order) => {
+        const s = (order.status || "").toLowerCase();
+        const payStatus = (order.paymentStatus || "").toLowerCase();
+        // Reject draft, pending, or abandoned orders
+        if (s.includes("draft") || s.includes("abandoned") || s.includes("pending")) return false;
+        if (payStatus.includes("pending") || payStatus.includes("failed")) return false;
+        // Accept paid or advance paid or active fulfillment status
+        return (
+          s.includes("paid") ||
+          s.includes("shipped") ||
+          s.includes("delivered") ||
+          s.includes("processing") ||
+          s.includes("confirmed") ||
+          s.includes("completed") ||
+          payStatus.includes("paid") ||
+          payStatus.includes("success") ||
+          payStatus.includes("captured")
+        );
+      });
+      
       // Sort ascending to assign sequential order numbers (1, 2, 3, 4...)
       const sortedAsc = [...fetchedOrders].sort((a, b) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateA.getTime() - dateB.getTime();
       });
-
+      
       let seq = 1;
       const mappedOrders = sortedAsc.map((order) => {
         let num = order.orderNumber;
@@ -185,14 +131,14 @@ export function AccountPage() {
           orderNumber: num,
         };
       });
-
+      
       // Sort descending (newest first)
       const sortedOrders = mappedOrders.sort((a, b) => {
         const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
         const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       });
-
+      
       setOrders(sortedOrders);
     } catch (error) {
       console.warn("Error fetching orders:", error);
@@ -245,9 +191,7 @@ export function AccountPage() {
           </div>
         )}
 
-        {user?.email === "investorshyam99@gmail.com" ? (
-           <AdminOrdersDashboard orders={orders} refreshOrders={fetchOrders} />
-        ) : (
+
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar */}
             <div className="w-full md:w-64 flex-shrink-0">
@@ -434,7 +378,6 @@ export function AccountPage() {
               )}
             </div>
           </div>
-        )}
       </main>
       <Footer />
     </div>
@@ -487,14 +430,32 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               ₹{(order.price || 0).toLocaleString("en-IN")}
             </p>
           </div>
+          {order.customization && (
+            <div>
+              <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+                Customization
+              </p>
+              <p className="font-semibold text-[#1B1B1B] text-sm">
+                {order.customization} {order.customizationStatus ? `(${order.customizationStatus})` : ""}
+              </p>
+            </div>
+          )}
         </div>
         <div className="text-left md:text-right">
           <p className="text-xs uppercase font-bold text-gray-500 tracking-wider mb-1">
             Status
           </p>
-          <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded ${order.status?.toLowerCase().includes('pending') ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
-            {order.status || "Pending"}
-          </span>
+          <div className="flex flex-col items-start md:items-end gap-2">
+            <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded ${order.status?.toLowerCase().includes('pending') ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+              {order.status || "Pending"}
+            </span>
+            {((order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") || String(order.status).toLowerCase() === "fampay") && order.paymentMode !== "full") && (
+               <div className="mt-1 text-right">
+                 <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">To Collect (COD)</p>
+                 <p className="font-black text-rose-600 text-sm">₹{(order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.advancePaid !== undefined ? order.advancePaid : ((order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance")) ? 50 * effectiveQuantity : 0)))).toLocaleString("en-IN")}</p>
+               </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="p-6">

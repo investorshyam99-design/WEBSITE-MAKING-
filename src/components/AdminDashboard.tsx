@@ -32,6 +32,11 @@ interface Order {
   quantity?: number;
   cartItems?: any[];
   customization?: string;
+  customizationStatus?: string;
+  customizationDeduction?: number;
+  originalPrice?: number;
+  advancePaid?: number;
+  finalTotal?: number;
   price: number;
   remainingCodAmount?: number;
   status: string;
@@ -139,14 +144,45 @@ export function AdminOrdersDashboard({
     );
     if (newPrice && !isNaN(Number(newPrice))) {
       try {
-        await updateDoc(doc(db, "orders", orderId), {
-          price: Number(newPrice),
-        });
+        const order = orders.find(o => o.id === orderId);
+        const finalPrice = Number(newPrice);
+        const updateData: any = {
+          price: finalPrice,
+          finalTotal: finalPrice,
+        };
+        if (order && (order.paymentMode !== "full" || order.remainingCodAmount !== undefined)) {
+          let effectiveQuantity = order.quantity || 1;
+          if (!order.quantity && order.price >= 1800) {
+            if (order.price % 1499 === 0) effectiveQuantity = order.price / 1499;
+            else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
+            else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
+            else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
+            else effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
+          }
+          const advance = order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0);
+          updateData.remainingCodAmount = Math.max(0, finalPrice - advance);
+        }
+        await updateDoc(doc(db, "orders", orderId), updateData);
         refreshOrders();
       } catch (e) {
         console.error(e);
         alert("Failed to update price");
       }
+    }
+  };
+
+  const handleUpdateCustomizationStatus = async (orderId: string, status: string) => {
+    try {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      
+      const updateData: any = { customizationStatus: status };
+      
+      await updateDoc(doc(db, "orders", orderId), updateData);
+      refreshOrders();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update customization status");
     }
   };
 
@@ -295,6 +331,7 @@ export function AdminOrdersDashboard({
               onDelete={() => handleDelete(order.id)}
               onUpdateTracking={(t, c) => handleUpdateTracking(order.id, t, c)}
               onUpdatePrice={(p) => handleUpdatePrice(order.id, p)}
+              onUpdateCustomizationStatus={(s) => handleUpdateCustomizationStatus(order.id, s)}
             />
           ))
         )}
@@ -310,6 +347,7 @@ function AdminOrderCard({
   onDelete,
   onUpdateTracking,
   onUpdatePrice,
+  onUpdateCustomizationStatus,
 }: {
   order: Order;
   activeTab: string;
@@ -317,6 +355,7 @@ function AdminOrderCard({
   onDelete: () => void;
   onUpdateTracking: (t: string, c: string) => void;
   onUpdatePrice: (p: number) => void;
+  onUpdateCustomizationStatus: (status: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [trackingId, setTrackingId] = useState(order.trackingId || "");
@@ -499,9 +538,7 @@ function AdminOrderCard({
                 <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">
                   COD: ₹
                   {(
-                    (order.price || 0) +
-                    50 * effectiveQuantity -
-                    50 * effectiveQuantity
+                    order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))
                   ).toLocaleString("en-IN")}
                 </p>
               )}
@@ -546,12 +583,9 @@ function AdminOrderCard({
                 </p>
                 <p className="font-black text-green-600 text-sm">
                   ₹
-                  {(order.paymentMode === "full"
-                    ? order.price || 0
-                    : order.paymentMode === "partial" ||
-                        String(order.status).toLowerCase().includes("advance")
-                      ? 50 * effectiveQuantity
-                      : 0
+                  {(order.advancePaid !== undefined 
+                     ? order.advancePaid 
+                     : (order.paymentMode === "full" ? (order.price || 0) : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0))
                   ).toLocaleString("en-IN")}
                 </p>
               </div>
@@ -564,11 +598,28 @@ function AdminOrderCard({
                   <p className="font-black text-red-600 text-sm">
                     ₹
                     {(
-                      order.remainingCodAmount ?? ((order.price || 0) * effectiveQuantity)
+                      order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))
                     ).toLocaleString("en-IN")}
                   </p>
                 </div>
               )}
+            </div>
+
+            <div className="col-span-2 flex justify-between items-center bg-blue-50/50 p-2 rounded border border-blue-100">
+              <div>
+                <p className="text-blue-800 font-bold uppercase tracking-wider text-[10px] mb-0.5">Final Total Amount</p>
+                <p className="font-black text-blue-900 text-sm">₹{(order.price || 0).toLocaleString("en-IN")}</p>
+              </div>
+              <button
+                  title="Edit Final Total"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdatePrice(order.price || 0);
+                  }}
+                  className="bg-white border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded text-xs font-bold transition-colors"
+                >
+                  Edit Total
+                </button>
             </div>
 
             <div className="col-span-2">
@@ -593,9 +644,28 @@ function AdminOrderCard({
               <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">
                 Customization
               </p>
-              <p className="font-semibold text-gray-800">
-                {order.customization || "None"}
-              </p>
+              <div className="flex flex-col gap-1">
+                <p className="font-semibold text-gray-800">
+                  {order.customization || "None"}
+                </p>
+                {order.customization && (
+                   <div className="flex items-center gap-2 mt-1">
+                     <span className="text-[10px] font-bold text-gray-500 uppercase">Status:</span>
+                     <select 
+                       className="text-xs font-semibold px-2 py-1 rounded bg-gray-100 border border-gray-200 outline-none cursor-pointer"
+                       value={order.customizationStatus || "YES"}
+                       onChange={(e) => onUpdateCustomizationStatus(e.target.value)}
+                       onClick={(e) => e.stopPropagation()}
+                     >
+                       <option value="YES">YES</option>
+                       <option value="NO">NO</option>
+                     </select>
+                     {order.customizationStatus === "NO" && (
+                        <span className="text-[10px] text-rose-500 font-bold ml-1 px-1.5 py-0.5 bg-rose-50 rounded">Deducted: ₹{order.customizationDeduction || 0}</span>
+                     )}
+                   </div>
+                )}
+              </div>
             </div>
             <div className="col-span-2">
               <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">

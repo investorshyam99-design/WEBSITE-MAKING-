@@ -114,10 +114,15 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
     return effectiveQuantity || 1;
   };
 
+  const validOrders = useMemo(() => {
+    return orders.filter(o => o.status !== "pending draft" && o.status !== "abandoned");
+  }, [orders]);
+
   const filteredOrders = useMemo(() => {
-    if (dateFilter === 'all') return orders;
+    let baseOrders = validOrders;
+    if (dateFilter === 'all') return baseOrders;
     const now = new Date();
-    return orders.filter(o => {
+    return baseOrders.filter(o => {
       if (!o.createdAt) return false;
       const date = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
       if (dateFilter === 'today') {
@@ -132,7 +137,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       }
       return true;
     });
-  }, [orders, dateFilter]);
+  }, [validOrders, dateFilter]);
 
   const stats = useMemo(() => {
     let totalRevenue = 0;
