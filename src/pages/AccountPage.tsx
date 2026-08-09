@@ -106,6 +106,7 @@ export function AccountPage() {
           s.includes("processing") ||
           s.includes("confirmed") ||
           s.includes("completed") ||
+          s.includes("cancelled") ||
           payStatus.includes("paid") ||
           payStatus.includes("success") ||
           payStatus.includes("captured")
@@ -409,7 +410,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="bg-gray-50 border-b border-gray-200 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex gap-6">
+        <div className="flex gap-4 md:gap-6 flex-wrap">
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
               Order Date
@@ -424,35 +425,59 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
           </div>
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
-              Total
+              Order Total
             </p>
             <p className="font-semibold text-[#1B1B1B]">
               ₹{(order.price || 0).toLocaleString("en-IN")}
             </p>
           </div>
-          {order.customization && (
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Customization
+            </p>
+            <p className="font-semibold text-[#1B1B1B] text-sm">
+              {order.customizationStatus === "YES" ? "YES" : "NO"}
+            </p>
+          </div>
+          {order.customizationStatus === "YES" && (
             <div>
               <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
-                Customization
+                Customization Amount
               </p>
               <p className="font-semibold text-[#1B1B1B] text-sm">
-                {order.customization} {order.customizationStatus ? `(${order.customizationStatus})` : ""}
+                ₹199
               </p>
             </div>
           )}
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Paid
+            </p>
+            <p className="font-semibold text-green-600 text-sm">
+              ₹{(order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : ((order.paymentMode === "full" ? (order.price || 0) : ((order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance")) ? 50 * effectiveQuantity : 0))))) || 0}
+            </p>
+          </div>
         </div>
         <div className="text-left md:text-right">
           <p className="text-xs uppercase font-bold text-gray-500 tracking-wider mb-1">
             Status
           </p>
           <div className="flex flex-col items-start md:items-end gap-2">
-            <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded ${order.status?.toLowerCase().includes('pending') ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+            <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded ${
+              order.status?.toLowerCase().includes('cancelled') 
+                ? 'bg-red-100 text-red-800' 
+                : order.status?.toLowerCase().includes('pending') 
+                ? 'bg-amber-100 text-amber-800' 
+                : 'bg-green-100 text-green-800'
+            }`}>
               {order.status || "Pending"}
             </span>
-            {((order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") || String(order.status).toLowerCase() === "fampay") && order.paymentMode !== "full") && (
+            {order.paymentMode !== "full" && (
                <div className="mt-1 text-right">
-                 <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">To Collect (COD)</p>
-                 <p className="font-black text-rose-600 text-sm">₹{(order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.advancePaid !== undefined ? order.advancePaid : ((order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance")) ? 50 * effectiveQuantity : 0)))).toLocaleString("en-IN")}</p>
+                 <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">COD Remaining</p>
+                 <p className="font-black text-rose-600 text-sm">₹{(
+                   order.codAmount !== undefined ? order.codAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))))
+                 ).toLocaleString("en-IN")}</p>
                </div>
             )}
           </div>

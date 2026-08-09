@@ -139,28 +139,36 @@ export function AdminOrdersDashboard({
 
   const handleUpdatePrice = async (orderId: string, currentPrice: number) => {
     const newPrice = prompt(
-      "Enter the new correct price (excluding COD charges):",
+      "Enter the new FINAL TOTAL ORDER VALUE:",
       currentPrice.toString(),
     );
     if (newPrice && !isNaN(Number(newPrice))) {
       try {
         const order = orders.find(o => o.id === orderId);
+        if (!order) return;
         const finalPrice = Number(newPrice);
         const updateData: any = {
           price: finalPrice,
           finalTotal: finalPrice,
+          finalTotalAmount: finalPrice,
         };
-        if (order && (order.paymentMode !== "full" || order.remainingCodAmount !== undefined)) {
-          let effectiveQuantity = order.quantity || 1;
-          if (!order.quantity && order.price >= 1800) {
-            if (order.price % 1499 === 0) effectiveQuantity = order.price / 1499;
-            else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
-            else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
-            else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
-            else effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
-          }
-          const advance = order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0);
-          updateData.remainingCodAmount = Math.max(0, finalPrice - advance);
+        
+        let effectiveQuantity = order.quantity || 1;
+        if (!order.quantity && order.price >= 1800) {
+           effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
+        }
+        
+        let currentPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
+        
+        if (order.customizationStatus === "YES" && currentPaid === 0) {
+            currentPaid = 199;
+        }
+
+        if (order.paymentMode !== "full" || order.remainingCodAmount !== undefined || order.codAmount !== undefined) {
+          updateData.remainingCodAmount = Math.max(0, finalPrice - currentPaid);
+          updateData.codAmount = Math.max(0, finalPrice - currentPaid);
+          updateData.amountPaid = currentPaid;
+          updateData.advancePaid = currentPaid;
         }
         await updateDoc(doc(db, "orders", orderId), updateData);
         refreshOrders();
@@ -178,6 +186,32 @@ export function AdminOrdersDashboard({
       
       const updateData: any = { customizationStatus: status };
       
+      let effectiveQuantity = order.quantity || 1;
+      if (!order.quantity && order.price >= 1800) {
+         effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
+      }
+      
+      let currentPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
+      
+      if (status === "YES") {
+          updateData.customizationAmount = 199;
+          if (currentPaid === 0) {
+              currentPaid = 199;
+          }
+      } else if (status === "NO") {
+          updateData.customizationAmount = 0;
+          if (currentPaid === 199) {
+              currentPaid = 0;
+          }
+      }
+      
+      updateData.amountPaid = currentPaid;
+      updateData.advancePaid = currentPaid;
+      
+      const finalTotal = order.finalTotalAmount ?? order.finalTotal ?? order.price ?? 0;
+      updateData.codAmount = Math.max(0, finalTotal - currentPaid);
+      updateData.remainingCodAmount = updateData.codAmount;
+
       await updateDoc(doc(db, "orders", orderId), updateData);
       refreshOrders();
     } catch (e) {
@@ -194,7 +228,12 @@ export function AdminOrdersDashboard({
       !o.status?.toLowerCase().includes("draft") &&
       o.status?.toLowerCase() !== "delivered" &&
       o.status?.toLowerCase() !== "order placed" &&
+      o.status?.toLowerCase() !== "cancelled" &&
       o.address,
+  );
+
+  const cancelledOrders = orders.filter(
+    (o) => o.status?.toLowerCase() === "cancelled"
   );
 
   const draftOrders = orders.filter(
@@ -223,6 +262,7 @@ export function AdminOrdersDashboard({
   if (activeTab === "abandoned") currentOrders = abandonedCarts;
   if (activeTab === "placed") currentOrders = placedOrders;
   if (activeTab === "delivered") currentOrders = deliveredOrders;
+  if (activeTab === "cancelled") currentOrders = cancelledOrders;
 
   // Sort orders newest first
   currentOrders.sort((a, b) => {
@@ -302,6 +342,18 @@ export function AdminOrdersDashboard({
               )}
             </button>
           ))}
+          <div className="relative flex items-center shrink-0">
+             <select 
+               className="ml-2 pl-3 pr-8 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 bg-white border border-gray-200 rounded-md shadow-sm outline-none cursor-pointer hover:bg-gray-50 appearance-none"
+               value={activeTab === "cancelled" ? "cancelled" : "more"}
+               onChange={(e) => {
+                 if(e.target.value === "cancelled") setActiveTab("cancelled");
+               }}
+             >
+               <option value="more" disabled>MORE ▼</option>
+               <option value="cancelled">❌ Cancelled Orders</option>
+             </select>
+          </div>
         </div>
       </div>
 
@@ -538,8 +590,8 @@ function AdminOrderCard({
                 <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">
                   COD: ₹
                   {(
-                    order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))
-                  ).toLocaleString("en-IN")}
+                      order.codAmount !== undefined ? order.codAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))))
+                    ).toLocaleString("en-IN")}
                 </p>
               )}
             </div>
@@ -583,9 +635,9 @@ function AdminOrderCard({
                 </p>
                 <p className="font-black text-green-600 text-sm">
                   ₹
-                  {(order.advancePaid !== undefined 
+                  {(order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined 
                      ? order.advancePaid 
-                     : (order.paymentMode === "full" ? (order.price || 0) : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0))
+                     : (order.paymentMode === "full" ? (order.price || 0) : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0)))
                   ).toLocaleString("en-IN")}
                 </p>
               </div>
@@ -598,7 +650,7 @@ function AdminOrderCard({
                   <p className="font-black text-red-600 text-sm">
                     ₹
                     {(
-                      order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))
+                      order.codAmount !== undefined ? order.codAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))))
                     ).toLocaleString("en-IN")}
                   </p>
                 </div>
@@ -660,9 +712,7 @@ function AdminOrderCard({
                        <option value="YES">YES</option>
                        <option value="NO">NO</option>
                      </select>
-                     {order.customizationStatus === "NO" && (
-                        <span className="text-[10px] text-rose-500 font-bold ml-1 px-1.5 py-0.5 bg-rose-50 rounded">Deducted: ₹{order.customizationDeduction || 0}</span>
-                     )}
+                     
                    </div>
                 )}
               </div>
@@ -897,6 +947,16 @@ function AdminOrderCard({
               </>
             )}
 
+            {activeTab === "cancelled" && (
+              <>
+                <button
+                  onClick={() => onUpdateStatus("Received")}
+                  className="w-full py-2.5 bg-green-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm hover:bg-green-700"
+                >
+                  <RefreshCw className="h-4 w-4" /> Restore Order
+                </button>
+              </>
+            )}
             {activeTab === "delivered" && (
               <>
                 <button

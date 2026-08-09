@@ -119,7 +119,7 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
-    let baseOrders = validOrders;
+    let baseOrders = validOrders.filter(o => o.status?.toLowerCase() !== "cancelled");
     if (dateFilter === 'all') return baseOrders;
     const now = new Date();
     return baseOrders.filter(o => {
@@ -147,8 +147,8 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
     // For calculating Best Selling Product
     const productCounts: Record<string, number> = {};
 
-    filteredOrders.forEach(o => {
-      if (!o.address || o.status?.toLowerCase().includes("draft") || o.status?.toLowerCase().includes("pending")) {
+        filteredOrders.forEach(o => {
+      if (!o.address || o.status?.toLowerCase().includes("draft") || o.status?.toLowerCase().includes("pending") || o.status?.toLowerCase() === "cancelled") {
          return; // We only calculate for completed operations (payment received/delivered)
       }
       
@@ -160,14 +160,14 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       const aCost = Number(o.additionalCost || 0);
       const tCost = pCost + sCost + aCost;
 
-      const basePrice = getOrderPrice(o);
+      const basePrice = o.price || o.finalTotal || getOrderPrice(o);
       let revenue = 0;
 
       if (o.paymentMode === 'full') {
         revenue = basePrice;
       } else if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
         const advanceReceived = 50 * effectiveQty;
-        const codAmount = basePrice + (50 * effectiveQty) - advanceReceived;
+        const codAmount = o.remainingCodAmount !== undefined ? o.remainingCodAmount : Math.max(0, basePrice - advanceReceived);
         revenue = advanceReceived + codAmount;
       } else {
         revenue = basePrice;
@@ -195,8 +195,8 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       totalRevenue: totalRevenue + manualRevenue,
       totalCosts: totalCosts + manualCost,
       netProfit: netProfit + manualRevenue - manualCost,
-      totalOrders: filteredOrders.length,
-      averageProfit: filteredOrders.length > 0 ? (netProfit + manualRevenue - manualCost) / filteredOrders.length : 0,
+      totalOrders: filteredOrders.filter(o => !o.status?.toLowerCase().includes("draft") && !o.status?.toLowerCase().includes("pending") && o.status?.toLowerCase() !== "cancelled").length,
+      averageProfit: filteredOrders.filter(o => !o.status?.toLowerCase().includes("draft") && !o.status?.toLowerCase().includes("pending") && o.status?.toLowerCase() !== "cancelled").length > 0 ? (netProfit + manualRevenue - manualCost) / filteredOrders.filter(o => !o.status?.toLowerCase().includes("draft") && !o.status?.toLowerCase().includes("pending") && o.status?.toLowerCase() !== "cancelled").length : 0,
       margin: (totalRevenue + manualRevenue) > 0 ? ((netProfit + manualRevenue - manualCost) / (totalRevenue + manualRevenue)) * 100 : 0,
       bestSellingProduct
     };
