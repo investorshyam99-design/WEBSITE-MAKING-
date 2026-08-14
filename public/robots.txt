@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
-Allow: /collections/
-Allow: /products/
+Allow: /collection/
+Allow: /product/
 Allow: /pages/
 Allow: /policy
 Disallow: /cart

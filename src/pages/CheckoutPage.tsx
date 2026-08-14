@@ -151,7 +151,7 @@ export function CheckoutPage() {
       for (const item of jerseyCart) {
         for (let i = 0; i < item.quantity; i++) {
           const itemFinalPrice = item.price;
-          const itemAdvance = 50;
+          const itemAdvance = currentMode === "full" ? 0 : 50;
           const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice;
 
           const docRef = await addDoc(collection(db, "orders"), {
@@ -168,6 +168,8 @@ export function CheckoutPage() {
             originalPrice: item.price,
             codCharges: 0,
             advancePaid: itemAdvance,
+            amountPaid: currentMode === "full" ? itemFinalPrice : itemAdvance,
+            codAmount: itemRemainingCod,
             remainingCodAmount: itemRemainingCod,
             finalTotal: itemFinalPrice,
             status: currentMode === "full" ? "pending full payment" : "pending advance payment",

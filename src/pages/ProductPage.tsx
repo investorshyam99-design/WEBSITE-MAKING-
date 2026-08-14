@@ -112,10 +112,10 @@ export function ProductPage() {
     return generateProductSEO(product);
   }, [product]);
 
-  // If visited via legacy ID route /product/:id, redirect to custom slug route /products/:slug
+  // If visited via legacy ID route /product/:id, redirect to custom slug route /product/:slug
   useEffect(() => {
     if (id && product && !isLoading) {
-      navigate(`/products/${product.slug}`, { replace: true });
+      navigate(`/product/${product.slug}`, { replace: true });
     }
   }, [id, product, isLoading, navigate]);
 
@@ -209,7 +209,7 @@ export function ProductPage() {
 
   const handleCopyLink = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/products/${product.slug}`;
+    const shareUrl = `${window.location.origin}/product/${product.slug}`;
     navigator.clipboard
       .writeText(shareUrl)
       .then(() => {
@@ -224,7 +224,7 @@ export function ProductPage() {
 
   const shareTelegram = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/products/${product.slug}`;
+    const shareUrl = `${window.location.origin}/product/${product.slug}`;
     const text = `Check out this premium apparel: ${product.name}`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
     window.open(telegramUrl, "_blank");
@@ -232,7 +232,7 @@ export function ProductPage() {
 
   const shareSnapchat = () => {
     if (!product) return;
-    const shareUrl = `${window.location.origin}/products/${product.slug}`;
+    const shareUrl = `${window.location.origin}/product/${product.slug}`;
     const snapchatUrl = `https://www.snapchat.com/share?url=${encodeURIComponent(shareUrl)}`;
     window.open(snapchatUrl, "_blank");
   };
@@ -416,7 +416,7 @@ export function ProductPage() {
         image={product?.image}
         type="product"
         product={product}
-        canonicalUrl={`https://jerseyunicorn.com/products/${product?.slug || product?.id}`}
+        canonicalUrl={`https://jerseyunicorn.com/product/${product?.slug || product?.id}`}
       />
       {toastMessage && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-[#1E2A44] border border-[#1E2A44]/20 text-white px-6 py-3.5 rounded-full font-black uppercase text-xs tracking-widest flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">

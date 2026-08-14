@@ -206,9 +206,9 @@ export function Header() {
               Home
             </Link>
             
-            <Link to="/collections/all" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Shop</Link>
-            <Link to="/collections/player-version" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Player Version</Link>
-            <Link to="/collections/t-shirts" className="hover:text-[#1E2A44] transition-colors cursor-pointer">T-Shirts</Link>
+            <Link to="/collection/all" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Shop</Link>
+            <Link to="/collection/player-version" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Player Version</Link>
+            <Link to="/collection/t-shirts" className="hover:text-[#1E2A44] transition-colors cursor-pointer">T-Shirts</Link>
           </nav>
 
           <div className="flex items-center gap-4">

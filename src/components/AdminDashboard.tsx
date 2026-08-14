@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { db } from "../lib/firebase";
+import { getOrderCalculations } from "../lib/utils";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import {
   Package,
@@ -48,6 +49,13 @@ interface Order {
   paymentId?: string;
   trackingId?: string;
   courierName?: string;
+  amountPaid?: number;
+  originalAmount?: number;
+  deductionAmount?: number;
+  finalTotalAmount?: number;
+  adjustedAmount?: number;
+  codAmount?: number;
+  priceAdjustment?: number;
 }
 
 const TABS = [
@@ -147,17 +155,10 @@ export function AdminOrdersDashboard({
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
         
-        let effectiveQuantity = order.quantity || 1;
-        if (!order.quantity && order.price >= 1800) {
-           effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
-        }
-        
-        const amountPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
-        
+        const calc = getOrderCalculations(order);
         const adjustedAmount = Number(newPrice);
-        const originalAmount = order.originalAmount !== undefined ? order.originalAmount : order.price;
-        const deductionAmount = originalAmount - adjustedAmount;
-        const finalTotalAmount = adjustedAmount + amountPaid;
+        const deductionAmount = calc.originalAmount - adjustedAmount;
+        const finalTotalAmount = adjustedAmount + calc.amountPaid;
         const codAmount = adjustedAmount;
         
         const updateData: any = {
@@ -166,11 +167,8 @@ export function AdminOrdersDashboard({
           priceAdjustment: deductionAmount,
           finalTotalAmount,
           codAmount,
-          amountPaid,
-          originalAmount,
-          // Update price and finalTotal for backward compatibility in other parts of the app
-          price: finalTotalAmount,
-          finalTotal: finalTotalAmount
+          amountPaid: calc.amountPaid,
+          originalAmount: calc.originalAmount,
         };
         
         await updateDoc(doc(db, "orders", orderId), updateData);
@@ -187,15 +185,7 @@ export function AdminOrdersDashboard({
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
       
-      let effectiveQuantity = order.quantity || 1;
-      if (!order.quantity && order.price >= 1800) {
-         effectiveQuantity = Math.max(1, Math.round(order.price / ((order?.productName || "").toLowerCase().includes("player") ? 1499 : 999)));
-      }
-      
-      const amountPaid = order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0));
-      
-      const originalAmount = order.originalAmount !== undefined ? order.originalAmount : order.price;
-      
+      const calc = getOrderCalculations(order);
       let deductionAmount = order.deductionAmount || 0;
       const wasYes = order.customizationStatus !== "NO";
       
@@ -205,8 +195,8 @@ export function AdminOrdersDashboard({
           deductionAmount = 0;
       }
       
-      const adjustedAmount = originalAmount - deductionAmount;
-      const finalTotalAmount = adjustedAmount + amountPaid;
+      const adjustedAmount = calc.originalAmount - deductionAmount;
+      const finalTotalAmount = adjustedAmount + calc.amountPaid;
       const codAmount = adjustedAmount;
       
       const updateData: any = {
@@ -216,12 +206,10 @@ export function AdminOrdersDashboard({
         priceAdjustment: deductionAmount,
         finalTotalAmount,
         codAmount,
-        amountPaid,
-        originalAmount,
-        price: finalTotalAmount,
-        finalTotal: finalTotalAmount
+        amountPaid: calc.amountPaid,
+        originalAmount: calc.originalAmount,
       };
-
+      
       await updateDoc(doc(db, "orders", orderId), updateData);
       refreshOrders();
     } catch (e) {
@@ -423,6 +411,7 @@ function AdminOrderCard({
   const [trackingId, setTrackingId] = useState(order.trackingId || "");
   const [courierName, setCourierName] = useState(order.courierName || "");
   const [showTrackingForm, setShowTrackingForm] = useState(false);
+  const calc = getOrderCalculations(order);
   const [isFulfilling, setIsFulfilling] = useState(false);
   const [fulfillmentSuccess, setFulfillmentSuccess] = useState("");
   const [fulfillmentErr, setFulfillmentErr] = useState("");
@@ -482,11 +471,11 @@ function AdminOrderCard({
     e.stopPropagation();
     const product = products.find((p) => p.name === order.productName || p.id === (order as any).productId);
     if (product) {
-      navigate(`/products/${product.slug}`);
+      navigate(`/product/${product.slug}`);
     } else {
       const pid = (order as any).productId;
       if (pid) {
-        navigate(`/products/${encodeURIComponent(pid)}`);
+        navigate(`/product/${encodeURIComponent(pid)}`);
       }
     }
   };
@@ -582,7 +571,7 @@ function AdminOrderCard({
             <div className="text-right">
               <div className="flex justify-end items-center gap-2">
                 <p className="font-black text-[#1B1B1B] text-sm">
-                  ₹{(order.finalTotalAmount ?? order.price ?? 0).toLocaleString("en-IN")}
+                  ₹{(order.finalTotalAmount !== undefined ? order.finalTotalAmount : ((order.price || 0) + (order.paymentMode === "full" ? 0 : (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0)))))).toLocaleString("en-IN")}
                 </p>
                 <button
                   title="Edit Price"
@@ -632,7 +621,7 @@ function AdminOrderCard({
                 </p>
                 <div className="flex items-center gap-2">
                   <p className="font-black text-gray-800 text-sm">
-                    ₹{(order.finalTotalAmount ?? order.price ?? 0).toLocaleString("en-IN")}
+                    ₹{calc.finalTotalAmount.toLocaleString("en-IN")}
                   </p>
                   <button
                     title="Edit Total"
@@ -647,24 +636,34 @@ function AdminOrderCard({
                 </div>
               </div>
               
-              <div className="flex justify-between items-center">
-                <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                  PAID / ADVANCE
-                </p>
-                <p className="font-black text-green-600 text-sm">
-                  ₹{(order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "full" ? (order.price || 0) : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0)))).toLocaleString("en-IN")}
-                </p>
-              </div>
-              
-              {order.paymentMode !== "full" && (
+              {calc.paymentMode === "full" ? (
                 <div className="flex justify-between items-center">
                   <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                    TO COLLECT (COD)
+                    PAYMENT
                   </p>
-                  <p className="font-black text-red-600 text-sm">
-                    ₹{(order.codAmount !== undefined ? order.codAmount : (order.adjustedAmount !== undefined ? order.adjustedAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0))))))).toLocaleString("en-IN")}
+                  <p className="font-black text-green-600 text-sm">
+                    FULLY PAID (₹{calc.amountPaid.toLocaleString("en-IN")})
                   </p>
                 </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+                      PAID / ADVANCE
+                    </p>
+                    <p className="font-black text-green-600 text-sm">
+                      ₹{calc.amountPaid.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+                      TO COLLECT (COD)
+                    </p>
+                    <p className="font-black text-red-600 text-sm">
+                      ₹{calc.codAmount.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                </>
               )}
               
               <div className="flex justify-between items-center">

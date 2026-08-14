@@ -4,7 +4,7 @@
  */
 
 import { useEffect } from "react";
-import { HashRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { trackPageView } from "./lib/pixel";
 import { CollectionPage } from "./pages/CollectionPage";
 import { GenericPage } from "./pages/GenericPage";
@@ -43,11 +43,11 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/product/:id" element={<ProductPage />} />
-            <Route path="/products/:slug" element={<ProductPage />} />
+            <Route path="/product/:slug" element={<ProductPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/collections/:id" element={<CollectionPage />} />
+            <Route path="/collection/:id" element={<CollectionPage />} />
             <Route path="/blog" element={<BlogListPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/pages/:id" element={<GenericPage />} />

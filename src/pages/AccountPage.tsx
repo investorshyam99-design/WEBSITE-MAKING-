@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Header } from "../components/Header";
+import { getOrderCalculations } from "../lib/utils";
 import { Footer } from "../components/Footer";
 import { useShop } from "../context/ShopContext";
 import { db, auth } from "../lib/firebase";
@@ -34,6 +35,13 @@ interface Order {
   paymentId?: string;
   trackingId?: string;
   courierName?: string;
+  amountPaid?: number;
+  originalAmount?: number;
+  deductionAmount?: number;
+  finalTotalAmount?: number;
+  adjustedAmount?: number;
+  codAmount?: number;
+  priceAdjustment?: number;
 }
 
 export function AccountPage() {
@@ -48,11 +56,11 @@ export function AccountPage() {
   const handleImageClick = (order: Order) => {
     const product = products.find(p => p?.name === order?.productName || p?.id === (order as any)?.productId);
     if (product) {
-      navigate(`/products/${product.slug}`);
+      navigate(`/product/${product.slug}`);
     } else {
       const pid = (order as any).productId;
       if (pid) {
-        navigate(`/products/${encodeURIComponent(pid)}`);
+        navigate(`/product/${encodeURIComponent(pid)}`);
       }
     }
   };
@@ -386,6 +394,7 @@ export function AccountPage() {
 }
 
 function OrderCard({ order, user, handleImageClick }: { order: Order; user: any; handleImageClick: (order: Order) => void }) {
+  const calc = getOrderCalculations(order);
   const orderDate = order.createdAt?.toDate?.()
     ? order.createdAt.toDate().toLocaleDateString("en-US", {
         year: "numeric",
@@ -428,7 +437,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               Order Total
             </p>
             <p className="font-semibold text-[#1B1B1B]">
-              ₹{(order.finalTotalAmount ?? order.price ?? 0).toLocaleString("en-IN")}
+              ₹{calc.finalTotalAmount.toLocaleString("en-IN")}
             </p>
           </div>
           <div>
@@ -449,38 +458,31 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               </p>
             </div>
           )}
+          {calc.paymentMode === "full" ? (
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Payment
+            </p>
+            <p className="font-semibold text-green-600 text-sm">
+              FULLY PAID
+            </p>
+          </div>
+        ) : (
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
               Paid
             </p>
             <p className="font-semibold text-green-600 text-sm">
-              ₹{(order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : ((order.paymentMode === "full" ? (order.price || 0) : ((order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance")) ? 50 * effectiveQuantity : 0))))) || 0}
+              ₹{calc.amountPaid.toLocaleString("en-IN")}
             </p>
+            <div className="mt-1">
+              <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">COD Remaining</p>
+              <p className="font-black text-rose-600 text-sm">
+                ₹{calc.codAmount.toLocaleString("en-IN")}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="text-left md:text-right">
-          <p className="text-xs uppercase font-bold text-gray-500 tracking-wider mb-1">
-            Status
-          </p>
-          <div className="flex flex-col items-start md:items-end gap-2">
-            <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded ${
-              order.status?.toLowerCase().includes('cancelled') 
-                ? 'bg-red-100 text-red-800' 
-                : order.status?.toLowerCase().includes('pending') 
-                ? 'bg-amber-100 text-amber-800' 
-                : 'bg-green-100 text-green-800'
-            }`}>
-              {order.status || "Pending"}
-            </span>
-            {order.paymentMode !== "full" && (
-               <div className="mt-1 text-right">
-                 <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">COD Remaining</p>
-                 <p className="font-black text-rose-600 text-sm">₹{(
-                   order.codAmount !== undefined ? order.codAmount : (order.adjustedAmount !== undefined ? order.adjustedAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0))))))
-                 ).toLocaleString("en-IN")}</p>
-               </div>
-            )}
-          </div>
+        )}
         </div>
       </div>
       <div className="p-6">

@@ -28,7 +28,7 @@ export function CollectionPage() {
     return {
       id,
       h1: `${formattedName} Football Jerseys Online in India`,
-      title: `Buy ${formattedName} Football Jerseys Online India | Jersey Unicorn`,
+      title: `${formattedName} Football Jerseys India – Jersey Unicorn`,
       description: `Buy premium ${formattedName} football jerseys and fan sets in India. Player version, master retro & World Cup kits. Fast delivery & COD. Shop now!`,
       intro: `Upgrade your kit rotation with Jersey Unicorn's official ${formattedName} collection in India! Engineered with high-grade moisture-wicking fabric, authentic badges, and comfortable athletic fits, these jerseys are designed for die-hard fans and streetwear fashion flexes. Rep your team with pride on matchdays, turf games, or casual city outings. Enjoy fast shipping and cash on delivery across India when you order today!`,
       searchTerm: id.replace(/-/g, ' '),
@@ -78,7 +78,7 @@ export function CollectionPage() {
     "@type": "CollectionPage",
     name: collectionSEO.h1,
     description: collectionSEO.description,
-    url: `https://jerseyunicorn.com/collections/${id}`,
+    url: `https://jerseyunicorn.com/collection/${id}`,
   };
 
   const breadcrumbSchema = {
@@ -95,13 +95,13 @@ export function CollectionPage() {
         "@type": "ListItem",
         position: 2,
         name: "Collections",
-        item: "https://jerseyunicorn.com/collections/all",
+        item: "https://jerseyunicorn.com/collection/all",
       },
       {
         "@type": "ListItem",
         position: 3,
         name: collectionSEO.h1,
-        item: `https://jerseyunicorn.com/collections/${id}`,
+        item: `https://jerseyunicorn.com/collection/${id}`,
       },
     ],
   };
@@ -124,7 +124,7 @@ export function CollectionPage() {
       <SEO 
         title={collectionSEO.title}
         description={collectionSEO.description}
-        canonicalUrl={`https://jerseyunicorn.com/collections/${id}`}
+        canonicalUrl={`https://jerseyunicorn.com/collection/${id}`}
         schemas={[collectionSchema, breadcrumbSchema, faqSchema]}
       />
       <Header />
@@ -136,7 +136,7 @@ export function CollectionPage() {
           <nav className="flex text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <span className="mx-2 text-gray-600">/</span>
-            <Link to="/collections/all" className="hover:text-white transition-colors">Collections</Link>
+            <Link to="/collection/all" className="hover:text-white transition-colors">Collections</Link>
             <span className="mx-2 text-gray-600">/</span>
             <span className="text-white">{id}</span>
           </nav>
@@ -186,7 +186,7 @@ export function CollectionPage() {
             <div className="text-center py-20 bg-[#111] rounded-2xl border border-[#222] mb-16">
               <h3 className="text-xl font-black uppercase text-white mb-2">No Products Found</h3>
               <p className="text-gray-400 font-medium mb-6 text-sm">We couldn't find any products in this specific category.</p>
-              <Link to="/collections/all" className="inline-block bg-white text-black px-6 py-3 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
+              <Link to="/collection/all" className="inline-block bg-white text-black px-6 py-3 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
                 Explore All Products
               </Link>
             </div>

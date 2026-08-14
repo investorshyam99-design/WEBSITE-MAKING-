@@ -13,7 +13,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "world-cup-2026": {
     id: "world-cup-2026",
     h1: "World Cup 2026 Football Jerseys & Sets Online in India",
-    title: "Buy World Cup 2026 Football Jerseys India | Jersey Unicorn",
+    title: "World Cup 2026 Football Football Jerseys India – Jersey Unicorn",
     description: "Shop World Cup 2026 jerseys, fan sets & player versions in India. Argentina, Portugal, France & more. Fast shipping & COD. Order today!",
     intro: "Get ready for the biggest tournament on earth with Jersey Unicorn's official World Cup 2026 collection in India! From Argentina's 3-star home kits and Portugal's 60th Anniversary sets to Mexico, Japan, and Italy player versions, we drop the exact matchday fits and fan sets built for true supporters. Crafted with ultra-breathable moisture-wicking fabric, slim athletic fits, and heat-pressed logos, these kits let you flex your passion on matchdays and street corners alike. Don't compromise on quality or drip. Order your World Cup 2026 jersey with fast dispatch across India today!",
     searchTerm: "2026",
@@ -39,7 +39,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "argentina": {
     id: "argentina",
     h1: "Argentina Football Jerseys & Fan Sets Online in India",
-    title: "Buy Argentina Jersey Online India | Jersey Unicorn",
+    title: "Argentina Football Jerseys India – Jersey Unicorn",
     description: "Buy Argentina World Cup 2026 home & away jerseys in India. Player version & fan sets with shorts. Premium quality & fast shipping. Shop now!",
     intro: "Rep the world champions in ultimate style! Buy the iconic Argentina 3-star home jersey, away kit, and full matching shorts set in India exclusively at Jersey Unicorn. Featuring authentic light-blue stripes, gold albiceleste badges, and lightweight breathable performance fabric, this is the exact kit worn by Messi and the legend squad. Whether you're hitting the turf, watching matchday with the boys, or flexing streetwear vibes, our Argentina jerseys deliver unrivaled comfort and authentic pitch-side quality. Shop now for instant dispatch across India!",
     searchTerm: "argentina",
@@ -61,7 +61,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "portugal": {
     id: "portugal",
     h1: "Portugal Football Jerseys & 60th Anniversary Kits India",
-    title: "Buy Portugal Jersey Online India | Jersey Unicorn",
+    title: "Portugal Football Jerseys India – Jersey Unicorn",
     description: "Shop Portugal World Cup 2026 & 60 Years Anniversary jerseys in India. Player & fan versions with fast shipping & COD. Order today!",
     intro: "Celebrate Portuguese football royalty with the official Portugal 2026 home, away, and exclusive 60th Anniversary anniversary kits in India! Designed for hardcore Ronaldo fans and collectors, these jerseys boast striking rich crimson and forest green colorways, premium moisture-wicking technology, and durable heat-sealed details. Feel the energy of A Seleção whether you're at stadium screenings or styling casual streetwear. Grab yours now with fast shipping and cash on delivery across India!",
     searchTerm: "portugal",
@@ -79,7 +79,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "real-madrid": {
     id: "real-madrid",
     h1: "Real Madrid Football Jerseys & Sets Online in India",
-    title: "Buy Real Madrid Jersey Online India | Jersey Unicorn",
+    title: "Real Madrid Football Jerseys India – Jersey Unicorn",
     description: "Buy Real Madrid 2025-26 home & away jerseys in India. Master & player version kits with gold accents. Fast delivery & COD. Shop now!",
     intro: "Hala Madrid! Own the royal white kit of Europe's undisputed kings. Our Real Madrid 2025/26 home and away jersey collections bring pristine royal white fabric, houndstooth subtle weave patterns, and crisp gold/black accents straight to fans in India. Built for pitch performance or city streetwear flex, each jersey is engineered with high-density ventilation and official-tier badges. Show your loyalty to Los Blancos with India's most trusted jersey store—Jersey Unicorn. Order today for rapid delivery!",
     searchTerm: "real madrid",
@@ -97,7 +97,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "manchester-city": {
     id: "manchester-city",
     h1: "Manchester City Football Jerseys & Kits Online in India",
-    title: "Buy Manchester City Jersey Online India | Jersey Unicorn",
+    title: "Manchester City Football Jerseys India – Jersey Unicorn",
     description: "Shop Manchester City 2025-26 sky blue home jerseys & full sets in India. Player & fan versions available. Express delivery. Order today!",
     intro: "Rep the Champions of England in signature sky blue! Buy the Manchester City 2025/26 home jersey and fan sets in India at Jersey Unicorn. Featuring 0161 Manchester phone area code collar details, vibrant sky-blue tones, and ultra-breathable dry-fit polyester, these jerseys represent pure tactical dominance. Ideal for turf matches, gym workouts, or casual weekend fits. Get instant dispatch, hassle-free exchanges, and COD anywhere in India when you shop today!",
     searchTerm: "manchester city",
@@ -111,7 +111,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "manchester-united": {
     id: "manchester-united",
     h1: "Manchester United Football Jerseys Online in India",
-    title: "Buy Manchester United Jersey Online India | Jersey Unicorn",
+    title: "Manchester United Football Jerseys India – Jersey Unicorn",
     description: "Buy Manchester United 2025-26 home red & retro jerseys in India. High quality, fast delivery & COD available. Shop now!",
     intro: "Glory Glory Manchester United! Step out in the legendary devil red with the Manchester United 2025/26 home kit and classic retro editions. Built with deep crimson gradient shades, high-grade embroidered devil badges, and breathable moisture-control yarn, these kits embody Old Trafford passion. Perfect for Red Devils across India who demand authentic aesthetic standards. Order yours now from Jersey Unicorn for express shipping and easy size exchanges!",
     searchTerm: "manchester united",
@@ -125,7 +125,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "barcelona": {
     id: "barcelona",
     h1: "FC Barcelona Football Jerseys & Kits Online in India",
-    title: "Buy Barcelona Jersey Online India | Jersey Unicorn",
+    title: "Barcelona Football Jerseys India – Jersey Unicorn",
     description: "Buy FC Barcelona 2025-26 Blaugrana home & away jerseys in India. Player & master versions with fast delivery & COD. Order today!",
     intro: "Visca el Barça! Wear the timeless Blaugrana half-and-half classic with the FC Barcelona 2025/26 home jersey set in India. Paying tribute to 125 years of club history, this jersey features vibrant deep red and blue block paneling, Spotify sponsor branding, and ultra-lightweight match fabric. Designed for Culés who live and breathe football culture. Grab your Barcelona kit at Jersey Unicorn today with fast Indian dispatch and guaranteed quality!",
     searchTerm: "barcelona",
@@ -139,7 +139,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "liverpool": {
     id: "liverpool",
     h1: "Liverpool FC Football Jerseys Online in India",
-    title: "Buy Liverpool FC Jersey Online India | Jersey Unicorn",
+    title: "Liverpool FC Football Jerseys India – Jersey Unicorn",
     description: "Shop Liverpool 2025-26 home red jerseys in India. Premium quality master & player versions with fast shipping & COD. Order now!",
     intro: "You'll Never Walk Alone! Wear the iconic chrome yellow pinstripe and gym-red Liverpool FC 2025/26 home jersey in India. Featuring Liverbird crest detailing, moisture-wicking technology, and a athletic comfortable cut, this jersey lets Kopites rep Merseyside in absolute style. Perfect for match viewings or street fashion. Order now at Jersey Unicorn for swift delivery anywhere in India!",
     searchTerm: "liverpool",
@@ -153,7 +153,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "italy": {
     id: "italy",
     h1: "Italy National Team Football Jerseys Online in India",
-    title: "Buy Italy Jersey Online India | Jersey Unicorn",
+    title: "Italy Football Jerseys India – Jersey Unicorn",
     description: "Buy Italy 2026 Azzurri home & away player version jerseys in India. Premium quality, athletic fit & fast delivery. Shop now!",
     intro: "Experience classic Italian sartorial craftsmanship on the pitch! Buy Italy 2026 Azzurri home blue and away white player version jerseys in India. Featuring gold tricolor crests, tailored athletic fits, and heat-pressed performance technology, these jerseys reflect pure Azzurri elegance. Step up your kit collection with Jersey Unicorn today!",
     searchTerm: "italy",
@@ -167,7 +167,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "japan": {
     id: "japan",
     h1: "Japan National Team Football Jerseys Online in India",
-    title: "Buy Japan Jersey Online India | Jersey Unicorn",
+    title: "Japan Football Jerseys India – Jersey Unicorn",
     description: "Buy Japan 2026 Samurai Blue home & away jerseys in India. Flame graphics, player version & fast delivery. Order today!",
     intro: "Unleash the Samurai Blue! Buy the Japan 2026 home and away player version jerseys in India featuring hand-crafted anime flame graphics and striking navy blue hues. Celebrated as one of the most stylish national team kits on earth, this jersey is a holy grail for football fans and streetwear enthusiasts alike. Get yours now at Jersey Unicorn with pan-India COD and fast delivery!",
     searchTerm: "japan",
@@ -181,7 +181,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "mexico": {
     id: "mexico",
     h1: "Mexico National Team Football Jerseys Online in India",
-    title: "Buy Mexico Jersey Online India | Jersey Unicorn",
+    title: "Mexico Football Jerseys India – Jersey Unicorn",
     description: "Shop Mexico 2026 away & home player version jerseys in India. Aztec inspired graphics & fast delivery. Order now!",
     intro: "Embrace ancient Aztec energy with the Mexico 2026 player version jersey in India! Featuring intricate red and green heritage patterns on crisp off-white yarn, this kit is an instant classic. Engineered for peak breathability and razor-sharp style. Order yours from Jersey Unicorn today with express shipping across India!",
     searchTerm: "mexico",
@@ -195,7 +195,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "uruguay": {
     id: "uruguay",
     h1: "Uruguay Football Jerseys Online in India",
-    title: "Buy Uruguay Jersey Online India | Jersey Unicorn",
+    title: "Uruguay Football Jerseys India – Jersey Unicorn",
     description: "Buy Uruguay 2026 celeste blue home & away jerseys in India. Premium quality, fast shipping & COD. Shop today!",
     intro: "Rep La Celeste with pride! Buy Uruguay 2026 sky blue home and away jerseys in India at Jersey Unicorn. Complete with 4-star gold crests honoring Uruguay's World Cup titles and Olympic gold, this lightweight athletic jersey is a must-have for true football purists. Order today!",
     searchTerm: "uruguay",
@@ -209,7 +209,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "france": {
     id: "france",
     h1: "France National Team & Retro Football Jerseys India",
-    title: "Buy France Jersey Online India | Jersey Unicorn",
+    title: "France Football Jerseys India – Jersey Unicorn",
     description: "Shop France 1998 Retro & World Cup 2026 jerseys in India. Premium quality, fast shipping & COD available. Order now!",
     intro: "Allez Les Bleus! Step back into glory with the iconic Retro France 1998 Zidane home jersey or grab the latest France World Cup 2026 player version kits in India. Featuring gold rooster emblems, royal blue tones, and vintage striped collars, our France collection brings historic drip to modern football fashion. Shop now at Jersey Unicorn for fast delivery!",
     searchTerm: "france",
@@ -223,7 +223,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "retro-jerseys": {
     id: "retro-jerseys",
     h1: "Retro Football Jerseys Online in India",
-    title: "Buy Retro Football Jerseys Online India | Jersey Unicorn",
+    title: "Retro Football Football Jerseys India – Jersey Unicorn",
     description: "Buy vintage retro football jerseys in India. France 1998, Man Utd 2007-08 & classic master versions. Fast delivery & COD. Shop now!",
     intro: "Travel back in time to football's golden eras! Jersey Unicorn's retro jersey collection in India features iconic grail kits like the France 1998 World Cup final jersey, Manchester United 2007-08 Champions League full sleeves, and timeless vintage club wear. Every retro kit is recreated with authentic weave patterns, classic collars, and heavy-duty felt badges. Flex vintage aesthetic effortlessly on game nights or street outings. Order your retro jersey today!",
     categoryFilter: "master-version",
@@ -242,7 +242,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "player-version": {
     id: "player-version",
     h1: "Player Version Football Jerseys Online in India",
-    title: "Buy Player Version Jerseys Online India | Jersey Unicorn",
+    title: "Player Version Football Jerseys India – Jersey Unicorn",
     description: "Shop authentic player edition football jerseys in India. Heat-pressed badges & slim fit match kits. Fast delivery & COD. Order today!",
     intro: "Experience exact matchday performance technology worn by elite professional footballers on the pitch! Our Player Version jersey collection in India features heat-transferred lightweight badges, micro-ventilated airflow mesh panels, and a sleek athletic slim fit. Engineered for serious players, gym junkies, and kit collectors who refuse second best. Order your Player Version kit now with instant Indian shipping!",
     categoryFilter: "player-version",
@@ -260,7 +260,7 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
   "fan-version": {
     id: "fan-version",
     h1: "Fan Version Football Jerseys & Sets Online in India",
-    title: "Buy Fan Version Jerseys & Sets India | Jersey Unicorn",
+    title: "Buy Fan Version Jerseys & Sets India Football Jerseys India – Jersey Unicorn",
     description: "Buy comfortable fan version jerseys & shorts sets in India. Durable embroidered badges & regular fit. Fast delivery. Shop now!",
     intro: "Designed for everyday comfort, stadium cheering, and casual street wear! Our Fan Version jersey and complete jersey + shorts sets in India feature durable embroidered team crests, standard comfortable sizing, and soft breathable polyester fabric. Perfect for supporters who want an effortless, durable football fit for casual hangouts or daily wear. Grab yours at Jersey Unicorn today with cash on delivery!",
     categoryFilter: "fan-set",

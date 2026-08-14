@@ -58,14 +58,17 @@ export function generateProductSEO(product: {
 
   // 1. SEO Title: Max 60 chars
   // Formula: [Team] [Home/Away/Third] Jersey [Season] ([Version]) | Jersey Unicorn
-  let rawTitle = `${team} ${kitType} Jersey ${season} (${versionLabel}) | Jersey Unicorn`;
+  let rawTitle = `${team} ${kitType} Jersey ${season} | ${versionLabel} | ₹${product.price} – Jersey Unicorn`;
+  if (rawTitle.length > 70) {
+    rawTitle = `${name} | ₹${product.price} – Jersey Unicorn`;
+  }
   if (rawTitle.length > 60) {
     rawTitle = `${name} (${versionLabel}) | Jersey Unicorn`;
   }
   if (rawTitle.length > 60) {
     rawTitle = `${name} | Jersey Unicorn`;
   }
-  const seoTitle = rawTitle.substring(0, 60);
+  const seoTitle = rawTitle;
 
   // 2. Meta Description: 150-160 chars, includes "India", trust signal, CTA
   const rawMetaDesc = `Buy authentic ${name} in India at Jersey Unicorn. Engineered with premium breathable performance fabric & authentic fit. Fast delivery & COD available. Order today!`;

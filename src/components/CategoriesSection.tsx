@@ -8,28 +8,28 @@ const SECTIONS_CONFIG = [
     sectionId: "section-player-version",
     title: "PLAYER VERSION",
     subtitle: "Premium match-grade jerseys.",
-    viewAllUrl: "/collections/player-version"
+    viewAllUrl: "/collection/player-version"
   },
   {
     id: "master-version",
     sectionId: "section-master-version",
     title: "MASTER VERSION",
     subtitle: "Top-tier replica jerseys.",
-    viewAllUrl: "/collections/master-version"
+    viewAllUrl: "/collection/master-version"
   },
   {
     id: "fan-set",
     sectionId: "section-fan-set",
     title: "FAN SET",
     subtitle: "Classic fan version jerseys.",
-    viewAllUrl: "/collections/fan-set"
+    viewAllUrl: "/collection/fan-set"
   },
   {
     id: "tees",
     sectionId: "section-tees",
     title: "TEES",
     subtitle: "Oversized streetwear tees.",
-    viewAllUrl: "/collections/tees"
+    viewAllUrl: "/collection/tees"
   }
 ];
 

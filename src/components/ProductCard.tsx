@@ -45,12 +45,14 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       id={`product-card-${product.id}`} 
       className="group cursor-pointer bg-[#F5EFE6] rounded-[12px] overflow-hidden flex flex-col h-full shadow-sm"
     >
-      <Link to={`/products/${product.slug}`} className="block flex-grow flex flex-col">
+      <Link to={`/product/${product.slug}`} className="block flex-grow flex flex-col">
         {/* Image wrapper */}
         <div className="aspect-[3/4] relative overflow-hidden bg-gray-100 flex-shrink-0">
-          <img 
-            src={product.image || undefined} 
-            alt={`${product.name} - Oversized Graphic Tee | Jersey Unicorn`} 
+          <img
+            src={product.image || undefined}
+            alt={`${product.name} India`}
+            width="300"
+            height="400" 
             loading="lazy"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -71,9 +73,9 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
               {product.category.replace(/-/g, ' ')}
             </p>
             {/* Product Title */}
-            <h3 className="text-[12px] font-black uppercase mt-1 text-[#1B1B1B] leading-tight line-clamp-2 h-8">
+            <h2 className="text-[12px] font-black uppercase mt-1 text-[#1B1B1B] leading-tight line-clamp-2 h-8">
               {product.name}
-            </h3>
+            </h2>
           </div>
           
           {/* Price row */}

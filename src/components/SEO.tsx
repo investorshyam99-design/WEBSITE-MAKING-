@@ -1,205 +1,121 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect } from 'react';
 
 interface SEOProps {
   title?: string;
   description?: string;
+  schema?: any;
+  schemas?: any[];
+  isHome?: boolean;
   keywords?: string;
   image?: string;
   type?: string;
   product?: any;
   canonicalUrl?: string;
-  schemas?: any[];
-  isHome?: boolean;
 }
 
-export function SEO({
-  title,
-  description,
-  keywords,
-  image,
-  type,
-  product,
-  canonicalUrl,
-  schemas = [],
-  isHome = false,
-}: SEOProps) {
-  const location = useLocation();
-
+export function SEO({ title, description, schema, schemas, image, type, product, canonicalUrl, isHome, keywords }: SEOProps) {
   useEffect(() => {
-    // 1. Determine Title (Max ~60 chars, formula: [Primary Keyword] | Jersey Unicorn)
-    const finalTitle =
-      title || "Buy Football Jerseys Online India | Jersey Unicorn";
-
-    // 2. Determine Description (150-160 chars with India, trust signal, CTA)
-    const finalDescription =
-      description ||
-      "Buy premium football jerseys & fan sets in India. Authentic player version, master retro & World Cup 2026 jerseys. Fast delivery & COD available. Shop now!";
-
-    // 3. Determine Keywords
-    const finalKeywords =
-      keywords ||
-      "buy football jersey online India, Argentina jersey India, Portugal World Cup 2026 jersey, retro football jersey India, player version vs fan version jersey, football jersey with shorts set India, authentic football jersey India";
-
-    // 4. Default Image
-    const finalImage = image || "https://i.imgur.com/ZrEPSNI.jpeg";
-
-    // Set document title
-    document.title = finalTitle;
-
-    // Update meta tags
-    const updateMetaTag = (
-      nameOrProperty: string,
-      content: string,
-      isProperty = false
-    ) => {
-      const attribute = isProperty ? "property" : "name";
-      let element = document.querySelector(`meta[${attribute}="${nameOrProperty}"]`);
-      if (!element) {
-        element = document.createElement("meta");
-        element.setAttribute(attribute, nameOrProperty);
-        document.head.appendChild(element);
+    if (title) {
+      document.title = title;
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute('content', title);
+      const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+      if (twitterTitle) twitterTitle.setAttribute('content', title);
+    }
+    
+    if (keywords) {
+      let metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (!metaKeywords) {
+        metaKeywords = document.createElement('meta');
+        metaKeywords.setAttribute('name', 'keywords');
+        document.head.appendChild(metaKeywords);
       }
-      element.setAttribute("content", content);
-    };
-
-    updateMetaTag("description", finalDescription);
-    updateMetaTag("keywords", finalKeywords);
-
-    // Canonical link tag
-    const cleanPath = location.pathname.split("?")[0];
-    const computedCanonical =
-      canonicalUrl || `https://jerseyunicorn.com${cleanPath === "/" ? "" : cleanPath}`;
-    let canonicalLink = document.querySelector('link[rel="canonical"]');
-    if (!canonicalLink) {
-      canonicalLink = document.createElement("link");
-      canonicalLink.setAttribute("rel", "canonical");
-      document.head.appendChild(canonicalLink);
+      metaKeywords.setAttribute('content', keywords);
     }
-    canonicalLink.setAttribute("href", computedCanonical);
+    
+    if (description) {
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', description);
+      
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) ogDesc.setAttribute('content', description);
+      const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+      if (twitterDesc) twitterDesc.setAttribute('content', description);
+    }
 
-    // Open Graph
-    updateMetaTag("og:title", finalTitle, true);
-    updateMetaTag("og:description", finalDescription, true);
-    updateMetaTag("og:url", computedCanonical, true);
-    updateMetaTag("og:image", finalImage, true);
-    updateMetaTag("og:type", type || (product ? "product" : "website"), true);
+    if (image) {
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage) ogImage.setAttribute('content', image);
+      const twitterImage = document.querySelector('meta[name="twitter:image"]');
+      if (twitterImage) twitterImage.setAttribute('content', image);
+    }
+    
+    if (canonicalUrl) {
+      let linkCanonical = document.querySelector('link[rel="canonical"]');
+      if (!linkCanonical) {
+        linkCanonical = document.createElement('link');
+        linkCanonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(linkCanonical);
+      }
+      linkCanonical.setAttribute('href', canonicalUrl);
+    }
 
-    // Twitter
-    updateMetaTag("twitter:card", "summary_large_image", false);
-    updateMetaTag("twitter:title", finalTitle, false);
-    updateMetaTag("twitter:description", finalDescription, false);
-    updateMetaTag("twitter:image", finalImage, false);
-
-    // Schema Markup
-    const existingSchemaScripts = document.querySelectorAll(
-      'script[type="application/ld+json"]'
-    );
-    existingSchemaScripts.forEach((script) => script.remove());
-
-    const allSchemas: any[] = [...schemas];
-
-    // Organization Schema for Homepage
-    if (isHome) {
-      allSchemas.push({
+    // Schema
+    let finalSchema = schema;
+    if (schemas && schemas.length > 0) {
+      finalSchema = {
         "@context": "https://schema.org",
-        "@type": "Organization",
-        name: "Jersey Unicorn",
-        url: "https://jerseyunicorn.com",
-        logo: "https://i.imgur.com/ZrEPSNI.jpeg",
-        sameAs: [
-          "https://instagram.com/jerseyunicorn",
-          "https://facebook.com/jerseyunicorn",
-        ],
-        contactPoint: {
-          "@type": "ContactPoint",
-          telephone: "+91-9999999999",
-          contactType: "customer service",
-          areaServed: "IN",
-          availableLanguage: ["en", "hi"],
-        },
-      });
+        "@graph": schemas.map(s => {
+           // If a schema already has @context, we can keep it or remove it since it's at the root graph level, but usually it's fine.
+           return s;
+        })
+      };
     }
-
-    // Product & Breadcrumbs Schema if Product object provided
-    if (product) {
-      allSchemas.push({
-        "@context": "https://schema.org/",
+    if (type === 'product' && product) {
+      finalSchema = {
+        "@context": "https://schema.org",
         "@type": "Product",
-        name: product.name,
-        image: product.galleryImages || [product.image],
-        description: finalDescription,
-        sku: product.id,
-        brand: {
+        "name": product.name,
+        "image": product.image,
+        "description": description || product.name,
+        "brand": {
           "@type": "Brand",
-          name: "Jersey Unicorn",
+          "name": "Jersey Unicorn"
         },
-        offers: {
+        "offers": {
           "@type": "Offer",
-          url: computedCanonical,
-          priceCurrency: "INR",
-          price: product.price || 1199,
-          availability: "https://schema.org/InStock",
-          itemCondition: "https://schema.org/NewCondition",
-          seller: {
-            "@type": "Organization",
-            name: "Jersey Unicorn",
-          },
-        },
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: "4.9",
-          reviewCount: "128",
-        },
-      });
-
-      allSchemas.push({
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Home",
-            item: "https://jerseyunicorn.com",
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "Products",
-            item: "https://jerseyunicorn.com/collections/all",
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: product.name,
-            item: computedCanonical,
-          },
-        ],
-      });
+          "url": canonicalUrl || window.location.href,
+          "priceCurrency": "INR",
+          "price": product.price,
+          "availability": "https://schema.org/InStock",
+          "itemCondition": "https://schema.org/NewCondition"
+        }
+      };
     }
 
-    // Inject JSON-LD scripts
-    allSchemas.forEach((schemaObj) => {
-      if (!schemaObj) return;
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.text = JSON.stringify(schemaObj);
-      document.head.appendChild(script);
-    });
-  }, [
-    title,
-    description,
-    keywords,
-    image,
-    type,
-    product,
-    canonicalUrl,
-    schemas,
-    isHome,
-    location.pathname,
-  ]);
+    if (finalSchema) {
+      let scriptSchema = document.getElementById('dynamic-schema');
+      if (!scriptSchema) {
+        scriptSchema = document.createElement('script');
+        scriptSchema.id = 'dynamic-schema';
+        scriptSchema.setAttribute('type', 'application/ld+json');
+        document.head.appendChild(scriptSchema);
+      }
+      scriptSchema.textContent = JSON.stringify(finalSchema);
+    }
+
+    return () => {
+      const scriptSchema = document.getElementById('dynamic-schema');
+      if (scriptSchema) {
+        scriptSchema.remove();
+      }
+    };
+  }, [title, description, schema, schemas, image, type, product, canonicalUrl, isHome, keywords]);
 
   return null;
 }
-

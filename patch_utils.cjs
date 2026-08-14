@@ -1,4 +1,5 @@
-import { clsx, type ClassValue } from "clsx";
+const fs = require('fs');
+const utilsContent = `import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -12,7 +13,8 @@ export function getOrderCalculations(order: any) {
     }
     
     // Determine payment mode accurately
-    let isFullyPaid = order.paymentMode === "full" || String(order.status).toLowerCase().includes("full") || order.paymentMethod === "PREPAID" || order.paymentStatus === "FULLY_PAID";
+    const isCustomized = (order.customization || order.customizationStatus === "YES");
+    let isFullyPaid = order.paymentMode === "full" || String(order.status).toLowerCase().includes("full") || order.paymentMethod === "PREPAID" || order.paymentStatus === "FULLY_PAID" || isCustomized;
     let paymentMode = isFullyPaid ? "full" : "partial";
     
     const originalAmount = order.originalAmount !== undefined ? order.originalAmount : (order.price || 0);
@@ -71,3 +73,5 @@ export function getOrderCalculations(order: any) {
         paymentMode // returned so UI can use it instead of raw order.paymentMode
     };
 }
+`;
+fs.writeFileSync('src/lib/utils.ts', utilsContent);

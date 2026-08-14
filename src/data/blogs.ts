@@ -24,9 +24,9 @@ export const BLOG_POSTS: BlogPost[] = [
     image: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=1200&q=80",
     excerpt: "Wondering whether to buy a Player Version or Fan Version jersey? We break down the differences in cut, ventilation technology, heat-pressed badges, and sizing.",
     relatedCollections: [
-      { name: "Player Version Collection", path: "/collections/player-version" },
-      { name: "Fan Version Collection", path: "/collections/fan-version" },
-      { name: "World Cup 2026 Kits", path: "/collections/world-cup-2026" }
+      { name: "Player Version Collection", path: "/collection/player-version" },
+      { name: "Fan Version Collection", path: "/collection/fan-version" },
+      { name: "World Cup 2026 Kits", path: "/collection/world-cup-2026" }
     ],
     content: `
 <h2>Understanding Football Jersey Versions in India</h2>
@@ -46,8 +46,8 @@ export const BLOG_POSTS: BlogPost[] = [
 
 <h3>Summary: Which Should You Buy?</h3>
 <ul>
-  <li>Choose <strong><a href="/#/collections/player-version">Player Version</a></strong> if you play competitive turf matches, hit the gym, or want the exact high-tech fit worn by Messi, Ronaldo, and Mbappé.</li>
-  <li>Choose <strong><a href="/#/collections/fan-version">Fan Version</a></strong> if you want a complete set with shorts, maximum washing durability, or an effortless everyday streetwear fit.</li>
+  <li>Choose <strong><a href="/collection/player-version">Player Version</a></strong> if you play competitive turf matches, hit the gym, or want the exact high-tech fit worn by Messi, Ronaldo, and Mbappé.</li>
+  <li>Choose <strong><a href="/collection/fan-version">Fan Version</a></strong> if you want a complete set with shorts, maximum washing durability, or an effortless everyday streetwear fit.</li>
 </ul>
     `
   },
@@ -62,26 +62,26 @@ export const BLOG_POSTS: BlogPost[] = [
     image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
     excerpt: "With World Cup 2026 hype building across India, we rank the absolute best national team home & away kit releases—from Argentina's gold badges to Japan's anime flame art.",
     relatedCollections: [
-      { name: "World Cup 2026 Collection", path: "/collections/world-cup-2026" },
-      { name: "Argentina Collection", path: "/collections/argentina" },
-      { name: "Portugal Collection", path: "/collections/portugal" },
-      { name: "Japan Collection", path: "/collections/japan" }
+      { name: "World Cup 2026 Collection", path: "/collection/world-cup-2026" },
+      { name: "Argentina Collection", path: "/collection/argentina" },
+      { name: "Portugal Collection", path: "/collection/portugal" },
+      { name: "Japan Collection", path: "/collection/japan" }
     ],
     content: `
 <h2>The Most Hyped World Cup 2026 Jerseys Available in India</h2>
 <p>The 2026 FIFA World Cup is set to be the biggest spectacle in sports history. Brands have pulled out all the stops, delivering instant holy grail kits that blend pitch innovation with street fashion.</p>
 
 <h3>1. Argentina 2026 Home & Away 3-Star Kit</h3>
-<p>Fresh off their global triumphs, the <a href="/#/collections/argentina">Argentina 2026 kit</a> features classic sky-blue albiceleste vertical stripes accented with gold championship detailing. Available in both Player Version slim fit and full Fan Sets with matching shorts at Jersey Unicorn.</p>
+<p>Fresh off their global triumphs, the <a href="/collection/argentina">Argentina 2026 kit</a> features classic sky-blue albiceleste vertical stripes accented with gold championship detailing. Available in both Player Version slim fit and full Fan Sets with matching shorts at Jersey Unicorn.</p>
 
 <h3>2. Portugal 60 Years Anniversary Special Edition</h3>
-<p>Ronaldo fans across India are raving about the <a href="/#/collections/portugal">Portugal 60th Anniversary Kit</a>. Drenched in deep crimson and emerald green trims, this kit celebrates six decades of Portuguese football grandeur with premium gold-foil cresting.</p>
+<p>Ronaldo fans across India are raving about the <a href="/collection/portugal">Portugal 60th Anniversary Kit</a>. Drenched in deep crimson and emerald green trims, this kit celebrates six decades of Portuguese football grandeur with premium gold-foil cresting.</p>
 
 <h3>3. Japan 2026 Samurai Blue Flame Kit</h3>
-<p>Easily the most viral kit on social media, the <a href="/#/collections/japan">Japan 2026 Player Version</a> features hand-illustrated flame graphics crawling up the navy blue torso. A masterpiece of sports streetwear aesthetic.</p>
+<p>Easily the most viral kit on social media, the <a href="/collection/japan">Japan 2026 Player Version</a> features hand-illustrated flame graphics crawling up the navy blue torso. A masterpiece of sports streetwear aesthetic.</p>
 
 <h3>Where to Buy World Cup 2026 Kits in India?</h3>
-<p>At <a href="/#/">Jersey Unicorn</a>, we offer instant pan-India dispatch, cash on delivery (COD), and guaranteed sizing. Explore our <a href="/#/collections/world-cup-2026">World Cup 2026 Hub</a> now!</p>
+<p>At <a href="/">Jersey Unicorn</a>, we offer instant pan-India dispatch, cash on delivery (COD), and guaranteed sizing. Explore our <a href="/collection/world-cup-2026">World Cup 2026 Hub</a> now!</p>
     `
   },
   {
@@ -95,21 +95,21 @@ export const BLOG_POSTS: BlogPost[] = [
     image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=80",
     excerpt: "Retro football shirts are dominating Indian streetwear culture. Here are the iconic vintage Grails every football fan needs in their wardrobe.",
     relatedCollections: [
-      { name: "Retro Jersey Collection", path: "/collections/retro-jerseys" },
-      { name: "France Kits", path: "/collections/france" },
-      { name: "Manchester United Kits", path: "/collections/manchester-united" }
+      { name: "Retro Jersey Collection", path: "/collection/retro-jerseys" },
+      { name: "France Kits", path: "/collection/france" },
+      { name: "Manchester United Kits", path: "/collection/manchester-united" }
     ],
     content: `
 <h2>Why Retro Football Jerseys are the Ultimate Streetwear Flex in India</h2>
 <p>From oversized vintage aesthetics to nostalgic memories of Zidane's 1998 header and Ronaldo's 42-goal 2007/08 campaign, retro kits are more than just sportswear—they are cultural statements.</p>
 
 <h3>1. Retro France Home 1998 World Cup Final</h3>
-<p>Featuring the central red stripe across the royal blue chest and vintage folded collar, the <a href="/#/collections/france">France 1998 home shirt</a> remains one of the greatest designs in football history.</p>
+<p>Featuring the central red stripe across the royal blue chest and vintage folded collar, the <a href="/collection/france">France 1998 home shirt</a> remains one of the greatest designs in football history.</p>
 
 <h3>2. Retro Manchester United 2007-08 Away Full Sleeves</h3>
-<p>Remember CR7 knuckle-balling free kicks in the black AIG jersey? The <a href="/#/collections/manchester-united">Man Utd 2007-08 full sleeve away kit</a> delivers unmatched vintage drip for winter streetwear fits in India.</p>
+<p>Remember CR7 knuckle-balling free kicks in the black AIG jersey? The <a href="/collection/manchester-united">Man Utd 2007-08 full sleeve away kit</a> delivers unmatched vintage drip for winter streetwear fits in India.</p>
 
-<p>Discover these timeless pieces in our <a href="/#/collections/retro-jerseys">Retro Jersey Hub</a> today!</p>
+<p>Discover these timeless pieces in our <a href="/collection/retro-jerseys">Retro Jersey Hub</a> today!</p>
     `
   }
 ];

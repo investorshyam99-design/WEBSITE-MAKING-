@@ -1,16 +1,20 @@
 const fs = require('fs');
 let file = fs.readFileSync('src/components/AdminProfitsDashboard.tsx', 'utf8');
 
-// Filter validOrders so they don't count cancelled if possible, or just filter it in stats
-const statsFilter = `    filteredOrders.forEach(o => {
-      if (!o.address || o.status?.toLowerCase().includes("draft") || o.status?.toLowerCase().includes("pending") || o.status?.toLowerCase() === "cancelled") {
-         return; // We only calculate for completed operations (payment received/delivered)
-      }`;
+if (!file.includes("getOrderCalculations")) {
+    file = file.replace(/import \{ Link \} from 'react-router-dom';/, "import { Link } from 'react-router-dom';\nimport { getOrderCalculations } from '../lib/utils';");
+}
 
-file = file.replace(/filteredOrders\.forEach\(o => \{\n      if \(\!o\.address \|\| o\.status\?\.toLowerCase\(\)\.includes\("draft"\) \|\| o\.status\?\.toLowerCase\(\)\.includes\("pending"\)\) \{\n         return; \/\/ We only calculate for completed operations \(payment received\/delivered\)\n      \}/, statsFilter);
+file = file.replace(
+/const basePriceRaw = o\.price \?\? o\.finalTotal \?\? getOrderPrice\(o\);\s*const basePrice = o\.finalTotalAmount[^;]+;\s*let revenue = basePrice;\s*if \(o\.paymentMode === 'partial'[\s\S]*?\} else if \(o\.paymentMode === 'full'\) \{\s*revenue = basePrice;\s*\}/,
+`const calc = getOrderCalculations(o);
+      const revenue = calc.finalTotalAmount;`
+);
 
-// Also need to fix revenue calculation in Profits
-file = file.replace(/const basePrice = getOrderPrice\(o\);/g, 'const basePrice = o.price || o.finalTotal || getOrderPrice(o);');
-file = file.replace(/const codAmount = basePrice \+ \(50 \* effectiveQty\) - advanceReceived;/g, 'const codAmount = o.remainingCodAmount !== undefined ? o.remainingCodAmount : Math.max(0, basePrice - advanceReceived);');
+file = file.replace(
+/const basePriceRaw = order\.price \?\? order\.finalTotal \?\? getOrderPrice\(order\);\s*const basePrice = order\.finalTotalAmount[^;]+;\s*let rev = basePrice;\s*if \(order\.paymentMode === 'partial'[\s\S]*?\} else if \(order\.paymentMode === 'full'\) \{\s*rev = basePrice;\s*\}/,
+`const calc = getOrderCalculations(order);
+          const rev = calc.finalTotalAmount;`
+);
 
 fs.writeFileSync('src/components/AdminProfitsDashboard.tsx', file);

@@ -63,7 +63,7 @@ export function SearchModal({ isOpen, onClose, initialQuery }: SearchModalProps)
             {results.map((product) => (
               <Link
                 key={product.id}
-                to={`/products/${product.slug}`}
+                to={`/product/${product.slug}`}
                 onClick={onClose}
                 className="group flex flex-col gap-2"
               >

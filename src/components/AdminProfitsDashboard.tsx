@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { IndianRupee, TrendingUp, Package, Trophy, Loader2, Edit3 } from 'lucide-react';
 import { db } from '../lib/firebase';
+import { getOrderCalculations } from '../lib/utils';
 import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 
 export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any[]; updateOrderCost: (id: string, costs: any) => Promise<void> }) {
@@ -160,16 +161,8 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
       const aCost = Number(o.additionalCost || 0);
       const tCost = pCost + sCost + aCost;
 
-      const basePrice = o.finalTotalAmount ?? o.price ?? o.finalTotal ?? getOrderPrice(o);
-      let revenue = basePrice;
-
-      if (o.paymentMode === 'partial' || String(o.status).toLowerCase().includes('advance') || String(o.status).toLowerCase() === 'fampay') {
-        const advanceReceived = o.amountPaid !== undefined ? o.amountPaid : (o.advancePaid !== undefined ? o.advancePaid : 50 * effectiveQty);
-        const codAmount = o.codAmount !== undefined ? o.codAmount : (o.remainingCodAmount !== undefined ? o.remainingCodAmount : Math.max(0, basePrice - advanceReceived));
-        revenue = advanceReceived + codAmount;
-      } else if (o.paymentMode === 'full') {
-         revenue = basePrice;
-      }
+      const calc = getOrderCalculations(o);
+      const revenue = calc.finalTotalAmount;
 
       totalRevenue += revenue;
       totalCosts += tCost;
@@ -367,16 +360,8 @@ export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any
           const aCost = Number(order.additionalCost || 0);
           const tCost = pCost + sCost + aCost;
           
-          const basePrice = getOrderPrice(order);
-          let rev = 0;
-          
-          if (order.paymentMode === 'full') {
-             rev = basePrice;
-          } else {
-             const advance = 50 * eq;
-             const codAmount = basePrice + (50 * eq) - advance;
-             rev = advance + codAmount;
-          }
+          const calc = getOrderCalculations(order);
+          const rev = calc.finalTotalAmount;
           
           const profit = rev - tCost;
           const hasCosts = pCost > 0 || sCost > 0 || aCost > 0;

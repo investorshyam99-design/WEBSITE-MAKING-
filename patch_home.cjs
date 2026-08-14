@@ -1,15 +1,9 @@
-import { Header } from "../components/Header";
-import { CategoryNav } from "../components/CategoryNav";
-import { Hero } from "../components/Hero";
-import { CategoriesSection } from "../components/CategoriesSection";
-import { TrustSection } from "../components/TrustSection";
-import { Footer } from "../components/Footer";
-import { SEO } from "../components/SEO";
+const fs = require('fs');
 
-export function Home() {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <SEO 
+let file = fs.readFileSync('src/pages/Home.tsx', 'utf8');
+
+const regex = /<SEO[\s\S]*?\/>/;
+const replace = `<SEO 
         title="Buy Football Jerseys Online India from ₹899 | COD | World Cup 2026 – Jersey Unicorn"
         description="India's football jersey store. Player version, fan version & retro kits — Argentina, Real Madrid, Portugal, Brazil & more. COD available. World Cup 2026 collection live."
         canonicalUrl="https://www.jerseyunicorn.com/"
@@ -51,14 +45,12 @@ export function Home() {
             }
           ]
         }}
-      />
-      <Header />
-      <main className="flex-grow">
-        <Hero />
-        <CategoryNav />
-        <CategoriesSection />
-        <TrustSection />
-      
+      />`;
+
+file = file.replace(regex, replace);
+
+// Add h1 and SEO text and FAQ to the bottom of the <main>
+const newContent = `
         <section className="bg-white px-4 py-12 md:py-20 border-t border-gray-100">
           <div className="max-w-4xl mx-auto space-y-12">
             <div>
@@ -93,9 +85,8 @@ export function Home() {
             </div>
           </div>
         </section>
+`;
 
-      </main>
-      <Footer />
-    </div>
-  );
-}
+file = file.replace(/<\/main>/, newContent + '\n      </main>');
+
+fs.writeFileSync('src/pages/Home.tsx', file);

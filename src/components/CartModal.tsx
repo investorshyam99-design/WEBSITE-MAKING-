@@ -637,7 +637,7 @@ export function CartModal() {
                           className="min-w-[220px] w-[220px] bg-white border border-gray-100 rounded-2xl p-3 shrink-0 snap-start cursor-pointer group shadow-sm hover:shadow-md transition-all"
                           onClick={() => {
                             setIsCartOpen(false);
-                            navigate(`/products/${product.slug}`);
+                            navigate(`/product/${product.slug}`);
                           }}
                         >
                           <div className="w-full aspect-[4/5] bg-gray-50 rounded-xl overflow-hidden mb-3">
