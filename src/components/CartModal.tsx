@@ -117,7 +117,7 @@ export function CartModal() {
   }
 
   const itemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = itemsCount * 50;
+  const advanceAmount = (itemsCount * 50) + expressDeliveryCharge;
 
   const handlePincodeChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -230,16 +230,14 @@ export function CartModal() {
 
       // 1. Create order in Firestore as Pending
       const createdOrderIds: string[] = [];
-      let isFirstItem = true;
       for (const item of cart) {
         for (let i = 0; i < item.quantity; i++) {
-          const assignedExpress = isFirstItem ? expressDeliveryCharge : 0;
-          isFirstItem = false;
+          const assignedExpress = deliveryMethod === "FAST" ? 50 : 0;
           
           const itemFinalPrice = item.price + assignedExpress;
           const itemCodExtra = paymentMode === "full" ? 0 : 50;
-          const itemAdvance = paymentMode === "full" ? itemFinalPrice : 50;
-          const itemRemainingCod = paymentMode === "full" ? 0 : itemFinalPrice;
+          const itemAdvance = paymentMode === "full" ? itemFinalPrice : 50 + assignedExpress;
+          const itemRemainingCod = paymentMode === "full" ? 0 : item.price;
           
           const estimate = calculateDeliveryEstimate({
             pincode,
@@ -308,6 +306,7 @@ export function CartModal() {
           address: combinedAddress,
           phone,
           paymentMode, // Send 'full' or 'partial'
+          deliveryMethod,
           finalAmount: finalAmountToPay,
         }),
       });

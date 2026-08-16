@@ -450,7 +450,7 @@ function AdminOrderCard({
     
     setIsShippingDelhivery(true);
     try {
-      const productDesc = `${order.productName} - Size ${order.size} - Customization: ${order.customization || order.customizationStatus === "YES" ? "YES" : "NO"}`;
+      const productDesc = `${order.productName} - Size ${order.size} - Customization: ${order.customization ? order.customization : "None"}`;
       const orderData = {
          orderNumber: order.orderNumber || order.id,
          fullName: order.fullName || "Guest",
@@ -491,6 +491,7 @@ function AdminOrderCard({
          shippingStatus: "Manifested",
          courierName: "Delhivery",
          trackingId: awb,
+         trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
          shipmentCreatedAt: new Date().toISOString()
       });
       

@@ -7,7 +7,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { items, paymentMode } = req.body;
+    const { items, paymentMode, deliveryMethod } = req.body;
     
     // Fallback environment variables
     const key_id = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
@@ -23,10 +23,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let amount = 0;
     const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
 
+    const totalQuantity = items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+    const fastDeliveryFee = deliveryMethod === "FAST" ? 50 * totalQuantity : 0;
+    
     if (paymentMode === 'partial') {
-      amount = 50 * items.reduce((sum: any, item: any) => sum + item.quantity, 0); // 50 advance per item
+      amount = 50 * totalQuantity + fastDeliveryFee; // 50 advance per item + fast delivery
     } else {
-      amount = itemsTotal; // free delivery
+      amount = itemsTotal + fastDeliveryFee;
     }
 
     const options = {

@@ -80,7 +80,8 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [deliveryPincode, setDeliveryPincode] = useState("");
   const [deliveryLocation, setDeliveryLocation] = useState<{ city?: string; district?: string; state?: string } | null>(null);
   const [deliveryTat, setDeliveryTat] = useState<{ normal: { days: number; mode: string }; express: { days: number; mode: string; available: boolean } } | null>(null);
-  const expressDeliveryCharge = deliveryMethod === "FAST" ? 50 : 0;
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const expressDeliveryCharge = deliveryMethod === "FAST" ? 50 * totalItems : 0;
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [user, setUser] = useState<{ email: string; name: string; uid: string; phoneNumber?: string } | null>(null);
