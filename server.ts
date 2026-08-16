@@ -1088,23 +1088,36 @@ Your goal is to provide a premium shopping experience that builds trust and help
       let normalDays = 5; // default fallback
       let expressDays = 3;
       let expressAvailable = true;
-      // If we don't have accurate API TAT, calculate a deterministic TAT based on the destination pincode
-      // This ensures we always return a solid estimate.
-      const prefix = String(dest).substring(0, 1);
-      const originPrefix = String(origin).substring(0, 1);
-      
-      if (prefix === originPrefix) {
-        normalDays = 3;
-        expressDays = 1;
-      } else if (["7", "8", "9"].includes(prefix)) { // North East, J&K, etc.
-        normalDays = 7;
-        expressDays = 5;
-        if (prefix === "7" && String(dest).substring(0,2) !== "73" && String(dest).substring(0,2) !== "74") {
-          expressAvailable = false; // Disable express for remote areas
+
+      // Use Delhivery invoice/charges API to fetch exact delivery Zone for TAT calculation
+      if (origin) {
+        try {
+          const zoneRes = await fetch(`https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}&cgm=500`, {
+            headers: { "Authorization": `Token ${apiKey}` }
+          });
+          
+          if (zoneRes.ok) {
+            const zoneData = await zoneRes.json();
+            if (zoneData && zoneData.length > 0 && zoneData[0].zone) {
+              const zone = String(zoneData[0].zone).toUpperCase();
+              
+              if (zone.startsWith("A")) {
+                normalDays = 2; expressDays = 1;
+              } else if (zone.startsWith("B")) {
+                normalDays = 3; expressDays = 2;
+              } else if (zone.startsWith("C")) {
+                normalDays = 4; expressDays = 2;
+              } else if (zone.startsWith("D")) {
+                normalDays = 5; expressDays = 3;
+              } else if (zone.startsWith("E")) {
+                normalDays = 7; expressDays = 5;
+                expressAvailable = false; // Usually express to Zone E is prohibitively expensive or unavailable
+              }
+            }
+          }
+        } catch (e) {
+          console.error("TAT fetch error", e);
         }
-      } else {
-        normalDays = 5;
-        expressDays = 2;
       }
 
       return res.json({
