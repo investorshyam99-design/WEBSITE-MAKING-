@@ -27,7 +27,7 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
     if (!response.ok) {
        return {
          isServiceable: false,
-         message: data.error || "Delivery estimate temporarily unavailable. Please try again.",
+         message: data.error || `HTTP ${response.status}: Delivery estimate temporarily unavailable.`,
        };
     }
 
@@ -57,11 +57,11 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
         message: data.error || "Pincode valid but not serviceable.",
       };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching pincode details from Delhivery:", error);
     return {
       isServiceable: false,
-      message: "Delivery estimate temporarily unavailable. Please try again.",
+      message: `Network/Fetch error: ${error.message}`,
     };
   }
 }

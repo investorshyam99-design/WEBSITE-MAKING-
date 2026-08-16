@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
@@ -1087,29 +1088,6 @@ Your goal is to provide a premium shopping experience that builds trust and help
       let normalDays = 5; // default fallback
       let expressDays = 3;
       let expressAvailable = true;
-
-      // Realistically, Delhivery's TAT API endpoint is:
-      // https://track.delhivery.com/api/v1/packages/cost/?md=S&ss=Delivered&d_pin={dest}&o_pin={origin}
-      if (origin) {
-        try {
-          const surfaceRes = await fetch(`https://track.delhivery.com/api/v1/packages/cost/?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}`, {
-            headers: { "Authorization": `Token ${apiKey}` }
-          });
-          const surfaceData = await surfaceRes.json();
-          
-          const expressRes = await fetch(`https://track.delhivery.com/api/v1/packages/cost/?md=E&ss=Delivered&d_pin=${dest}&o_pin=${origin}`, {
-            headers: { "Authorization": `Token ${apiKey}` }
-          });
-          const expressData = await expressRes.json();
-          
-          if (surfaceData && surfaceData.length > 0 && surfaceData[0].expected_delivery_date) {
-            // Further parsing could go here
-          }
-        } catch(e) {
-          console.error("TAT fetch error", e);
-        }
-      }
-      
       // If we don't have accurate API TAT, calculate a deterministic TAT based on the destination pincode
       // This ensures we always return a solid estimate.
       const prefix = String(dest).substring(0, 1);
