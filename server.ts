@@ -33,23 +33,17 @@ async function startServer() {
       const { items, paymentMode, finalAmount } = req.body;
       const razorpay = getRazorpay();
 
+      // Trust only backend calculation
+      const { deliveryMethod } = req.body;
+      const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+      const totalQuantity = items.reduce((sum: any, item: any) => sum + item.quantity, 0);
+      const fastDeliveryFee = deliveryMethod === "FAST" ? 50 * totalQuantity : 0;
+      
       let amount = 0;
-      if (finalAmount !== undefined) {
-        amount = Number(finalAmount);
+      if (paymentMode === 'partial') {
+        amount = 50 * totalQuantity + fastDeliveryFee;
       } else {
-        // Fallback calculation just in case
-        let itemsTotal = items.reduce(
-          (sum: any, item: any) => sum + item.price * item.quantity,
-          0,
-        );
-
-        if (paymentMode === "partial") {
-          const baseAdvance =
-            50 * items.reduce((sum: any, item: any) => sum + item.quantity, 0);
-          amount = baseAdvance;
-        } else {
-          amount = itemsTotal;
-        }
+        amount = itemsTotal + fastDeliveryFee;
       }
 
       const options = {
@@ -159,7 +153,7 @@ async function startServer() {
     }
   });
 
-  // Qikink Fulfillment API
+  // Shopify Fulfillment API
 
   app.post("/api/catalog", async (req, res) => {
     try {
@@ -433,6 +427,71 @@ ${allUrls
   // --------------------------------------------------
 
 
+
+app.post("/api/gemini", async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  try {
+    const { messages } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      console.error("[Gemini AI] FATAL: GEMINI_API_KEY is missing.");
+      return res.status(500).json({ error: "Gemini API key is not configured." });
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    
+    const systemInstruction = `You are the official AI Shopping Assistant for JERSEY UNICORN.
+Your primary goal is to help customers confidently purchase the right product by answering questions accurately, recommending the correct size, explaining product differences, and providing excellent customer support.
+
+GENERAL BEHAVIOUR
+- Always reply in the same language the customer uses.
+- Be friendly, professional, concise, and helpful.
+- Never provide false information.
+- Never guess information that you do not know.
+- Never promise discounts, refunds, or delivery dates beyond the official policy.
+
+PLAYER / MASTER / FAN DIFFERENCE
+Player Version: Same style worn by professional players. Slim, athletic fit. Heat-pressed rubberized crests. Highly breathable performance fabric.
+Master/Fan Version: Looser, more relaxed fit. Embroidered fabric crests. Standard breathable fabric. Designed for everyday wear.
+
+WASHING INSTRUCTIONS
+- Hand wash recommended.
+- Do not machine wash.
+- Wash inside out in cold water.
+- Do not iron on prints or logos.`;
+
+    // Convert messages to string context
+    const currentMessage = messages[messages.length - 1];
+    const history = messages.slice(0, -1);
+    
+    let contextStr = history.map((m: any) => `${m.role === "assistant" ? "Jersey Unicorn AI" : "User"}: ${m.content}`).join('\n');
+    let prompt = `Conversation History:\n${contextStr}\n\nUser: ${currentMessage.content}\n\nPlease reply as Jersey Unicorn AI.`;
+    if (history.length === 0) {
+      prompt = currentMessage.content;
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: prompt,
+      config: {
+        systemInstruction,
+        temperature: 0.7,
+      },
+    });
+
+    const responseText = response.text || "I'm sorry, I couldn't process your request.";
+    return res.status(200).json({ text: responseText, audio: null });
+
+  } catch (error: any) {
+    console.error("[Gemini AI] Unexpected Server Error: ", error);
+    return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
+  }
+});
+
   // Unified Delhivery Endpoint for local dev
   app.all("/api/delhivery", async (req, res) => {
     const { action, awb, dest, pincode, orderData } = req.method === 'POST' ? req.body : req.query;
@@ -471,24 +530,27 @@ ${allUrls
       if (action === 'tat') {
         const origin = process.env.DELHIVERY_PICKUP_PINCODE || process.env.DELHIVERY_ORIGIN_PINCODE;
         if (!dest) return res.status(400).json({ success: false, error: "Destination pincode is required" });
+        if (!origin) {
+          return res.status(400).json({ success: false, error: "DELHIVERY_PICKUP_PINCODE not configured." });
+        }
+        
         let normalDays = 5, expressDays = 3, expressAvailable = true;
-        if (origin) {
-          const zoneRes = await fetch(`https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}&cgm=500`, {
-            headers: { "Authorization": `Token ${apiKey}` }
-          });
-          if (zoneRes.ok) {
-            const zoneData = await zoneRes.json();
-            if (zoneData?.[0]?.zone) {
-              const zone = String(zoneData[0].zone).toUpperCase();
-              if (zone.startsWith("A")) { normalDays = 2; expressDays = 1; }
-              else if (zone.startsWith("B")) { normalDays = 3; expressDays = 2; }
-              else if (zone.startsWith("C")) { normalDays = 4; expressDays = 2; }
-              else if (zone.startsWith("D")) { normalDays = 5; expressDays = 3; }
-              else if (zone.startsWith("E")) { normalDays = 7; expressDays = 5; expressAvailable = false; }
-            }
+        const zoneRes = await fetch(`https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}&cgm=500`, {
+          headers: { "Authorization": `Token ${apiKey}` }
+        });
+        if (zoneRes.ok) {
+          const zoneData: any = await zoneRes.json();
+          if (zoneData?.[0]?.zone) {
+            const zone = String(zoneData[0].zone).toUpperCase();
+            if (zone.startsWith("A")) { normalDays = 2; expressDays = 1; }
+            else if (zone.startsWith("B")) { normalDays = 3; expressDays = 2; }
+            else if (zone.startsWith("C")) { normalDays = 4; expressDays = 2; }
+            else if (zone.startsWith("D")) { normalDays = 5; expressDays = 3; }
+            else if (zone.startsWith("E")) { normalDays = 7; expressDays = 5; expressAvailable = false; }
+            return res.json({ success: true, tat: { normal: { days: normalDays, mode: "Surface" }, express: { days: expressDays, mode: "Express", available: expressAvailable } } });
           }
         }
-        return res.json({ success: true, tat: { normal: { days: normalDays, mode: "Surface" }, express: { days: expressDays, mode: "Express", available: expressAvailable } } });
+        return res.status(400).json({ success: false, error: "Failed to fetch TAT from Delhivery" });
       }
 
       if (action === 'create') {

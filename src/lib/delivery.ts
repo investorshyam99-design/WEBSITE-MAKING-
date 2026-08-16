@@ -14,11 +14,11 @@ export interface DeliveryEstimateParams {
 export interface DeliveryEstimateResult {
   isServiceable: boolean;
   processingDays: number;
-  transitDaysStart: number;
-  transitDaysEnd: number;
+  transitDaysStart?: number;
+  transitDaysEnd?: number;
   dispatchDate: Date;
-  estimatedStartDate: Date;
-  estimatedEndDate: Date;
+  estimatedStartDate: Date | null;
+  estimatedEndDate: Date | null;
   deliveryMethod: DeliveryMethod;
   message?: string;
   isExpressAvailable: boolean;
@@ -80,7 +80,9 @@ export function calculateDeliveryEstimate({
   };
 }
 
-export function formatDateRange(startDate: Date, endDate: Date): string {
+export function formatDateRange(startDate: Date | null, endDate: Date | null): string {
+  if (!startDate || !endDate) return 'Estimate temporarily unavailable';
+  
   const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
   const startStr = startDate.toLocaleDateString('en-IN', options);
   const endStr = endDate.toLocaleDateString('en-IN', options);

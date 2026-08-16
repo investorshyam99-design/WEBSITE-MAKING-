@@ -37,24 +37,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'tat') {
       const origin = process.env.DELHIVERY_PICKUP_PINCODE || process.env.DELHIVERY_ORIGIN_PINCODE;
       if (!dest) return res.status(400).json({ success: false, error: "Destination pincode is required" });
+      if (!origin) {
+        return res.status(400).json({ success: false, error: "DELHIVERY_PICKUP_PINCODE not configured." });
+      }
+      
       let normalDays = 5, expressDays = 3, expressAvailable = true;
-      if (origin) {
-        const zoneRes = await fetch(`https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}&cgm=500`, {
-          headers: { "Authorization": `Token ${apiKey}` }
-        });
-        if (zoneRes.ok) {
-          const zoneData: any = await zoneRes.json();
-          if (zoneData?.[0]?.zone) {
-            const zone = String(zoneData[0].zone).toUpperCase();
-            if (zone.startsWith("A")) { normalDays = 2; expressDays = 1; }
-            else if (zone.startsWith("B")) { normalDays = 3; expressDays = 2; }
-            else if (zone.startsWith("C")) { normalDays = 4; expressDays = 2; }
-            else if (zone.startsWith("D")) { normalDays = 5; expressDays = 3; }
-            else if (zone.startsWith("E")) { normalDays = 7; expressDays = 5; expressAvailable = false; }
-          }
+      const zoneRes = await fetch(`https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}&cgm=500`, {
+        headers: { "Authorization": `Token ${apiKey}` }
+      });
+      if (zoneRes.ok) {
+        const zoneData: any = await zoneRes.json();
+        if (zoneData?.[0]?.zone) {
+          const zone = String(zoneData[0].zone).toUpperCase();
+          if (zone.startsWith("A")) { normalDays = 2; expressDays = 1; }
+          else if (zone.startsWith("B")) { normalDays = 3; expressDays = 2; }
+          else if (zone.startsWith("C")) { normalDays = 4; expressDays = 2; }
+          else if (zone.startsWith("D")) { normalDays = 5; expressDays = 3; }
+          else if (zone.startsWith("E")) { normalDays = 7; expressDays = 5; expressAvailable = false; }
+          return res.json({ success: true, tat: { normal: { days: normalDays, mode: "Surface" }, express: { days: expressDays, mode: "Express", available: expressAvailable } } });
         }
       }
-      return res.json({ success: true, tat: { normal: { days: normalDays, mode: "Surface" }, express: { days: expressDays, mode: "Express", available: expressAvailable } } });
+      return res.status(400).json({ success: false, error: "Failed to fetch TAT from Delhivery" });
     }
 
     if (action === 'create') {
@@ -96,7 +99,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (action === 'label') {
       const response = await fetch(`https://track.delhivery.com/api/p/packing_slip?wbns=${awb}&pdf=true`, { headers: { "Authorization": `Token ${apiKey}` } });
-      const data = await response.json(); return res.json(data);
+      const data: any = await response.json();
+      if (data && data.packages && data.packages.length > 0 && data.packages[0].pdf_download_link) {
+        return res.redirect(data.packages[0].pdf_download_link);
+      }
+      return res.json(data);
     }
 
     if (action === 'track') {
