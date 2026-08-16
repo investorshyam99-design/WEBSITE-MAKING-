@@ -56,7 +56,7 @@ export function AIChatbot() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/gemini/chat', {
+      const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

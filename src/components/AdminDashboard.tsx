@@ -467,10 +467,10 @@ function AdminOrderCard({
          weight: 500
       };
 
-      const response = await fetch("/api/shipping/delhivery/create", {
+      const response = await fetch("/api/delhivery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderData })
+        body: JSON.stringify({ action: "create", orderData })
       });
 
       const data = await response.json();

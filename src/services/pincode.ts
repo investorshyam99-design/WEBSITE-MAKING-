@@ -21,7 +21,7 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
   }
 
   try {
-    const response = await fetch(`/api/shipping/delhivery/serviceability?pincode=${pincode}`);
+    const response = await fetch(`/api/delhivery?action=serviceability&pincode=${pincode}`);
     const data = await response.json();
     
     if (!response.ok) {
@@ -33,7 +33,7 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
 
     if (data && data.success && data.isServiceable) {
       // Also fetch TAT
-      const tatResponse = await fetch(`/api/shipping/delhivery/tat?dest=${pincode}`);
+      const tatResponse = await fetch(`/api/delhivery?action=tat&dest=${pincode}`);
       let tat = null;
       if (tatResponse.ok) {
         const tatData = await tatResponse.json();

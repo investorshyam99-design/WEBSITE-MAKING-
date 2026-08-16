@@ -11,49 +11,12 @@ export default async function handler(req: any, res: any) {
     const { messages } = req.body;
 
     // Dynamically collect all possible Gemini API keys from environment variables
-    const targetKeys = ["G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "GEMINI_API_KEY", "VITE_GEMINI_API_KEY", "GOOGLE_API_KEY"];
-    const apiKeys: string[] = [];
-    
-    const addKeyCandidate = (val: string) => {
-      if (!val) return;
-      const parts = val.split(",");
-      for (const raw of parts) {
-        const trimmed = raw.trim();
-        if (
-          trimmed.length > 0 &&
-          trimmed !== "MY_GEMINI_API_KEY" &&
-          trimmed !== "undefined" &&
-          !apiKeys.includes(trimmed)
-        ) {
-          apiKeys.push(trimmed);
-        }
-      }
-    };
-
-    for (const k of targetKeys) {
-      if (process.env[k]) {
-        addKeyCandidate(process.env[k]!);
-      }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+      console.error("[Gemini AI] FATAL: GEMINI_API_KEY is missing or invalid.");
+      return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again later." });
     }
-
-    Object.entries(process.env).forEach(([key, value]) => {
-      const k = key.toUpperCase();
-      if (
-        (k.includes("GEMINI") || k.match(/^G[0-9]+$/) || (k.includes("API_KEY") && !k.includes("RAZORPAY") && !k.includes("QIKINK"))) &&
-        typeof value === "string"
-      ) {
-        addKeyCandidate(value);
-      }
-    });
-
-    if (apiKeys.length === 0) {
-      console.error("[Gemini AI] FATAL: No Gemini API keys found in environment variables.");
-      return res
-        .status(500)
-        .json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
-    }
-    
-    console.log(`[Gemini AI] Loaded ${apiKeys.length} API key candidate(s) for rotation.`);
+    const apiKeys = [apiKey];
 
     const systemInstruction = `You are the official AI Shopping Assistant for JERSEY UNICORN.
 Your primary goal is to help customers confidently purchase the right product by answering questions accurately, recommending the correct size, explaining product differences, and providing excellent customer support.
