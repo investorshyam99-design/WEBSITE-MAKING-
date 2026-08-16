@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, updateDoc, setDoc, runTransaction, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { trackInitiateCheckout, trackPurchase } from "../lib/pixel";
+import { calculateDeliveryEstimate } from "../lib/delivery";
+import { checkPincodeServiceability } from "../services/pincode";
+import { DeliveryChecker } from "../components/DeliveryChecker";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -17,7 +20,21 @@ const loadRazorpayScript = () => {
 };
 
 export function CheckoutPage() {
-  const { cart, user, clearCart, updateQuantity, removeFromCart, setIsCartOpen } = useShop();
+  const {
+    cart,
+    user,
+    clearCart,
+    updateQuantity,
+    removeFromCart,
+    setIsCartOpen,
+    expressDeliveryCharge,
+    deliveryMethod,
+    deliveryPincode,
+    deliveryLocation,
+    setDeliveryLocation,
+    deliveryTat,
+    setDeliveryTat,
+  } = useShop();
   const navigate = useNavigate();
 
   // Redirect to home if cart is empty and track InitiateCheckout
@@ -34,13 +51,18 @@ export function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.email?.startsWith("+") ? user.email.replace("+91", "") : "");
-  const [pincode, setPincode] = useState("");
   const [houseNo, setHouseNo] = useState("");
   const [areaStreet, setAreaStreet] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
+  const [city, setCity] = useState(deliveryLocation?.city || "");
+  const [state, setState] = useState(deliveryLocation?.state || "");
   const [paymentMode, setPaymentMode] = useState<"full" | "partial">("full");
-  const [deliveryEstimate, setDeliveryEstimate] = useState("");
+
+  useEffect(() => {
+    if (deliveryLocation) {
+      setCity(deliveryLocation.city || "");
+      setState(deliveryLocation.state || "");
+    }
+  }, [deliveryLocation]);
 
   const jerseyCart = cart.filter(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
   
@@ -65,36 +87,15 @@ export function CheckoutPage() {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = subtotal;
+  const total = subtotal + expressDeliveryCharge;
   
   const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
   const advanceAmount = itemsCount * 50;
 
-  const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    setPincode(value);
-    if (value.length === 6) {
-      setDeliveryEstimate("Delivery in 4–7 days");
-      try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
-        const data = await res.json();
-        if (data && data[0]?.Status === "Success") {
-          const postOffice = data[0].PostOffice[0];
-          setCity(postOffice.District);
-          setState(postOffice.State);
-        }
-      } catch (err) {
-        console.error("Error fetching pincode info:", err);
-      }
-    } else {
-      setCity("");
-      setState("");
-      setDeliveryEstimate("");
-    }
-  };  const handleCheckout = async (overrideMode?: "full" | "partial") => {
+  const handleCheckout = async (overrideMode?: "full" | "partial") => {
     const currentMode = overrideMode || paymentMode;
 
-    if (!fullName || !phone || !pincode || !houseNo) {
+    if (!fullName || !phone || !deliveryPincode || !houseNo) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
       return;
     }
@@ -104,7 +105,7 @@ export function CheckoutPage() {
       return;
     }
 
-    const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${pincode}`].filter(Boolean).join(", ");
+    const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${deliveryPincode}`].filter(Boolean).join(", ");
     setIsSubmitting(true);
     
     try {
@@ -148,11 +149,23 @@ export function CheckoutPage() {
       }
 
       const createdOrderIds = [];
+      let isFirstItem = true;
       for (const item of jerseyCart) {
         for (let i = 0; i < item.quantity; i++) {
-          const itemFinalPrice = item.price;
-          const itemAdvance = currentMode === "full" ? 0 : 50;
+          const assignedExpress = isFirstItem ? expressDeliveryCharge : 0;
+          isFirstItem = false;
+
+          const itemFinalPrice = item.price + assignedExpress;
+          const itemCodExtra = currentMode === "full" ? 0 : 50;
+          const itemAdvance = currentMode === "full" ? itemFinalPrice : 50;
           const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice;
+
+          const estimate = calculateDeliveryEstimate({
+            pincode: deliveryPincode,
+            deliveryMethod,
+            customization: !!item.customization,
+            tat: deliveryTat || undefined
+          });
 
           const docRef = await addDoc(collection(db, "orders"), {
             orderNumber: nextOrderNumber,
@@ -166,19 +179,30 @@ export function CheckoutPage() {
             customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
             price: itemFinalPrice,
             originalPrice: item.price,
-            codCharges: 0,
+            codCharges: itemCodExtra,
             advancePaid: itemAdvance,
             amountPaid: currentMode === "full" ? itemFinalPrice : itemAdvance,
             codAmount: itemRemainingCod,
             remainingCodAmount: itemRemainingCod,
-            finalTotal: itemFinalPrice,
+            finalTotal: itemFinalPrice + itemCodExtra,
             status: currentMode === "full" ? "pending full payment" : "pending advance payment",
             paymentMode: currentMode,
+            expressDeliveryCharge: assignedExpress,
+            deliveryMethod,
+            deliveryPincode,
+            expectedDeliveryStart: estimate.estimatedStartDate.toISOString(),
+            expectedDeliveryEnd: estimate.estimatedEndDate.toISOString(),
+            dispatchDate: estimate.dispatchDate.toISOString(),
+            customizationProcessingDays: estimate.processingDays,
+            deliveryCity: deliveryLocation?.city || city,
+            deliveryDistrict: deliveryLocation?.district || "",
+            deliveryState: deliveryLocation?.state || state,
+            deliveryServiceable: estimate.isServiceable,
             createdAt: serverTimestamp(),
             fullName,
             address: combinedAddress,
             phone,
-            pincode,
+            pincode: deliveryPincode,
             houseNo,
             areaStreet,
             city,
@@ -325,15 +349,11 @@ export function CheckoutPage() {
                 </div>
               </div>
 
+              <div className="mb-4">
+                <DeliveryChecker customizationEnabled={hasCustomization} />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Pincode"
-                  maxLength={6}
-                  value={pincode}
-                  onChange={handlePincodeChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
                 <input
                   type="text"
                   placeholder="Address (House No, Area, Street)"
@@ -341,15 +361,14 @@ export function CheckoutPage() {
                   onChange={(e) => setHouseNo(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
               </div>
-
-              {/* Hide City and State fields from UI but keep them for backend if fetched via Pincode */}
-              
-              {deliveryEstimate && (
-                <p className="text-xs font-bold text-green-600 flex items-center gap-1.5 mt-2">
-                  <Truck className="w-3.5 h-3.5" /> {deliveryEstimate}
-                </p>
-              )}
             </div>
 
             {/* Payment Modes */}
@@ -418,14 +437,30 @@ export function CheckoutPage() {
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal ({itemsCount} items)</span>
-                <span>Rs. {total.toFixed(2)}</span>
+                <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
+              {expressDeliveryCharge > 0 && (
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Fast Delivery</span>
+                  <span>Rs. {expressDeliveryCharge.toFixed(2)}</span>
+                </div>
+              )}
+              {paymentMode === "partial" && (
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>COD Advance</span>
+                  <span>Rs. {advanceAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">
+                <span>Total Order Value</span>
+                <span className="text-sm">Rs. {(paymentMode === "full" ? total : total + advanceAmount).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold text-gray-900 pt-1">
                 <span>Amount to Pay Now</span>
                 <span className="text-xl">Rs. {(paymentMode === "full" ? total : advanceAmount).toFixed(2)}</span>
               </div>
               {paymentMode === "partial" && (
-                <div className="flex justify-between text-xs font-bold text-red-600">
+                <div className="flex justify-between text-xs font-bold text-red-600 pt-2 border-t border-gray-200">
                   <span>To pay on delivery</span>
                   <span>Rs. {total.toFixed(2)}</span>
                 </div>
@@ -497,7 +532,7 @@ export function CheckoutPage() {
             )}
             <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID ONLY</span>
             <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay Rs. {total.toFixed(0)}</span>
-            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">Free Delivery</span>
+            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">{expressDeliveryCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}</span>
           </button>
         </div>
       </div>

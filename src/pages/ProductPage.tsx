@@ -19,6 +19,7 @@ import {
   ReviewsSection
 } from "../components/ReviewsSection";
 import { LiveViewerCount } from "../components/LiveViewerCount";
+import { DeliveryChecker } from "../components/DeliveryChecker";
 import { TrendingSalesIndicator } from "../components/TrendingSalesIndicator";
 
 import { ProductInfoAccordion } from "../components/ProductInfoAccordion";
@@ -782,6 +783,9 @@ export function ProductPage() {
                 </div>
               </div>
             )}
+
+            {/* Delivery Checker Section */}
+            <DeliveryChecker customizationEnabled={!!customName.trim() || !!customNumber.trim()} />
 
             {/* Low Stock Badge (Task 2B) */}
               {product && (

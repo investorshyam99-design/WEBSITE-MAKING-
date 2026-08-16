@@ -30,6 +30,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { CartReservationTimer } from "./CartReservationTimer";
 import { getProductReviewsInfo } from "./ReviewsSection";
 import { trackInitiateCheckout, trackPurchase } from "../lib/pixel";
+import { calculateDeliveryEstimate, formatDateRange } from "../lib/delivery";
+import { checkPincodeServiceability } from "../services/pincode";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -51,11 +53,18 @@ export function CartModal() {
     user,
     clearCart,
     setIsLoginOpen,
+    expressDeliveryCharge,
+    deliveryMethod,
+    deliveryPincode,
+    deliveryLocation,
+    setDeliveryLocation,
+    deliveryTat,
+    setDeliveryTat,
   } = useShop();
   const { products } = useProducts();
   const navigate = useNavigate();
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal;
+  const total = subtotal + expressDeliveryCharge;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -118,15 +127,19 @@ export function CartModal() {
     if (value.length === 6) {
       setDeliveryEstimate("Delivery in 4–7 days");
       try {
-        const res = await fetch(
-          `https://api.postalpincode.in/pincode/${value}`,
-        );
-        const data = await res.json();
-        if (data && data[0] && data[0].Status === "Success") {
-          const postOffice = data[0].PostOffice[0];
-          if (postOffice) {
-            setCity(postOffice.District);
-            setState(postOffice.State);
+        const result = await checkPincodeServiceability(value);
+        if (result.isServiceable) {
+          if (result.city && result.state) {
+            setCity(result.city);
+            setState(result.state);
+            setDeliveryLocation({
+              city: result.city,
+              district: result.district,
+              state: result.state
+            });
+          }
+          if (result.tat) {
+            setDeliveryTat(result.tat);
           }
         }
       } catch (err) {
@@ -217,12 +230,23 @@ export function CartModal() {
 
       // 1. Create order in Firestore as Pending
       const createdOrderIds: string[] = [];
+      let isFirstItem = true;
       for (const item of cart) {
         for (let i = 0; i < item.quantity; i++) {
-          const itemFinalPrice = item.price;
-          const itemCodExtra = 0;
-          const itemAdvance = paymentMode === "partial" ? 50 : itemFinalPrice;
-          const itemRemainingCod = paymentMode === "partial" ? itemFinalPrice : 0;
+          const assignedExpress = isFirstItem ? expressDeliveryCharge : 0;
+          isFirstItem = false;
+          
+          const itemFinalPrice = item.price + assignedExpress;
+          const itemCodExtra = paymentMode === "full" ? 0 : 50;
+          const itemAdvance = paymentMode === "full" ? itemFinalPrice : 50;
+          const itemRemainingCod = paymentMode === "full" ? 0 : itemFinalPrice;
+          
+          const estimate = calculateDeliveryEstimate({
+            pincode,
+            deliveryMethod,
+            customization: !!item.customization,
+            tat: deliveryTat || undefined
+          });
 
           const docRef = await addDoc(collection(db, "orders"), {
             orderNumber: nextOrderNumber,
@@ -247,6 +271,17 @@ export function CartModal() {
                 ? "pending full payment"
                 : "pending advance payment",
             paymentMode,
+            expressDeliveryCharge: assignedExpress,
+            deliveryMethod,
+            deliveryPincode: pincode,
+            expectedDeliveryStart: estimate.estimatedStartDate.toISOString(),
+            expectedDeliveryEnd: estimate.estimatedEndDate.toISOString(),
+            dispatchDate: estimate.dispatchDate.toISOString(),
+            customizationProcessingDays: estimate.processingDays,
+            deliveryCity: deliveryLocation?.city || city,
+            deliveryDistrict: deliveryLocation?.district || "",
+            deliveryState: deliveryLocation?.state || state,
+            deliveryServiceable: estimate.isServiceable,
             createdAt: serverTimestamp(),
             fullName,
             address: combinedAddress,
@@ -323,7 +358,7 @@ export function CartModal() {
                 );
               } else {
                 alert(
-                  `Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nOrder #${nextOrderNumber} Confirmed\nRemaining COD Amount: ₹${total}\nPay remaining amount during delivery.`,
+                  `Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nOrder #${nextOrderNumber} Confirmed\nRemaining COD Amount: ₹${total - advanceAmount}\nPay remaining amount during delivery.`,
                 );
               }
               setIsCartOpen(false);
@@ -498,6 +533,32 @@ export function CartModal() {
                                 Rs. {item.price.toFixed(2)}
                               </span>
                             </div>
+                            
+                            {/* Delivery Info Box */}
+                            {deliveryPincode && (
+                              <div className="mt-2.5 p-2 bg-gray-50 border border-gray-100 rounded-lg">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-[10px] font-bold text-[#1E2A44] uppercase tracking-wider">
+                                    Delivery to {deliveryPincode}
+                                  </span>
+                                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                    {deliveryMethod === 'FAST' ? 'Fast Delivery' : 'Normal Delivery'} {deliveryMethod === 'FAST' ? '+₹50' : 'FREE'}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] font-medium text-gray-500">
+                                  Expected: {(() => {
+                                    const est = calculateDeliveryEstimate({
+                                      pincode: deliveryPincode,
+                                      deliveryMethod,
+                                      customization: !!item.customization,
+                                      tat: deliveryTat || undefined
+                                    });
+                                    return formatDateRange(est.estimatedStartDate, est.estimatedEndDate);
+                                  })()}
+                                </span>
+                              </div>
+                            )}
+                            
                           </div>
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center border border-gray-200 rounded overflow-hidden">
@@ -566,6 +627,12 @@ export function CartModal() {
                         <span>Subtotal</span>
                         <span>Rs. {subtotal.toFixed(2)}</span>
                       </div>
+                      {expressDeliveryCharge > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Fast Delivery</span>
+                          <span>Rs. {expressDeliveryCharge.toFixed(2)}</span>
+                        </div>
+                      )}
 
                       <div className="flex justify-between text-base font-bold text-gray-900 border-t border-gray-100 pt-3">
                         <span>Total</span>

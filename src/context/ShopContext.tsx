@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Product } from '../data/products';
+import type { DeliveryMethod } from '../lib/delivery';
 import { useProducts } from '../data/products';
 import { collection, doc, setDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
@@ -38,6 +39,15 @@ interface ShopContextType {
   setIsCartOpen: (open: boolean) => void;
   isWishlistOpen: boolean;
   setIsWishlistOpen: (open: boolean) => void;
+  deliveryMethod: DeliveryMethod;
+  setDeliveryMethod: (method: DeliveryMethod) => void;
+  deliveryPincode: string;
+  setDeliveryPincode: (pincode: string) => void;
+  deliveryLocation: { city?: string; district?: string; state?: string } | null;
+  setDeliveryLocation: (loc: { city?: string; district?: string; state?: string } | null) => void;
+  deliveryTat: { normal: { days: number; mode: string }; express: { days: number; mode: string; available: boolean } } | null;
+  setDeliveryTat: (tat: any) => void;
+  expressDeliveryCharge: number;
   isLoginOpen: boolean;
   setIsLoginOpen: (open: boolean) => void;
   isSearchOpen: boolean;
@@ -66,6 +76,11 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("NORMAL");
+  const [deliveryPincode, setDeliveryPincode] = useState("");
+  const [deliveryLocation, setDeliveryLocation] = useState<{ city?: string; district?: string; state?: string } | null>(null);
+  const [deliveryTat, setDeliveryTat] = useState<{ normal: { days: number; mode: string }; express: { days: number; mode: string; available: boolean } } | null>(null);
+  const expressDeliveryCharge = deliveryMethod === "FAST" ? 50 : 0;
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [user, setUser] = useState<{ email: string; name: string; uid: string; phoneNumber?: string } | null>(null);
@@ -365,6 +380,15 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         setIsCartOpen,
         isWishlistOpen,
         setIsWishlistOpen,
+        deliveryMethod,
+        setDeliveryMethod,
+        deliveryPincode,
+        setDeliveryPincode,
+        deliveryLocation,
+        setDeliveryLocation,
+        deliveryTat,
+        setDeliveryTat,
+        expressDeliveryCharge,
         isLoginOpen,
         setIsLoginOpen,
         isSearchOpen,

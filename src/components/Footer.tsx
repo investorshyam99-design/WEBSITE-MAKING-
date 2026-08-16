@@ -41,6 +41,19 @@ export function Footer() {
                 <li><Link to="/policy" onClick={() => window.scrollTo(0,0)} className="hover:text-white transition-colors">📄 Policy</Link></li>
               </ul>
             </div>
+
+            {/* Contact */}
+            <div>
+              <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-6">Customer Support</h4>
+              <ul className="space-y-4 text-sm font-medium">
+                <li>
+                  <a href="mailto:jerseyunicornhelp@gmail.com" className="hover:text-white transition-colors flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    jerseyunicornhelp@gmail.com
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div className="pt-8 border-t border-[#333] flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium">

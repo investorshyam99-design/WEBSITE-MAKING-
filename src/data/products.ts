@@ -60,11 +60,16 @@ const mockImages = [
   "https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2070&auto=format&fit=crop",
 ];
 
-export function generateProductSlug(name: string): string {
-  return name
+export function generateProductSlug(name: string, id?: string): string {
+  const base = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+  if (id) {
+    const cleanId = id.replace("gid://shopify/Product/", "");
+    return `${base}-${cleanId}`;
+  }
+  return base;
 }
 
 
@@ -134,7 +139,7 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       description: node.description,
       descriptionHtml: node.descriptionHtml,
       variants: variants,
-      slug: generateProductSlug(node.title),
+      slug: generateProductSlug(node.title, node.id),
     };
   });
 
@@ -237,12 +242,17 @@ export const getProductById = (
   currentProducts: Product[],
 ) => {
   const decoded = decodeURIComponent(idOrSlug || "");
-  return currentProducts.find(
+  const exactMatch = currentProducts.find(
     (p) =>
       p.id === decoded ||
       p.id.replace("gid://shopify/Product/", "") === decoded ||
-      p.slug === decoded,
+      p.slug === decoded
   );
+  
+  if (exactMatch) return exactMatch;
+  
+  // Fallback for old slugs without ID
+  return currentProducts.find((p) => p.slug.startsWith(decoded + "-"));
 };
 export const getProductsByCategory = (
   categoryId: string,

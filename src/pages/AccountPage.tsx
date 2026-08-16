@@ -42,6 +42,17 @@ interface Order {
   adjustedAmount?: number;
   codAmount?: number;
   priceAdjustment?: number;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  deliveryMethod?: string;
+  expectedDeliveryStart?: string;
+  expectedDeliveryEnd?: string;
+  dispatchDate?: string;
+  deliveryCity?: string;
+  deliveryState?: string;
+  deliveryPincode?: string;
+  trackingUrl?: string;
 }
 
 export function AccountPage() {
@@ -422,6 +433,35 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
         <div className="flex gap-4 md:gap-6 flex-wrap">
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Delivery
+            </p>
+            <p className="font-semibold text-[#1B1B1B] text-sm">
+              {order.deliveryMethod === 'FAST' ? 'Fast Delivery' : 'Normal Delivery'}
+            </p>
+            {order.expectedDeliveryStart && (
+              <p className="text-[10px] text-gray-500 mt-1">
+                Expected: {new Date(order.expectedDeliveryStart).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} – {new Date(order.expectedDeliveryEnd).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+              </p>
+            )}
+            {order.dispatchDate && (
+              <p className="text-[10px] text-gray-500">
+                Dispatch: {new Date(order.dispatchDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Location
+            </p>
+            <p className="font-semibold text-[#1B1B1B] text-sm">
+              {order.deliveryCity || order.city || ""} {order.deliveryState ? `, ${order.deliveryState}` : ""}
+            </p>
+            <p className="text-[10px] text-gray-500 mt-1">
+              {order.deliveryPincode || order.pincode}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
               Order Date
             </p>
             <p className="font-semibold text-[#1B1B1B]">{orderDate}</p>
@@ -518,7 +558,7 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
             {order.trackingId && (
               <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600 space-y-1">
                 <p className="font-bold text-[#1E2A44] flex items-center gap-2 tracking-wider uppercase"><Truck className="h-4 w-4" /> Tracking Information</p>
-                <p><strong className="font-semibold">Courier:</strong> {order.courierName}</p>
+                {order.courierName && <p><strong className="font-semibold">Courier:</strong> {order.courierName}</p>}
                 <p><strong className="font-semibold">Tracking ID:</strong> {order.trackingId}</p>
               </div>
             )}
@@ -531,10 +571,22 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
             >
               View Order
             </button>
-            {order.awbNumber && (
+            {order.trackingId && order.trackingUrl && (
               <a 
-                href={`/track?awb=${order.awbNumber}`}
-                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block"
+                href={order.trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block whitespace-nowrap"
+              >
+                Track Order
+              </a>
+            )}
+            {order.trackingId && !order.trackingUrl && (
+              <a 
+                href={`https://shiprocket.co/tracking/${order.trackingId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block whitespace-nowrap"
               >
                 Track Order
               </a>

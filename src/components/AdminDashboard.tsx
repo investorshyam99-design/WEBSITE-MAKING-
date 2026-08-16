@@ -48,7 +48,10 @@ interface Order {
   paymentMode?: string;
   paymentId?: string;
   trackingId?: string;
+  trackingUrl?: string;
   courierName?: string;
+  delhiveryShipmentId?: string;
+  awbNumber?: string;
   amountPaid?: number;
   originalAmount?: number;
   deductionAmount?: number;
@@ -56,6 +59,16 @@ interface Order {
   adjustedAmount?: number;
   codAmount?: number;
   priceAdjustment?: number;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  deliveryMethod?: string;
+  expectedDeliveryStart?: string;
+  expectedDeliveryEnd?: string;
+  dispatchDate?: string;
+  deliveryCity?: string;
+  deliveryState?: string;
+  deliveryPincode?: string;
 }
 
 const TABS = [
@@ -118,9 +131,10 @@ export function AdminOrdersDashboard({
     orderId: string,
     trackingId: string,
     courierName: string,
+    trackingUrl?: string
   ) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { trackingId, courierName });
+      await updateDoc(doc(db, "orders", orderId), { trackingId, courierName, trackingUrl: trackingUrl || "" });
       refreshOrders();
     } catch (e) {
       console.error(e);
@@ -403,12 +417,13 @@ function AdminOrderCard({
   activeTab: string;
   onUpdateStatus: (s: string) => void;
   onDelete: () => void;
-  onUpdateTracking: (t: string, c: string) => void;
+  onUpdateTracking: (t: string, c: string, url: string) => void;
   onUpdatePrice: (p: number) => void;
   onUpdateCustomizationStatus: (status: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [trackingId, setTrackingId] = useState(order.trackingId || "");
+  const [trackingUrl, setTrackingUrl] = useState(order.trackingUrl || "");
   const [courierName, setCourierName] = useState(order.courierName || "");
   const [showTrackingForm, setShowTrackingForm] = useState(false);
   const calc = getOrderCalculations(order);
@@ -419,15 +434,21 @@ function AdminOrderCard({
   const { products } = useProducts();
 
 
-  const [isShippingOneDot, setIsShippingOneDot] = useState(false);
+  const [isShippingDelhivery, setIsShippingDelhivery] = useState(false);
   
   const handleDelhiveryShipment = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Are you sure you want to create a OneDot Delivery shipment for Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}?`)) {
+    
+    if (order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
+      alert(`This order already has a shipment!\nAWB: ${order.delhiveryShipmentId || order.awbNumber || order.trackingId}\nTracking URL: ${order.trackingUrl || 'N/A'}`);
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to Fulfill with Delhivery for Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}?`)) {
       return;
     }
     
-    setIsShippingOneDot(true);
+    setIsShippingDelhivery(true);
     try {
       const productDesc = `${order.productName} - Size ${order.size} - Customization: ${order.customization || order.customizationStatus === "YES" ? "YES" : "NO"}`;
       const orderData = {
@@ -446,7 +467,7 @@ function AdminOrderCard({
          weight: 500
       };
 
-      const response = await fetch("/api/shipping/onedot/create", {
+      const response = await fetch("/api/shipping/delhivery/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderData })
@@ -465,70 +486,21 @@ function AdminOrderCard({
       
       await updateDoc(doc(db, "orders", order.id), {
          awbNumber: awb,
-         oneDotShipmentId: awb,
-         shippingProvider: "OneDot Delivery",
+         delhiveryShipmentId: awb,
+         shippingProvider: "Delhivery",
          shippingStatus: "Manifested",
-         courierName: "OneDot Delivery",
+         courierName: "Delhivery",
          trackingId: awb,
          shipmentCreatedAt: new Date().toISOString()
       });
       
-      alert("Success! OneDot Delivery shipment created. AWB: " + awb);
+      alert("Success! Delhivery shipment created. AWB: " + awb);
       window.location.reload(); // Refresh to show new state
     } catch (err: any) {
       console.error(err);
-      alert("OneDot Delivery shipment creation failed: " + err.message);
+      alert("Delhivery shipment creation failed: " + err.message);
     } finally {
-      setIsShippingOneDot(false);
-    }
-  };
-
-  const handleQikinkFulfillment = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm(`Are you sure you want to send Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`} to Qikink Fulfillment?`)) {
-      return;
-    }
-    setIsFulfilling(true);
-    setFulfillmentErr("");
-    setFulfillmentSuccess("");
-
-    try {
-      const response = await fetch("/api/qikink/send-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ order })
-      });
-
-      const text = await response.text();
-      let data: any = {};
-      try {
-        if (text) data = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Server returned invalid response. Is your backend running? (Status: ${response.status})`);
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || "Fulfillment request failed");
-      }
-
-      setFulfillmentSuccess("Successfully Sent to Qikink!");
-      // Automatically update the order status in Firestore to indicate it has been pushed
-      onUpdateStatus("Order Placed (Qikink)");
-      
-      // Let's check if there are immediate tracking details
-      if (data.qikinkResponse && data.qikinkResponse.tracking_id) {
-        onUpdateTracking(data.qikinkResponse.tracking_id, data.qikinkResponse.courier_name || "Qikink Logistics");
-      }
-      
-      alert("Success: " + (data.message || "Order submitted to Qikink successfully!"));
-    } catch (err: any) {
-      console.error(err);
-      setFulfillmentErr(err.message || "An error occurred during Qikink submission.");
-      alert("Error: " + (err.message || "Fulfillment failed"));
-    } finally {
-      setIsFulfilling(false);
+      setIsShippingDelhivery(false);
     }
   };
 
@@ -837,14 +809,11 @@ function AdminOrderCard({
             {activeTab === "new" && (
               <>
                 <button
-                  disabled={isFulfilling}
-                  onClick={handleQikinkFulfillment}
-                  className={`w-full py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 transition-all ${
-                    isFulfilling ? "bg-orange-400 cursor-not-allowed" : "bg-orange-600 hover:bg-orange-700"
-                  }`}
+                  onClick={handleDelhiveryShipment}
+                  disabled={isShippingDelhivery}
+                  className="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 disabled:opacity-50"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isFulfilling ? "animate-spin" : ""}`} />
-                  {isFulfilling ? "Sending to Qikink..." : "⚡ Fulfill with Qikink"}
+                  <Package className="h-4 w-4" /> {isShippingDelhivery ? "Manifesting..." : "Fulfill with Delhivery"}
                 </button>
                 <button
                   onClick={() => onUpdateStatus("Fampay")}
@@ -897,7 +866,7 @@ function AdminOrderCard({
                       </button>
                       <button
                         onClick={() => {
-                          onUpdateTracking(trackingId, courierName);
+                          onUpdateTracking(trackingId, courierName, trackingUrl);
                           onUpdateStatus("Shipped");
                           window.open(
                             generateWhatsAppLink(
@@ -934,16 +903,7 @@ function AdminOrderCard({
 
             {activeTab === "placed" && (
               <>
-                <button
-                  disabled={isFulfilling}
-                  onClick={handleQikinkFulfillment}
-                  className={`w-full py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 transition-all ${
-                    isFulfilling ? "bg-orange-400 cursor-not-allowed" : "bg-orange-600 hover:bg-orange-700"
-                  }`}
-                >
-                  <RefreshCw className={`h-4 w-4 ${isFulfilling ? "animate-spin" : ""}`} />
-                  {isFulfilling ? "Sending to Qikink..." : "⚡ Fulfill with Qikink"}
-                </button>
+                
                 <button
                   onClick={() => onUpdateStatus("Received")}
                   className="w-full py-2.5 bg-gray-100 text-gray-800 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm border border-gray-200 mb-2 hover:bg-gray-200"

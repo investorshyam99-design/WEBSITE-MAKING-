@@ -24,6 +24,7 @@ import { MobileBottomNav } from "./components/MobileBottomNav";
 import { RecentOrdersTicker } from "./components/RecentOrdersTicker";
 import { AIChatbot } from "./components/AIChatbot";
 import { WhatsAppCommunityButton } from "./components/WhatsAppCommunityButton";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 function PixelPageViewTracker() {
   const location = useLocation();
@@ -39,6 +40,7 @@ export default function App() {
   return (
     <ShopProvider>
       <Router>
+        <ScrollToTop />
         <PixelPageViewTracker />
         <div className="pb-[60px] md:pb-0 min-h-screen flex flex-col bg-brand-bg text-brand-text">
           <Routes>
