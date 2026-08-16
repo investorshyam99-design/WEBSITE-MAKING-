@@ -17,25 +17,40 @@ export type Product = {
 
 export const categories = [
   {
-    id: "master-version",
-    name: "MASTER VERSION",
-    seoTitle: "Master Version Football Jerseys",
-  },
-  {
     id: "player-version",
     name: "PLAYER VERSION",
     seoTitle: "Player Version Football Jerseys",
   },
   {
+    id: "master-version",
+    name: "MASTER VERSION",
+    seoTitle: "Master Version Football Jerseys",
+  },
+  {
     id: "fan-set",
-    name: "FAN SET",
-    seoTitle: "Fan Set Football Jerseys",
+    name: "FAN VERSION",
+    seoTitle: "Fan Version Football Jerseys",
+  },
+  {
+    id: "track-pants",
+    name: "TRACKPANTS",
+    seoTitle: "Track Pants",
   },
   {
     id: "tees",
     name: "TEES",
     seoTitle: "Oversized Streetwear Tees",
   },
+  {
+    id: "hoodies",
+    name: "HOODIES",
+    seoTitle: "Hoodies",
+  },
+  {
+    id: "sweatshirts",
+    name: "SWEATSHIRT",
+    seoTitle: "Sweatshirt",
+  }
 ];
 
 const mockImages = [
@@ -87,6 +102,14 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       category = 'master-version';
     } else if (tags.includes('fan version') || tags.includes('fan set')) {
       category = 'fan-set';
+    } else if (tags.includes('hoodie') || tags.includes('hoodies')) {
+      category = 'hoodies';
+    } else if (tags.includes('sweatshirt') || tags.includes('sweatshirts')) {
+      category = 'sweatshirts';
+    } else if (tags.includes('track pant') || tags.includes('track pants') || tags.includes('trackpants') || tags.includes('jogger')) {
+      category = 'track-pants';
+    } else if (tags.includes('short') || tags.includes('shorts')) {
+      category = 'shorts';
     } else if (tags.includes('tee') || tags.includes('t-shirt') || tags.includes('tees')) {
       category = 'tees';
     } else {
@@ -95,6 +118,10 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       if (titleLower.includes('player version')) category = 'player-version';
       else if (titleLower.includes('master version')) category = 'master-version';
       else if (titleLower.includes('fan version') || titleLower.includes('fan set')) category = 'fan-set';
+      else if (titleLower.includes('hoodie')) category = 'hoodies';
+      else if (titleLower.includes('sweatshirt')) category = 'sweatshirts';
+      else if (titleLower.includes('track pant') || titleLower.includes('trackpants') || titleLower.includes('jogger')) category = 'track-pants';
+      else if (titleLower.includes('short')) category = 'shorts';
     }
 
     return {

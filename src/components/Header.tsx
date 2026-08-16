@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Shirt,
   ShieldAlert,
+  Truck,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Link, useNavigate } from "react-router-dom";
@@ -87,6 +88,13 @@ export function Header() {
                 className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
               >
                 <Home className="h-5 w-5" /> Home
+              </Link>
+              <Link
+                to="/track"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-6 py-4 text-base font-bold text-[#1B1B1B] hover:bg-[#F5EFE6] hover:text-[#1E2A44] border-b border-gray-100 transition-colors uppercase"
+              >
+                <Truck className="h-5 w-5" /> Track Order
               </Link>
               {!isAuthLoading && !user ? (
                 <button
@@ -208,7 +216,7 @@ export function Header() {
             
             <Link to="/collection/all" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Shop</Link>
             <Link to="/collection/player-version" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Player Version</Link>
-            <Link to="/collection/t-shirts" className="hover:text-[#1E2A44] transition-colors cursor-pointer">T-Shirts</Link>
+            <Link to="/collection/tees" className="hover:text-[#1E2A44] transition-colors cursor-pointer">Tees</Link>
           </nav>
 
           <div className="flex items-center gap-4">

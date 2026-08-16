@@ -3,8 +3,11 @@ import { useState, useEffect, useRef } from "react";
 const NAVIGATION_ITEMS = [
   { id: "player-version", sectionId: "section-player-version", name: "PLAYER VERSION" },
   { id: "master-version", sectionId: "section-master-version", name: "MASTER VERSION" },
-  { id: "fan-set", sectionId: "section-fan-set", name: "FAN SET" },
-  { id: "tees", sectionId: "section-tees", name: "TEES" }
+  { id: "fan-set", sectionId: "section-fan-version", name: "FAN VERSION" },
+  { id: "track-pants", sectionId: "section-track-pants", name: "TRACKPANTS" },
+  { id: "tees", sectionId: "section-tees", name: "TEES" },
+  { id: "hoodies", sectionId: "section-hoodies", name: "HOODIES" },
+  { id: "sweatshirts", sectionId: "section-sweatshirts", name: "SWEATSHIRT" }
 ];
 
 export function CategoryNav() {
@@ -84,14 +87,14 @@ export function CategoryNav() {
       className="sticky top-[80px] md:top-[96px] z-40 bg-[#EDE3D8] border-b border-[#1E2A44]/10 shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-2 py-2.5 w-full">
-        <div className="flex items-center gap-1.5 md:gap-3 w-full justify-between">
+        <div className="flex items-center gap-2 md:gap-3 w-full overflow-x-auto scrollbar-hide pb-1">
           {NAVIGATION_ITEMS.map((item) => {
             const isActive = activeCategory === item.id;
             return (
               <button
                 key={`nav-${item.id}`}
                 onClick={() => scrollToSection(item.id, item.sectionId)}
-                className={`flex-1 aspect-[2/1] flex items-center justify-center text-center p-1 md:p-2 text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-tighter sm:tracking-wide rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 leading-[1.1] ${
+                className={`flex-none min-w-[90px] md:min-w-[120px] aspect-[2/1] flex items-center justify-center text-center p-1.5 md:p-2 text-[10px] sm:text-xs md:text-sm font-black uppercase tracking-tighter sm:tracking-wide rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 leading-[1.1] ${
                   isActive
                     ? "bg-[#1E2A44] text-white border-[#1E2A44] shadow-inner"
                     : "bg-[#EDE3D8] text-[#1E2A44] border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white shadow-[2px_2px_0px_0px_#1E2A44]"

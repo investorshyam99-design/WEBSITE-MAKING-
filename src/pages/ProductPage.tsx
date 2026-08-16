@@ -571,7 +571,7 @@ export function ProductPage() {
               {/* Thumbnails */}
               {!['player-version', 'master-version', 'fan-set'].includes(product.category) && (
                 <div className="mb-2 mt-4 flex items-center gap-2">
-                  <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">SHOP BY VARIANT :</span>
+                  
                   {selectedColor && (
                     <span className="text-[11px] font-black text-[#1B1B1B] uppercase tracking-widest">{selectedColor}</span>
                   )}

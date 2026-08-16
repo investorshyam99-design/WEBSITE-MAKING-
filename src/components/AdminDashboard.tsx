@@ -418,6 +418,71 @@ function AdminOrderCard({
   const navigate = useNavigate();
   const { products } = useProducts();
 
+
+  const [isShippingOneDot, setIsShippingOneDot] = useState(false);
+  
+  const handleDelhiveryShipment = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to create a OneDot Delivery shipment for Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}?`)) {
+      return;
+    }
+    
+    setIsShippingOneDot(true);
+    try {
+      const productDesc = `${order.productName} - Size ${order.size} - Customization: ${order.customization || order.customizationStatus === "YES" ? "YES" : "NO"}`;
+      const orderData = {
+         orderNumber: order.orderNumber || order.id,
+         fullName: order.fullName || "Guest",
+         phone: order.phone,
+         address: order.address,
+         city: order.city || "Not Provided",
+         state: order.state || "Not Provided",
+         pincode: order.pincode,
+         paymentMode: calc.paymentMode,
+         codAmount: calc.codAmount,
+         productDesc,
+         quantity: order.quantity || 1,
+         finalTotal: calc.finalTotalAmount,
+         weight: 500
+      };
+
+      const response = await fetch("/api/shipping/onedot/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderData })
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || "Failed to create shipment");
+      }
+
+      const awb = data.awb;
+      
+      // Update order in Firestore
+      const { doc, updateDoc } = require('firebase/firestore');
+      const { db } = require('../lib/firebase');
+      
+      await updateDoc(doc(db, "orders", order.id), {
+         awbNumber: awb,
+         oneDotShipmentId: awb,
+         shippingProvider: "OneDot Delivery",
+         shippingStatus: "Manifested",
+         courierName: "OneDot Delivery",
+         trackingId: awb,
+         shipmentCreatedAt: new Date().toISOString()
+      });
+      
+      alert("Success! OneDot Delivery shipment created. AWB: " + awb);
+      window.location.reload(); // Refresh to show new state
+    } catch (err: any) {
+      console.error(err);
+      alert("OneDot Delivery shipment creation failed: " + err.message);
+    } finally {
+      setIsShippingOneDot(false);
+    }
+  };
+
   const handleQikinkFulfillment = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm(`Are you sure you want to send Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`} to Qikink Fulfillment?`)) {

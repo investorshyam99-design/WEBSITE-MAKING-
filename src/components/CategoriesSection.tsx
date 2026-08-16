@@ -19,10 +19,17 @@ const SECTIONS_CONFIG = [
   },
   {
     id: "fan-set",
-    sectionId: "section-fan-set",
-    title: "FAN SET",
+    sectionId: "section-fan-version",
+    title: "FAN VERSION",
     subtitle: "Classic fan version jerseys.",
     viewAllUrl: "/collection/fan-set"
+  },
+  {
+    id: "track-pants",
+    sectionId: "section-track-pants",
+    title: "TRACKPANTS",
+    subtitle: "Athletic wear track pants.",
+    viewAllUrl: "/collection/track-pants"
   },
   {
     id: "tees",
@@ -30,6 +37,20 @@ const SECTIONS_CONFIG = [
     title: "TEES",
     subtitle: "Oversized streetwear tees.",
     viewAllUrl: "/collection/tees"
+  },
+  {
+    id: "hoodies",
+    sectionId: "section-hoodies",
+    title: "HOODIES",
+    subtitle: "Premium winter wear.",
+    viewAllUrl: "/collection/hoodies"
+  },
+  {
+    id: "sweatshirts",
+    sectionId: "section-sweatshirts",
+    title: "SWEATSHIRT",
+    subtitle: "Comfortable and stylish.",
+    viewAllUrl: "/collection/sweatshirts"
   }
 ];
 
@@ -85,7 +106,7 @@ export function CategoriesSection() {
                 /* Placeholder with Skeletons */
                 <div className="space-y-4">
                   <p className="text-xs md:text-sm font-bold text-gray-500 px-1 flex items-center gap-1.5">
-                    🔥 Dropping Soon — follow us to be the first to know
+                    🔥 {section.title} Dropping Soon — follow us to be the first to know
                   </p>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-[12px] md:gap-[20px]">
                     <SkeletonCard />

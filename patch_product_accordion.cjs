@@ -1,49 +1,9 @@
-import React, { useState } from "react";
-import { ChevronDown, Check, Ruler, Info, Droplets, HelpCircle, BookOpen } from "lucide-react";
-import { cn } from "../lib/utils";
-import { motion, AnimatePresence } from "motion/react";
+const fs = require('fs');
+let file = fs.readFileSync('src/components/ProductInfoAccordion.tsx', 'utf8');
 
-function AccordionItem({ title, icon: Icon, children, defaultOpen = false }: any) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const regex = /  const getHighlights = \(\) => \{[\s\S]*?    \];\n  \};\n\n  return \(/;
 
-  return (
-    <div className="border-b border-gray-200">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between py-5 text-left transition-colors hover:text-[#1E2A44]"
-      >
-        <div className="flex items-center gap-3 text-[#1B1B1B]">
-          <Icon className="w-5 h-5 text-[#1E2A44]" />
-          <span className="font-bold uppercase tracking-wider text-sm">{title}</span>
-        </div>
-        <ChevronDown
-          className={cn(
-            "w-5 h-5 text-gray-400 transition-transform duration-300",
-            isOpen && "transform rotate-180"
-          )}
-        />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="pb-5 pt-1 text-sm text-gray-600 leading-relaxed">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-export function ProductInfoAccordion({ product }: { product: any }) {
+const newImplementation = `
   const category = product?.category || 'tees';
   const isJersey = ['player-version', 'master-version', 'fan-set'].includes(category);
   const isPlayer = category === 'player-version';
@@ -187,25 +147,14 @@ export function ProductInfoAccordion({ product }: { product: any }) {
   const sizeFit = getSizeFit();
   const washCare = getWashCare();
 
-  return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 md:pb-16 bg-white">
-      <div className="max-w-3xl mx-auto">
-        <AccordionItem title="Product Highlights" icon={Check} defaultOpen={true}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {getHighlights().map((highlight, i) => (
-              <div key={i} className="flex items-center gap-2 bg-[#F5EFE6]/30 p-3 rounded-lg border border-[#EDE3D8]/50">
-                <Check className="w-4 h-4 text-green-600 shrink-0" />
-                <span className="font-bold text-[#1B1B1B]">{highlight}</span>
-              </div>
-            ))}
-          </div>
-        </AccordionItem>
-        
-        <AccordionItem title="About this design" icon={BookOpen}>
-          <p>{getAboutText()}</p>
-        </AccordionItem>
-        
-        <AccordionItem title="Size & Fit Guide" icon={Ruler}>
+  return (`;
+
+file = file.replace(regex, newImplementation);
+
+// Also need to patch the render part for Size & Fit Guide and Wash Care
+const sizeFitReplace = /<AccordionItem title="Size & Fit Guide" icon=\{Ruler\}>\s*<p className="mb-4 font-medium text-\[#1B1B1B\]">\s*<span className="font-bold text-\[#1E2A44\]">\{isJersey \? \(isPlayer \? "Slim Match Fit:" : "Comfort Fit:"\) : "Oversized Fit:"\}<\/span> \{isJersey \? \(isPlayer \? "Designed to fit tight to the body like professional athletes." : "Designed for a relaxed, comfortable feel."\) : "This t-shirt is designed to have a dropped shoulder and a roomy, relaxed silhouette."\}\s*<\/p>\s*<div className="bg-\[#F5EFE6\]\/50 p-4 rounded-xl border border-\[#EDE3D8\] text-center">\s*<span className="font-black uppercase tracking-wider text-sm text-\[#1B1B1B\]">\s*\{isJersey \? \(isPlayer \? "We recommend sizing up if you prefer a looser fit." : "True to size."\) : "If you prefer a regular fit, choose one size smaller."\}\s*<\/span>\s*<\/div>\s*<\/AccordionItem>/;
+
+const sizeFitNew = `<AccordionItem title="Size & Fit Guide" icon={Ruler}>
           <p className="mb-4 font-medium text-[#1B1B1B]">
             <span className="font-bold text-[#1E2A44]">{sizeFit.label}</span> {sizeFit.text}
           </p>
@@ -214,9 +163,14 @@ export function ProductInfoAccordion({ product }: { product: any }) {
               {sizeFit.recommendation}
             </span>
           </div>
-        </AccordionItem>
+        </AccordionItem>`;
         
-        <AccordionItem title="Wash Care" icon={Droplets}>
+file = file.replace(sizeFitReplace, sizeFitNew);
+
+
+const washCareReplace = /<AccordionItem title="Wash Care" icon=\{Droplets\}>\s*<ul className="space-y-3 font-medium">\s*<li className="flex items-center gap-3">\s*<span className="w-1.5 h-1.5 rounded-full bg-\[#1E2A44\]" \/>\s*Wash inside out\s*<\/li>\s*<li className="flex items-center gap-3">\s*<span className="w-1.5 h-1.5 rounded-full bg-\[#1E2A44\]" \/>\s*Cold machine wash\s*<\/li>\s*<li className="flex items-center gap-3">\s*<span className="w-1.5 h-1.5 rounded-full bg-\[#1E2A44\]" \/>\s*Do not bleach\s*<\/li>\s*<li className="flex items-center gap-3">\s*<span className="w-1.5 h-1.5 rounded-full bg-\[#1E2A44\]" \/>\s*\{isJersey \? "Do not iron directly on print or logos" : "Do not iron directly on print"\}\s*<\/li>\s*<li className="flex items-center gap-3">\s*<span className="w-1.5 h-1.5 rounded-full bg-\[#1E2A44\]" \/>\s*Dry in shade\s*<\/li>\s*<\/ul>\s*<\/AccordionItem>/;
+
+const washCareNew = `<AccordionItem title="Wash Care" icon={Droplets}>
           <ul className="space-y-3 font-medium">
             {washCare.map((instruction, idx) => (
               <li key={idx} className="flex items-center gap-3">
@@ -225,19 +179,8 @@ export function ProductInfoAccordion({ product }: { product: any }) {
               </li>
             ))}
           </ul>
-        </AccordionItem>
+        </AccordionItem>`;
         
-        <AccordionItem title="Frequently Asked Questions" icon={HelpCircle}>
-          <div className="space-y-4">
-            {getFAQs().map((faq, i) => (
-              <div key={i}>
-                <h4 className="font-bold text-[#1B1B1B] text-sm mb-1">{faq.q}</h4>
-                <div className="text-sm text-gray-600">{faq.a}</div>
-              </div>
-            ))}
-          </div>
-        </AccordionItem>
-      </div>
-    </div>
-  );
-}
+file = file.replace(washCareReplace, washCareNew);
+
+fs.writeFileSync('src/components/ProductInfoAccordion.tsx', file);

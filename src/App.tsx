@@ -14,6 +14,7 @@ import { BlogPostPage } from "./pages/BlogPostPage";
 import { Home } from "./pages/Home";
 import { ProductPage } from "./pages/ProductPage";
 import { AccountPage } from "./pages/AccountPage";
+import { TrackOrderPage } from "./pages/TrackOrderPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { ShopProvider } from "./context/ShopContext";
@@ -45,6 +46,7 @@ export default function App() {
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/product/:slug" element={<ProductPage />} />
             <Route path="/account" element={<AccountPage />} />
+        <Route path="/track" element={<TrackOrderPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/collection/:id" element={<CollectionPage />} />

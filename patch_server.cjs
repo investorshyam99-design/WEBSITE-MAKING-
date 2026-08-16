@@ -1,61 +1,121 @@
 const fs = require('fs');
-let content = fs.readFileSync('server.ts', 'utf8');
+let file = fs.readFileSync('server.ts', 'utf8');
 
-const originalKeysRegex = /\/\/\s*Dynamically collect all possible Gemini API keys[^]*?if\s*\(apiKeys\.length === 0\)\s*\{[^]*?\}/;
-const newKeysLogic = `
-      // Dynamically collect all possible Gemini API keys from environment variables
-      const targetKeys = ["G1", "G3", "G5", "G6", "G7", "GEMINI_API_KEY"];
-      const apiKeys = [];
-      
-      // Verify each specified variable
-      for (const k of targetKeys) {
-        if (process.env[k] && process.env[k].trim().length > 0) {
-          if (!apiKeys.includes(process.env[k].trim())) {
-            apiKeys.push(process.env[k].trim());
-          }
-        } else {
-          console.warn(\`[Gemini AI] Environment variable \${k} is missing or empty in production.\`);
-        }
+const injection = `
+  // --------------------------------------------------
+  // ONEDOT DELIVERY (DELHIVERY) INTEGRATION
+  // --------------------------------------------------
+
+  app.post("/api/shipping/onedot/create", async (req, res) => {
+    try {
+      const apiKey = process.env.DELHIVERY_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ success: false, error: "Delhivery API Key not configured" });
       }
 
-      // Also dynamically collect any other matching keys just in case
-      Object.entries(process.env).forEach(([key, value]) => {
-        const k = key.toUpperCase();
-        if (
-          (k.includes("GEMINI") || k.match(/^G[0-9]+$/) || (k.includes("API_KEY") && !k.includes("RAZORPAY") && !k.includes("QIKINK"))) &&
-          value && typeof value === 'string' && value.trim().length > 0
-        ) {
-          if (!apiKeys.includes(value.trim())) {
-            apiKeys.push(value.trim());
+      const { orderData } = req.body;
+      if (!orderData) {
+        return res.status(400).json({ success: false, error: "Order data missing" });
+      }
+
+      const payload = {
+        shipments: [
+          {
+            name: orderData.fullName,
+            add: orderData.address,
+            pin: orderData.pincode,
+            city: orderData.city,
+            state: orderData.state,
+            country: "India",
+            phone: orderData.phone,
+            order: String(orderData.orderNumber),
+            payment_mode: orderData.paymentMode === "full" ? "Pre-paid" : "COD",
+            cod_amount: orderData.paymentMode === "full" ? 0 : orderData.codAmount,
+            products_desc: orderData.productDesc,
+            quantity: String(orderData.quantity || 1),
+            weight: String(orderData.weight || 500),
+            total_amount: orderData.finalTotal,
+            shipping_mode: "Surface"
           }
+        ],
+        pickup_location: {
+          name: process.env.DELHIVERY_PICKUP_LOCATION || "Primary"
+        }
+      };
+
+      const formData = new URLSearchParams();
+      formData.append("format", "json");
+      formData.append("data", JSON.stringify(payload));
+
+      const response = await fetch("https://track.delhivery.com/api/cmu/create.json", {
+        method: "POST",
+        headers: {
+          "Authorization": \`Token \${apiKey}\`,
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData.toString()
+      });
+
+      const data = await response.json();
+
+      if (!data.success && (!data.packages || data.packages.length === 0 || !data.packages[0].waybill)) {
+        return res.status(400).json({ success: false, error: data.error || data.rmk || "Failed to create shipment via OneDot Delivery API" });
+      }
+
+      const waybill = data.packages[0].waybill;
+      return res.json({ success: true, awb: waybill, data });
+    } catch (e) {
+      console.error("[OneDot Delivery] Create Shipment Error:", e);
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  app.get("/api/shipping/onedot/label/:awb", async (req, res) => {
+    try {
+      const apiKey = process.env.DELHIVERY_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ success: false, error: "Delhivery API Key not configured" });
+      }
+
+      const { awb } = req.params;
+      const response = await fetch(\`https://track.delhivery.com/api/p/packagelabels?wbns=\${awb}\`, {
+        method: "GET",
+        headers: { "Authorization": \`Token \${apiKey}\` }
+      });
+
+      const data = await response.json();
+      return res.json(data);
+    } catch (e) {
+      console.error("[OneDot Delivery] Label Error:", e);
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  app.get("/api/shipping/onedot/track/:awb", async (req, res) => {
+    try {
+      const apiKey = process.env.DELHIVERY_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ success: false, error: "Delhivery API Key not configured" });
+      }
+
+      const { awb } = req.params;
+      const response = await fetch(\`https://track.delhivery.com/api/v1/packages/json/?waybill=\${awb}\`, {
+        method: "GET",
+        headers: {
+          "Authorization": \`Token \${apiKey}\`,
+          "Content-Type": "application/json"
         }
       });
 
-      if (apiKeys.length === 0) {
-        console.error("[Gemini AI] FATAL: No Gemini API keys found in environment variables.");
-        return res
-          .status(500)
-          .json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
-      }
-      
-      console.log(\`[Gemini AI] Loaded \${apiKeys.length} API keys for rotation.\`);
+      const data = await response.json();
+      return res.json(data);
+    } catch (e) {
+      console.error("[OneDot Delivery] Track Error:", e);
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
 `;
 
-content = content.replace(originalKeysRegex, newKeysLogic.trim());
-
-// Update error messages in server.ts
-content = content.replace(
-  /if \(lastError \|\| !responseText\) \{[^]*?\}/,
-  `if (lastError || !responseText) {
-        console.error("[Gemini AI] FINAL REASON: All API keys exhausted or failed.");
-        return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
-      }`
-);
-
-content = content.replace(
-  /return res\.status\(500\)\.json\(\{ error: "Our AI assistant encountered an unexpected error\. Please try again later\." \}\);/,
-  `return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });`
-);
-
-fs.writeFileSync('server.ts', content);
-console.log("Patched server.ts successfully");
+file = file.replace('  // Streamable Hero Video API to handle dynamic signature expirations', injection + '  // Streamable Hero Video API to handle dynamic signature expirations');
+fs.writeFileSync('server.ts', file);
