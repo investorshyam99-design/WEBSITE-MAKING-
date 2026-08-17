@@ -435,14 +435,23 @@ app.post("/api/gemini", async (req, res) => {
 
   try {
     const { messages } = req.body;
-    const apiKey = process.env.GEMINI_API_KEY;
     
-    if (!apiKey) {
-      console.error("[Gemini AI] FATAL: GEMINI_API_KEY is missing.");
+    // Key rotation logic
+    const keys = [
+      process.env.GEMINI_API_KEY,
+      process.env.G1,
+      process.env.G2,
+      process.env.G3,
+      process.env.G4,
+      process.env.G5,
+      process.env.G6,
+      process.env.G7
+    ].filter(Boolean);
+    
+    if (keys.length === 0) {
+      console.error("[Gemini AI] FATAL: No Gemini API keys are configured (G1-G7).");
       return res.status(500).json({ error: "Gemini API key is not configured." });
     }
-
-    const ai = new GoogleGenAI({ apiKey });
     
     const systemInstruction = `You are the official AI Shopping Assistant for JERSEY UNICORN.
 Your primary goal is to help customers confidently purchase the right product by answering questions accurately, recommending the correct size, explaining product differences, and providing excellent customer support.
@@ -474,18 +483,32 @@ WASHING INSTRUCTIONS
       prompt = currentMessage.content;
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: prompt,
-      config: {
-        systemInstruction,
-        temperature: 0.7,
-      },
-    });
+    let lastError: any = null;
+    
+    for (let i = 0; i < keys.length; i++) {
+      const currentKey = keys[i];
+      try {
+        const ai = new GoogleGenAI({ apiKey: currentKey });
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash", // stable fast model
+          contents: prompt,
+          config: {
+            systemInstruction,
+            temperature: 0.7,
+          }
+        });
+        
+        console.log(`[Gemini AI] Successfully used key index ${i}`);
+        const responseText = response.text || "I'm sorry, I couldn't process your request.";
+        return res.status(200).json({ text: responseText, audio: null });
+      } catch (err: any) {
+        console.error(`[Gemini AI] Error with key index ${i}: `, err.message || err);
+        lastError = err;
+      }
+    }
 
-    const responseText = response.text || "I'm sorry, I couldn't process your request.";
-    return res.status(200).json({ text: responseText, audio: null });
-
+    console.error("[Gemini AI] All keys failed. Last error: ", lastError);
+    return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
   } catch (error: any) {
     console.error("[Gemini AI] Unexpected Server Error: ", error);
     return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
@@ -611,9 +634,11 @@ WASHING INSTRUCTIONS
             errorMsg = data.error;
           } else if (data.rmk) {
             errorMsg = data.rmk;
-          } else if (data.error) {
+          } else if (data.error !== undefined) {
             errorMsg = JSON.stringify(data.error);
           }
+          
+          errorMsg = String(errorMsg); // Ensure it is always a string
           return res.status(400).json({ 
             success: false, 
             error: errorMsg,
