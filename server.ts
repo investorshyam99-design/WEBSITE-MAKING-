@@ -528,16 +528,35 @@ WASHING INSTRUCTIONS
       }
 
       if (action === 'tat') {
-        const origin = process.env.DELHIVERY_PICKUP_PINCODE || process.env.DELHIVERY_ORIGIN_PINCODE;
+        const origin = process.env.DELHIVERY_PICKUP_PINCODE || "410206";
         if (!dest) return res.status(400).json({ success: false, error: "Destination pincode is required" });
-        if (!origin) {
-          return res.status(400).json({ success: false, error: "DELHIVERY_PICKUP_PINCODE not configured." });
-        }
         
         let normalDays = 5, expressDays = 3, expressAvailable = true;
+        
+        // 1. Check Serviceability API first
+        const servRes = await fetch(`https://track.delhivery.com/c/api/pin-codes/json/?filter_codes=${dest}`, {
+          headers: { "Authorization": `Token ${apiKey}` }
+        });
+        if (servRes.ok) {
+          const servData: any = await servRes.json();
+          if (servData?.delivery_codes?.length > 0) {
+            const pinInfo = servData.delivery_codes[0].postal_code;
+            if (pinInfo.pre_paid === "N" && pinInfo.cod === "N") {
+              return res.json({ success: true, serviceable: false });
+            }
+          } else {
+             // invalid pincode
+             return res.json({ success: true, serviceable: false });
+          }
+        } else {
+          return res.status(400).json({ success: false, error: "Delhivery Serviceability check failed" });
+        }
+
+        // 2. Zone lookup for fallback TAT
         const zoneRes = await fetch(`https://track.delhivery.com/api/kinko/v1/invoice/charges/.json?md=S&ss=Delivered&d_pin=${dest}&o_pin=${origin}&cgm=500`, {
           headers: { "Authorization": `Token ${apiKey}` }
         });
+        
         if (zoneRes.ok) {
           const zoneData: any = await zoneRes.json();
           if (zoneData?.[0]?.zone) {
@@ -547,10 +566,17 @@ WASHING INSTRUCTIONS
             else if (zone.startsWith("C")) { normalDays = 4; expressDays = 2; }
             else if (zone.startsWith("D")) { normalDays = 5; expressDays = 3; }
             else if (zone.startsWith("E")) { normalDays = 7; expressDays = 5; expressAvailable = false; }
-            return res.json({ success: true, tat: { normal: { days: normalDays, mode: "Surface" }, express: { days: expressDays, mode: "Express", available: expressAvailable } } });
           }
         }
-        return res.status(400).json({ success: false, error: "Failed to fetch TAT from Delhivery" });
+        
+        return res.json({ 
+          success: true, 
+          serviceable: true,
+          tat: { 
+            normal: { days: normalDays, mode: "Surface" }, 
+            express: { days: expressDays, mode: "Express", available: expressAvailable } 
+          } 
+        });
       }
 
       if (action === 'create') {
@@ -558,10 +584,12 @@ WASHING INSTRUCTIONS
           shipments: [{
             name: orderData.fullName, add: orderData.address, pin: orderData.pincode, city: orderData.city,
             state: orderData.state, country: "India", phone: orderData.phone, order: String(orderData.orderNumber),
-            payment_mode: orderData.paymentMode === "full" ? "Pre-paid" : "COD",
+            payment_mode: orderData.paymentMode === "full" ? "Prepaid" : "COD",
             cod_amount: orderData.paymentMode === "full" ? 0 : orderData.codAmount,
             products_desc: orderData.productDesc, quantity: String(orderData.quantity || 1),
-            weight: String(orderData.weight || 500), total_amount: orderData.finalTotal, shipping_mode: orderData.shippingMode || "Surface"
+            weight: String(orderData.weight || 500), 
+            shipment_length: 20, shipment_width: 20, shipment_height: 5,
+            total_amount: orderData.finalTotal, shipping_mode: orderData.shippingMode || "Surface"
           }],
           pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION || "Primary" }
         };
@@ -572,18 +600,26 @@ WASHING INSTRUCTIONS
           body: formData.toString()
         });
         const data = await response.json();
-        if (!data.success && (!data.packages || data.packages.length === 0 || !data.packages[0].waybill)) {
+        if (!data.success && (!data.packages || data.packages.length === 0 || !data.packages[0].waybill || data.packages[0].status === "Fail")) {
           console.error("[Delhivery API Error] Status:", response.status);
           console.error("[Delhivery API Error] Body:", JSON.stringify(data, null, 2));
+          
           let errorMsg = "Failed to create shipment.";
-          if (typeof data.error === "string") {
+          if (data.packages && data.packages.length > 0 && data.packages[0].remarks && data.packages[0].remarks.length > 0) {
+            errorMsg = data.packages[0].remarks.join(" ");
+          } else if (typeof data.error === "string") {
             errorMsg = data.error;
-          } else if (data.error) {
-            errorMsg = JSON.stringify(data.error);
           } else if (data.rmk) {
             errorMsg = data.rmk;
+          } else if (data.error) {
+            errorMsg = JSON.stringify(data.error);
           }
-          return res.status(400).json({ success: false, error: errorMsg });
+          return res.status(400).json({ 
+            success: false, 
+            error: errorMsg,
+            delhiveryStatus: response.status,
+            delhiveryResponse: data
+          });
         }
         return res.json({ success: true, awb: data.packages[0].waybill, data });
       }

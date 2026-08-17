@@ -90,7 +90,7 @@ export function CheckoutPage() {
   const total = subtotal + expressDeliveryCharge;
   
   const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = itemsCount * 50;
+  const advanceAmount = (itemsCount * 50) + expressDeliveryCharge;
 
   const handleCheckout = async (overrideMode?: "full" | "partial") => {
     const currentMode = overrideMode || paymentMode;
@@ -228,6 +228,7 @@ export function CheckoutPage() {
           address: combinedAddress,
           phone,
           paymentMode: currentMode,
+          deliveryMethod,
           finalAmount: finalAmountToPay,
         }),
       });

@@ -475,7 +475,8 @@ function AdminOrderCard({
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.error || "Failed to create shipment");
+        const fullErr = data.delhiveryResponse ? `${data.error}\nHTTP: ${data.delhiveryStatus}\nResponse: ${JSON.stringify(data.delhiveryResponse)}` : data.error;
+        throw new Error(fullErr || "Failed to create shipment");
       }
 
       const awb = data.awb;
@@ -518,14 +519,23 @@ function AdminOrderCard({
     }
   };
 
-  const orderDate = order.createdAt?.toDate?.()
-    ? order.createdAt.toDate().toLocaleDateString("en-US", {
+  const orderDate = (() => {
+    if (!order.createdAt) return "Just now";
+    try {
+      const d = typeof order.createdAt?.toDate === 'function' 
+        ? order.createdAt.toDate() 
+        : new Date(order.createdAt);
+      if (isNaN(d.getTime())) return "Just now";
+      return d.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      })
-    : "Just now";
+      });
+    } catch(e) {
+      return "Just now";
+    }
+  })();
 
   const customerName = order.fullName || "Guest Customer";
   const paymentLink = `https://jerseyunicorn.com/checkout?order=${order.id}`;

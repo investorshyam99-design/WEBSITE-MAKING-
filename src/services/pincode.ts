@@ -12,6 +12,9 @@ export interface PincodeDetails {
   };
 }
 
+const pincodeCache = new Map<string, { data: PincodeDetails; timestamp: number }>();
+const CACHE_TTL = 3600000; // 1 hour
+
 export async function checkPincodeServiceability(pincode: string): Promise<PincodeDetails> {
   if (!/^[1-9][0-9]{5}$/.test(pincode)) {
     return {
@@ -20,11 +23,16 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
     };
   }
 
+  const cached = pincodeCache.get(pincode);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+
   try {
     const response = await fetch(`/api/delhivery?action=serviceability&pincode=${pincode}`);
     const data = await response.json();
     
-    if (!response.ok) {
+    if (!response.ok) { 
        return {
          isServiceable: false,
          message: data.error || `HTTP ${response.status}: Delivery estimate temporarily unavailable.`,
@@ -37,11 +45,11 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
       let tat = null;
       if (tatResponse.ok) {
         const tatData = await tatResponse.json();
-        if (tatData.success) {
+        if (tatData.success && tatData.tat) {
            tat = tatData.tat;
         }
       }
-      return {
+      const result = {
         isServiceable: true,
         city: data.city,
         district: data.district,
@@ -51,11 +59,15 @@ export async function checkPincodeServiceability(pincode: string): Promise<Pinco
         tat: tat,
         message: "Delivery is available",
       };
+      pincodeCache.set(pincode, { data: result, timestamp: Date.now() });
+      return result;
     } else {
-      return {
+      const result = {
         isServiceable: false,
         message: data.error || "Pincode valid but not serviceable.",
       };
+      pincodeCache.set(pincode, { data: result, timestamp: Date.now() });
+      return result;
     }
   } catch (error: any) {
     console.error("Error fetching pincode details from Delhivery:", error);
