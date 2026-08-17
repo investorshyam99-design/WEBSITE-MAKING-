@@ -36,7 +36,11 @@ export function TrackOrderPage() {
         }
       }
 
-      const res = await fetch(`/api/shipping/onedot/track/${awbToTrack}`);
+      const res = await fetch(`/api/delhivery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "track", awb: awbToTrack })
+      });
       const data = await res.json();
       
       if (data && data.Error) {
@@ -46,7 +50,6 @@ export function TrackOrderPage() {
       if (data && data.ShipmentData && data.ShipmentData.length > 0) {
          setTrackingData(data.ShipmentData[0].Shipment);
       } else {
-         // fallback fake data for preview if API fails but no hard error
          if (!data.success && data.error) throw new Error(data.error);
          throw new Error("No tracking information available for this ID.");
       }
@@ -111,7 +114,7 @@ export function TrackOrderPage() {
               <div className="bg-[#1E2A44] p-6 text-white">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="text-[#1E2A44]/60 text-indigo-200 text-xs font-bold uppercase tracking-wider mb-1">OneDot Delivery AWB</p>
+                    <p className="text-[#1E2A44]/60 text-indigo-200 text-xs font-bold uppercase tracking-wider mb-1">Delhivery AWB</p>
                     <h2 className="text-2xl font-black tracking-wide">{trackingData.AWB}</h2>
                   </div>
                   <div className="px-3 py-1 bg-white/10 rounded-lg text-sm font-bold uppercase tracking-wider">

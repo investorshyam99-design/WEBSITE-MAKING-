@@ -71,7 +71,7 @@ export async function fetchShopifyProducts() {
     const domain = import.meta.env.VITE_SHOPIFY_DOMAIN || SHOPIFY_DOMAIN;
     const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || SHOPIFY_STOREFRONT_TOKEN;
 
-    const directResponse = await fetch(`${domain}/api/2024-01/graphql.json`, {
+    const directResponse = await fetch(`https://${domain.replace(/^https?:\/\//, '')}/api/2024-01/graphql.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -158,7 +158,7 @@ export async function fetchShopifyProductByHandle(handle: string) {
   try {
     const domain = import.meta.env.VITE_SHOPIFY_DOMAIN || SHOPIFY_DOMAIN;
     const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || SHOPIFY_STOREFRONT_TOKEN;
-    const directResponse = await fetch(`${domain}/api/2024-01/graphql.json`, {
+    const directResponse = await fetch(`https://${domain.replace(/^https?:\/\//, '')}/api/2024-01/graphql.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
