@@ -258,3 +258,7 @@ export const getProductsByCategory = (
   categoryId: string,
   currentProducts: Product[],
 ) => currentProducts.filter((p) => p.category === categoryId);
+
+export function parseSingleShopifyProduct(node: any): Product {
+    return parseShopifyProducts([node])[0];
+}

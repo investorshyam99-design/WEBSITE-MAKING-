@@ -6,7 +6,10 @@ import {
   useProducts,
   getProductById,
   getProductsByCategory,
+  parseSingleShopifyProduct,
+  Product
 } from "../data/products";
+import { fetchShopifyProductByHandle } from "../services/shopify";
 import { ProductCard } from "../components/ProductCard";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
@@ -92,7 +95,7 @@ const SIZES = ["S", "M", "L", "XL", "XXL"];
 export function ProductPage() {
   const { id, slug } = useParams<{ id?: string; slug?: string }>();
   const navigate = useNavigate();
-  const { products, isLoading } = useProducts();
+  const { products } = useProducts(); // still needed for recently viewed, etc
   const { addToCart, setIsCartOpen, isCartOpen } = useShop();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
@@ -103,10 +106,56 @@ export function ProductPage() {
     [activeKey],
   );
 
-  const product = useMemo(
-    () => getProductById(decodedKey, products),
-    [decodedKey, products],
-  );
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch product independently based on URL
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
+    const fetchProduct = async () => {
+      if (!decodedKey) {
+        setIsLoading(false);
+        return;
+      }
+      
+      // Attempt to fetch from Shopify directly by handle
+      try {
+        const data = await fetchShopifyProductByHandle(decodedKey);
+        if (!isMounted) return;
+        
+        if (data) {
+          const parsed = parseSingleShopifyProduct(data);
+          setProduct(parsed);
+        } else {
+          // Fallback to global store lookup if not found by handle
+          // (Shopify handles might differ slightly from our generated slugs in some legacy cases)
+          const fallback = getProductById(decodedKey, products);
+          if (fallback) {
+            setProduct(fallback);
+          } else {
+            setProduct(null);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching product by handle:", err);
+        if (!isMounted) return;
+        const fallback = getProductById(decodedKey, products);
+        setProduct(fallback || null);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchProduct();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [decodedKey, products]);
 
   const seoDetails = useMemo(() => {
     if (!product) return null;
@@ -302,7 +351,7 @@ export function ProductPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center text-[#F5EFE6]0">Loading...</div>
+          <div className="text-center text-[#1E2A44] animate-pulse">Loading...</div>
         </div>
         <Footer />
       </div>
@@ -429,7 +478,7 @@ export function ProductPage() {
 
       {/* Breadcrumb */}
       <div className="border-b border-gray-100 bg-[#F5EFE6]/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-[#F5EFE6]0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center text-sm text-[#1E2A44] animate-pulse">
           <Link
             to="/"
             className="text-[#1E2A44] hover:opacity-80 transition-opacity font-bold uppercase tracking-wider"

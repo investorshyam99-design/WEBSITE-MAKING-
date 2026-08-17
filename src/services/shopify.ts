@@ -94,3 +94,87 @@ export async function fetchShopifyProducts() {
 
   return [];
 }
+
+export async function fetchShopifyProductByHandle(handle: string) {
+  const query = `
+    query($handle: String!) {
+      product(handle: $handle) {
+        id
+        title
+        description
+        descriptionHtml
+        productType
+        tags
+        variants(first: 50) {
+          edges {
+            node {
+              id
+              title
+              availableForSale
+              price {
+                amount
+                currencyCode
+              }
+              image {
+                url
+              }
+              selectedOptions {
+                name
+                value
+              }
+            }
+          }
+        }
+        images(first: 50) {
+          edges {
+            node {
+              url
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const variables = { handle };
+
+  try {
+    const response = await fetch(`/api/catalog`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (response.ok) {
+      const json = await response.json();
+      if (json.data && json.data.product) {
+        return json.data.product;
+      }
+    }
+  } catch (error) {
+    console.warn("Proxy endpoint /api/catalog failed, attempting direct Shopify API...", error);
+  }
+
+  try {
+    const domain = import.meta.env.VITE_SHOPIFY_DOMAIN || SHOPIFY_DOMAIN;
+    const token = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN || SHOPIFY_STOREFRONT_TOKEN;
+    const directResponse = await fetch(`${domain}/api/2024-01/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": token,
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (directResponse.ok) {
+      const json = await directResponse.json();
+      if (json.data && json.data.product) {
+        return json.data.product;
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching Shopify product by handle:", error);
+  }
+  return null;
+}
