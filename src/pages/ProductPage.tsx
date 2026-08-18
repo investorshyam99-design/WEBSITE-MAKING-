@@ -806,30 +806,59 @@ export function ProductPage() {
                   </h3>
                   <span className="text-[10px] md:text-xs font-bold bg-[#1E2A44] text-white px-2.5 py-1 rounded-full whitespace-nowrap">+₹199</span>
                 </div>
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    placeholder="Player Name (Optional)"
-                    maxLength={12}
-                    value={customName}
+                <div className="flex gap-4 mb-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="customization_toggle_main" 
+                      checked={isCustomized} 
+                      onChange={() => setIsCustomized(true)} 
+                      className="accent-[#1E2A44] w-4 h-4"
+                    />
+                    <span className="text-sm font-bold uppercase">Yes</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="customization_toggle_main" 
+                      checked={!isCustomized} 
+                      onChange={() => {
+                        setIsCustomized(false);
+                        setCustomName("");
+                        setCustomNumber("");
+                      }} 
+                      className="accent-[#1E2A44] w-4 h-4"
+                    />
+                    <span className="text-sm font-bold uppercase">No, Thanks</span>
+                  </label>
+                </div>
+
+                {isCustomized && (
+                  <div className="flex flex-col gap-3">
+                    <input
+                      type="text"
+                      placeholder="Player Name (Optional)"
+                      maxLength={12}
+                      value={customName}
                     onChange={(e) => {
                       setCustomName(e.target.value.toUpperCase());
                       setIsCustomized(true);
                     }}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
                   />
-                  <input
-                    type="text"
-                    placeholder="Player Number (Optional)"
-                    maxLength={2}
-                    value={customNumber}
-                    onChange={(e) => {
-                      setCustomNumber(e.target.value.replace(/\D/g, ''));
-                      setIsCustomized(true);
-                    }}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
-                  />
-                </div>
+                    <input
+                      type="text"
+                      placeholder="Player Number (Optional)"
+                      maxLength={2}
+                      value={customNumber}
+                      onChange={(e) => {
+                        setCustomNumber(e.target.value.replace(/\D/g, ''));
+                        setIsCustomized(true);
+                      }}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -1099,30 +1128,59 @@ export function ProductPage() {
                       </h3>
                       <span className="text-[10px] font-bold bg-[#1E2A44] text-white px-2 py-0.5 rounded-full whitespace-nowrap">+₹199</span>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <input
-                        type="text"
-                        placeholder="Player Name (Optional)"
-                        maxLength={12}
-                        value={customName}
+                    <div className="flex gap-4 mb-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="customization_toggle_modal" 
+                          checked={isCustomized} 
+                          onChange={() => setIsCustomized(true)} 
+                          className="accent-[#1E2A44] w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold uppercase">Yes</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="customization_toggle_modal" 
+                          checked={!isCustomized} 
+                          onChange={() => {
+                            setIsCustomized(false);
+                            setCustomName("");
+                            setCustomNumber("");
+                          }} 
+                          className="accent-[#1E2A44] w-3.5 h-3.5"
+                        />
+                        <span className="text-xs font-bold uppercase">No</span>
+                      </label>
+                    </div>
+
+                    {isCustomized && (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="text"
+                          placeholder="Player Name (Optional)"
+                          maxLength={12}
+                          value={customName}
                         onChange={(e) => {
                           setCustomName(e.target.value.toUpperCase());
                           setIsCustomized(true);
                         }}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
                       />
-                      <input
-                        type="text"
-                        placeholder="Player Number (Optional)"
-                        maxLength={2}
-                        value={customNumber}
-                        onChange={(e) => {
-                          setCustomNumber(e.target.value.replace(/\D/g, ''));
-                          setIsCustomized(true);
-                        }}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
-                      />
-                    </div>
+                        <input
+                          type="text"
+                          placeholder="Player Number (Optional)"
+                          maxLength={2}
+                          value={customNumber}
+                          onChange={(e) => {
+                            setCustomNumber(e.target.value.replace(/\D/g, ''));
+                            setIsCustomized(true);
+                          }}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

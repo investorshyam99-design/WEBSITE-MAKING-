@@ -44,11 +44,9 @@ export function AIChatbot() {
     }
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (userMessage: string) => {
+    if (!userMessage.trim() || isLoading) return;
     
-    const userMessage = input.trim();
     const newMessagesUser = [...messages, { role: 'user' as const, text: userMessage }];
     setMessages(newMessagesUser);
     saveChatToDb(newMessagesUser);
@@ -56,7 +54,10 @@ export function AIChatbot() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/gemini', {
+      // For static deployments (GitHub Pages), use the Firebase Function URL.
+      // For local dev, it still falls back to the local proxy.
+      const functionUrl = import.meta.env.VITE_GEMINI_FUNCTION_URL || '/api/gemini';
+      const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,6 +91,11 @@ export function AIChatbot() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
   };
 
   return (
@@ -164,6 +170,19 @@ export function AIChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Quick Actions */}
+            <div className="bg-[#F8F9FA] px-4 pb-2 pt-2 overflow-x-auto shrink-0 flex items-center gap-2 [&::-webkit-scrollbar]:hidden">
+              {['Track Order', 'Exchange Policy', 'COD Available', 'Customisation'].map((action) => (
+                <button
+                  key={action}
+                  onClick={() => sendMessage(action)}
+                  className="whitespace-nowrap px-3 py-1.5 bg-white border border-gray-200 text-[#1B1B1B] text-xs font-semibold rounded-full hover:border-[#14213D] hover:bg-gray-50 transition-colors"
+                >
+                  {action}
+                </button>
+              ))}
+            </div>
+            
             <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 flex gap-2 shrink-0 items-center">
               <input 
                 type="text" 
