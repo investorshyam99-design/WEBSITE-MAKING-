@@ -36,12 +36,12 @@ async function startServer() {
       // Trust only backend calculation
       const { deliveryMethod } = req.body;
       const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
-      const totalQuantity = items.reduce((sum: any, item: any) => sum + item.quantity, 0);
-      const fastDeliveryFee = deliveryMethod === "FAST" ? 50 * totalQuantity : 0;
+      const isFastDelivery = deliveryMethod === "FAST";
+      const fastDeliveryFee = isFastDelivery ? 50 : 0;
       
       let amount = 0;
       if (paymentMode === 'partial') {
-        amount = 50 * totalQuantity + fastDeliveryFee;
+        amount = isFastDelivery ? 100 : 50;
       } else {
         amount = itemsTotal + fastDeliveryFee;
       }
@@ -170,7 +170,7 @@ async function startServer() {
           "Content-Type": "application/json",
           "X-Shopify-Storefront-Access-Token": token,
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify(req.body),
       });
 
       const json = await response.json();
@@ -490,7 +490,7 @@ WASHING INSTRUCTIONS
       try {
         const ai = new GoogleGenAI({ apiKey: currentKey });
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash", // stable fast model
+          model: "gemini-2.0-flash", // stable fast model
           contents: prompt,
           config: {
             systemInstruction,

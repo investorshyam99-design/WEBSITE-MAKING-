@@ -36,15 +36,9 @@ export function getOrderCalculations(order: any) {
     
     if (paymentMode === "full") {
         // FULLY PREPAID
-        amountPaid = adjustedAmount; // the actual full amount paid
+        amountPaid = order.amountPaid !== undefined ? order.amountPaid : adjustedAmount;
         codAmount = 0;
-        finalTotalAmount = adjustedAmount;
-        
-        // If there was an explicitly saved final total, use it for amountPaid and finalTotalAmount, but prefer adjustedAmount logic to be safe
-        if (order.finalTotalAmount !== undefined && order.finalTotalAmount !== adjustedAmount && order.deductionAmount === undefined) {
-             finalTotalAmount = order.finalTotalAmount;
-             amountPaid = order.finalTotalAmount;
-        }
+        finalTotalAmount = order.totalOrderValue !== undefined ? order.totalOrderValue : (order.finalTotal !== undefined ? order.finalTotal : amountPaid);
     } else {
         // COD or PARTIAL
         if (order.amountPaid !== undefined) {
@@ -55,9 +49,8 @@ export function getOrderCalculations(order: any) {
             amountPaid = 50 * effectiveQuantity;
         }
         
-        // For partial, cod amount is the remaining adjusted amount
-        codAmount = adjustedAmount;
-        finalTotalAmount = adjustedAmount + amountPaid;
+        codAmount = order.codAmount !== undefined ? order.codAmount : adjustedAmount;
+        finalTotalAmount = order.totalOrderValue !== undefined ? order.totalOrderValue : (order.finalTotal !== undefined ? order.finalTotal : adjustedAmount + amountPaid);
     }
     
     return {

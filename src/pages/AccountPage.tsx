@@ -498,7 +498,28 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               </p>
             </div>
           )}
-          {calc.paymentMode === "full" ? (
+          {order.productSubtotal !== undefined && (
+          <>
+            <div>
+              <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Product Subtotal</p>
+              <p className="font-semibold text-[#1B1B1B] text-sm">₹{order.productSubtotal.toLocaleString("en-IN")}</p>
+            </div>
+            {order.fastDeliveryCharge > 0 && (
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Fast Delivery</p>
+                <p className="font-semibold text-green-600 text-sm">₹{order.fastDeliveryCharge.toLocaleString("en-IN")}</p>
+              </div>
+            )}
+            {order.codHandlingCharge > 0 && (
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">COD Charge</p>
+                <p className="font-semibold text-gray-800 text-sm">₹{order.codHandlingCharge.toLocaleString("en-IN")}</p>
+              </div>
+            )}
+          </>
+        )}
+        
+        {calc.paymentMode === "full" ? (
           <div>
             <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
               Payment

@@ -1,26 +1,42 @@
 const fs = require('fs');
-let file = fs.readFileSync('src/pages/CheckoutPage.tsx', 'utf8');
+let code = fs.readFileSync('src/pages/CheckoutPage.tsx', 'utf8');
 
-const oldCode = `          const itemFinalPrice = item.price;
-          const itemAdvance = 50;
-          const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice;`;
+// Replace pricing logic
+const oldPricingLogic = `  const subtotal = jerseyCart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+  const total = subtotal + expressDeliveryCharge;
+  
+  const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
+  const advanceAmount = (itemsCount * 50) + expressDeliveryCharge;`;
 
-const newCode = `          const itemFinalPrice = item.price;
-          const itemAdvance = currentMode === "full" ? 0 : 50;
-          const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice;`;
+const newPricingLogic = `  const productSubtotal = jerseyCart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+  
+  const isFastDelivery = deliveryMethod === "FAST";
+  const fastDeliveryCharge = isFastDelivery ? 50 : 0;
+  const codHandlingCharge = paymentMode === "partial" ? 50 : 0;
+  
+  const totalOrderValue = productSubtotal + codHandlingCharge + fastDeliveryCharge;
 
-file = file.replace(oldCode, newCode);
+  let advanceToCollect = 0;
+  let codAmount = 0;
 
-const oldDocRef = `            codCharges: 0,
-            advancePaid: itemAdvance,
-            remainingCodAmount: itemRemainingCod,`;
+  if (paymentMode === "partial") {
+    if (isFastDelivery) {
+      advanceToCollect = 100;
+    } else {
+      advanceToCollect = 50;
+    }
+    codAmount = productSubtotal;
+  } else {
+    advanceToCollect = totalOrderValue;
+    codAmount = 0;
+  }`;
 
-const newDocRef = `            codCharges: 0,
-            advancePaid: itemAdvance,
-            amountPaid: currentMode === "full" ? itemFinalPrice : itemAdvance,
-            codAmount: itemRemainingCod,
-            remainingCodAmount: itemRemainingCod,`;
-
-file = file.replace(oldDocRef, newDocRef);
-
-fs.writeFileSync('src/pages/CheckoutPage.tsx', file);
+code = code.replace(oldPricingLogic, newPricingLogic);
+fs.writeFileSync('src/pages/CheckoutPage.tsx', code);
+console.log("Patched pricing logic block.");

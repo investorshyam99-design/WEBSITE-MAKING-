@@ -27,7 +27,7 @@ export function CheckoutPage() {
     updateQuantity,
     removeFromCart,
     setIsCartOpen,
-    expressDeliveryCharge,
+    
     deliveryMethod,
     deliveryPincode,
     deliveryLocation,
@@ -83,17 +83,55 @@ export function CheckoutPage() {
     }
   }, [hasCustomization]);
 
-  const subtotal = jerseyCart.reduce(
+  const productSubtotal = jerseyCart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
-  const total = subtotal + expressDeliveryCharge;
   
-  const itemsCount = jerseyCart.reduce((sum, item) => sum + item.quantity, 0);
-  const advanceAmount = (itemsCount * 50) + expressDeliveryCharge;
+  const isFastDelivery = deliveryMethod === "FAST";
+  const fastDeliveryCharge = isFastDelivery ? 50 : 0;
+  const codHandlingCharge = paymentMode === "partial" ? 50 : 0;
+  
+  const totalOrderValue = productSubtotal + codHandlingCharge + fastDeliveryCharge;
+
+  let advanceToCollect = 0;
+  let codAmount = 0;
+
+  if (paymentMode === "partial") {
+    if (isFastDelivery) {
+      advanceToCollect = 100;
+    } else {
+      advanceToCollect = 50;
+    }
+    codAmount = productSubtotal;
+  } else {
+    advanceToCollect = totalOrderValue;
+    codAmount = 0;
+  }
 
   const handleCheckout = async (overrideMode?: "full" | "partial") => {
     const currentMode = overrideMode || paymentMode;
+    
+    // Recalculate based on currentMode to avoid React state async issues
+    const currentIsFastDelivery = deliveryMethod === "FAST";
+    const currentFastDeliveryCharge = currentIsFastDelivery ? 50 : 0;
+    const currentCodHandlingCharge = currentMode === "partial" ? 50 : 0;
+    const currentTotalOrderValue = productSubtotal + currentCodHandlingCharge + currentFastDeliveryCharge;
+    
+    let currentAdvanceToCollect = 0;
+    let currentCodAmount = 0;
+    
+    if (currentMode === "partial") {
+      if (currentIsFastDelivery) {
+        currentAdvanceToCollect = 100;
+      } else {
+        currentAdvanceToCollect = 50;
+      }
+      currentCodAmount = productSubtotal;
+    } else {
+      currentAdvanceToCollect = currentTotalOrderValue;
+      currentCodAmount = 0;
+    }
 
     if (!fullName || !phone || !deliveryPincode || !houseNo) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
@@ -152,13 +190,29 @@ export function CheckoutPage() {
       let isFirstItem = true;
       for (const item of jerseyCart) {
         for (let i = 0; i < item.quantity; i++) {
-          const assignedExpress = isFirstItem ? expressDeliveryCharge : 0;
+          const itemFastDelivery = isFirstItem ? currentFastDeliveryCharge : 0;
+          const itemCodExtra = isFirstItem ? currentCodHandlingCharge : 0;
+          
+          let itemAdvance = 0;
+          let itemRemainingCod = 0;
+          
+          if (currentMode === "full") {
+            itemAdvance = item.price + itemFastDelivery + itemCodExtra;
+            itemRemainingCod = 0;
+          } else {
+             if (isFirstItem) {
+                itemAdvance = currentAdvanceToCollect; 
+             } else {
+                itemAdvance = 0;
+             }
+             itemRemainingCod = item.price;
+          }
+          
+          const itemTotalOrderValue = item.price + itemFastDelivery + itemCodExtra;
+          const itemAmountPaid = itemAdvance;
+          const itemFinalPrice = item.price;
+          
           isFirstItem = false;
-
-          const itemFinalPrice = item.price + assignedExpress;
-          const itemCodExtra = currentMode === "full" ? 0 : 50;
-          const itemAdvance = currentMode === "full" ? itemFinalPrice : 50;
-          const itemRemainingCod = currentMode === "full" ? 0 : itemFinalPrice;
 
           const estimate = calculateDeliveryEstimate({
             pincode: deliveryPincode,
@@ -177,17 +231,23 @@ export function CheckoutPage() {
             color: item.selectedColor || "N/A",
             quantity: 1,
             customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
-            price: itemFinalPrice,
+            productSubtotal: item.price,
+            deliveryType: deliveryMethod,
+            fastDeliveryCharge: itemFastDelivery,
+            codHandlingCharge: itemCodExtra,
+            totalOrderValue: itemTotalOrderValue,
+            amountPaid: itemAmountPaid,
+            codAmount: itemRemainingCod,
+            
+            // Legacy / compatibility fields
+            price: item.price,
             originalPrice: item.price,
             codCharges: itemCodExtra,
             advancePaid: itemAdvance,
-            amountPaid: currentMode === "full" ? itemFinalPrice : itemAdvance,
-            codAmount: itemRemainingCod,
             remainingCodAmount: itemRemainingCod,
-            finalTotal: itemFinalPrice + itemCodExtra,
+            finalTotal: itemTotalOrderValue,
             status: currentMode === "full" ? "pending full payment" : "pending advance payment",
             paymentMode: currentMode,
-            expressDeliveryCharge: assignedExpress,
             deliveryMethod,
             deliveryPincode,
             expectedDeliveryStart: estimate.estimatedStartDate ? estimate.estimatedStartDate.toISOString() : "",
@@ -217,7 +277,7 @@ export function CheckoutPage() {
         localStorage.setItem("guest_orders", JSON.stringify([...existingGuestOrders, ...createdOrderIds]));
       }
 
-      const finalAmountToPay = currentMode === "full" ? total : advanceAmount;
+      const finalAmountToPay = currentAdvanceToCollect;
 
       const response = await fetch("/api/create-razorpay-order", {
         method: "POST",
@@ -265,13 +325,13 @@ export function CheckoutPage() {
               }
 
               // Fire Meta Pixel Purchase event with order ID, total INR value, and item list
-              const paidAmount = currentMode === "full" ? total : advanceAmount;
+              const paidAmount = currentAdvanceToCollect;
               trackPurchase(nextOrderNumber, paidAmount, jerseyCart);
 
               if (currentMode === "full") {
-                alert(`Payment Successful!\n✅ ₹${total} Paid Successfully\nThank you for your order #${nextOrderNumber}.`);
+                alert(`Payment Successful!\n✅ ₹${currentAdvanceToCollect} Paid Successfully\nThank you for your order #${nextOrderNumber}.`);
               } else {
-                alert(`Payment Successful!\n✅ ₹${advanceAmount} Advance Paid Successfully\nOrder #${nextOrderNumber} Confirmed\nRemaining COD Amount: ₹${total}\nPay remaining amount during delivery.`);
+                alert(`Payment Successful!\n✅ ₹${currentAdvanceToCollect} Advance Paid Successfully\nOrder #${nextOrderNumber} Confirmed\nRemaining COD Amount: ₹${currentCodAmount}\nPay remaining amount during delivery.`);
               }
               // Clear only jersey items from cart
               jerseyCart.forEach(item => {
@@ -400,7 +460,7 @@ export function CheckoutPage() {
                     <span className="font-bold text-sm">Pay Full Amount (Prepaid)</span>
                     {paymentMode === "full" && <ShieldCheck className="w-5 h-5 text-green-600" />}
                   </div>
-                  <div className="text-xs text-gray-500">Pay Rs. {total.toFixed(2)} securely now.</div>
+                  <div className="text-xs text-gray-500">Pay ₹{totalOrderValue.toFixed(2)} securely now.</div>
                   <div className="mt-2 inline-block px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase rounded">
                     Free Delivery
                   </div>
@@ -419,7 +479,7 @@ export function CheckoutPage() {
                       <span className="font-bold text-sm">💳 COD Available</span>
                       {paymentMode === "partial" && <ShieldCheck className="w-5 h-5 text-[#1E2A44]" />}
                     </div>
-                    <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceAmount} Advance Payment Required</div>
+                    <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceToCollect} Advance Payment Required</div>
                     <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery</div>
                   </button>
                 ) : (
@@ -438,32 +498,32 @@ export function CheckoutPage() {
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Subtotal ({itemsCount} items)</span>
-                <span>Rs. {subtotal.toFixed(2)}</span>
+                <span>₹{productSubtotal.toFixed(2)}</span>
               </div>
-              {expressDeliveryCharge > 0 && (
+              {fastDeliveryCharge > 0 && (
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Fast Delivery</span>
-                  <span>Rs. {expressDeliveryCharge.toFixed(2)}</span>
+                  <span>Rs. {fastDeliveryCharge.toFixed(2)}</span>
                 </div>
               )}
               {paymentMode === "partial" && (
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>COD Advance</span>
-                  <span>Rs. {advanceAmount.toFixed(2)}</span>
+                  <span>Rs. {advanceToCollect.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">
                 <span>Total Order Value</span>
-                <span className="text-sm">Rs. {(paymentMode === "full" ? total : total + advanceAmount).toFixed(2)}</span>
+                <span className="text-sm">₹{totalOrderValue.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold text-gray-900 pt-1">
                 <span>Amount to Pay Now</span>
-                <span className="text-xl">Rs. {(paymentMode === "full" ? total : advanceAmount).toFixed(2)}</span>
+                <span className="text-xl">₹{advanceToCollect.toFixed(2)}</span>
               </div>
               {paymentMode === "partial" && (
                 <div className="flex justify-between text-xs font-bold text-red-600 pt-2 border-t border-gray-200">
                   <span>To pay on delivery</span>
-                  <span>Rs. {total.toFixed(2)}</span>
+                  <span>₹{codAmount.toFixed(2)}</span>
                 </div>
               )}
             </div>
@@ -474,7 +534,7 @@ export function CheckoutPage() {
               className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-md hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2 animate-checkout-wiggle"
             >
               <Lock className="w-4 h-4" />
-              {isSubmitting ? "PROCESSING..." : `PAY RS. ${(paymentMode === "full" ? total : advanceAmount).toFixed(2)} SECURELY`}
+              {isSubmitting ? "PROCESSING..." : `PAY RS. ${(advanceToCollect).toFixed(2)} SECURELY`}
             </button>
             
             <div className="flex justify-center items-center gap-3 opacity-60">
@@ -508,7 +568,7 @@ export function CheckoutPage() {
                 </div>
               )}
               <span className="text-xs md:text-sm font-black tracking-wider text-[#1E2A44] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><Truck className="w-4 h-4 md:w-5 md:h-5"/> COD</span>
-              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{advanceAmount.toFixed(0)}</span>
+              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{advanceToCollect.toFixed(0)}</span>
               <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Remaining on<br/>Delivery</span>
             </button>
           )}
@@ -532,8 +592,8 @@ export function CheckoutPage() {
               </div>
             )}
             <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID ONLY</span>
-            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay Rs. {total.toFixed(0)}</span>
-            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">{expressDeliveryCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}</span>
+            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay ₹{totalOrderValue.toFixed(0)}</span>
+            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">{fastDeliveryCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}</span>
           </button>
         </div>
       </div>

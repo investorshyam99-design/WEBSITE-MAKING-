@@ -1,54 +1,83 @@
 const fs = require('fs');
-let file = fs.readFileSync('src/pages/AccountPage.tsx', 'utf8');
+let code = fs.readFileSync('src/pages/AccountPage.tsx', 'utf8');
 
-// Add imports
-if (!file.includes('formatDateRange')) {
-  file = file.replace(/import \{ Header \} from "\.\.\/components\/Header";/, `import { Header } from "../components/Header";\nimport { formatDateRange } from "../lib/delivery";`);
+const searchSection = `        {calc.paymentMode === "full" ? (
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Payment
+            </p>
+            <p className="font-semibold text-green-600 text-sm">
+              FULLY PAID
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Paid
+            </p>
+            <p className="font-semibold text-green-600 text-sm">
+              ₹{calc.amountPaid.toLocaleString("en-IN")}
+            </p>
+            <div className="mt-1">
+              <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">COD Remaining</p>
+              <p className="font-black text-rose-600 text-sm">
+                ₹{calc.codAmount.toLocaleString("en-IN")}
+              </p>
+            </div>
+          </div>
+        )}`;
+
+const replaceSection = `        {order.productSubtotal !== undefined && (
+          <>
+            <div>
+              <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Product Subtotal</p>
+              <p className="font-semibold text-[#1B1B1B] text-sm">₹{order.productSubtotal.toLocaleString("en-IN")}</p>
+            </div>
+            {order.fastDeliveryCharge > 0 && (
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">Fast Delivery</p>
+                <p className="font-semibold text-green-600 text-sm">₹{order.fastDeliveryCharge.toLocaleString("en-IN")}</p>
+              </div>
+            )}
+            {order.codHandlingCharge > 0 && (
+              <div>
+                <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">COD Charge</p>
+                <p className="font-semibold text-gray-800 text-sm">₹{order.codHandlingCharge.toLocaleString("en-IN")}</p>
+              </div>
+            )}
+          </>
+        )}
+        
+        {calc.paymentMode === "full" ? (
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Payment
+            </p>
+            <p className="font-semibold text-green-600 text-sm">
+              FULLY PAID
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+              Paid
+            </p>
+            <p className="font-semibold text-green-600 text-sm">
+              ₹{calc.amountPaid.toLocaleString("en-IN")}
+            </p>
+            <div className="mt-1">
+              <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">COD Remaining</p>
+              <p className="font-black text-rose-600 text-sm">
+                ₹{calc.codAmount.toLocaleString("en-IN")}
+              </p>
+            </div>
+          </div>
+        )}`;
+
+if (code.includes(searchSection)) {
+    code = code.replace(searchSection, replaceSection);
+    fs.writeFileSync('src/pages/AccountPage.tsx', code);
+    console.log("Patched Account UI");
+} else {
+    console.log("Not found Account UI");
 }
-
-// Update Order interface
-const regexOrder = /trackingId\?: string;\n\s+courierName\?: string;/;
-const replacementOrder = `trackingId?: string;
-  trackingUrl?: string;
-  courierName?: string;
-  deliveryMethod?: "NORMAL" | "EXPRESS";
-  deliveryPincode?: string;
-  expectedDeliveryStart?: string;
-  expectedDeliveryEnd?: string;
-  customizationProcessingDays?: number;`;
-file = file.replace(regexOrder, replacementOrder);
-
-const regexJSX = /\{order\.size\} \| Qty: \{order\.quantity\}\n\s+<\/p>/;
-const replacementJSX = `{order.size} | Qty: {order.quantity}
-                        </p>
-                        
-                        {order.deliveryMethod && (
-                          <div className="mt-2 text-xs bg-gray-50 border border-gray-100 p-2 rounded-lg flex flex-col gap-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Delivery</span>
-                              <span className="font-black text-[#1B1B1B] uppercase tracking-wider text-[11px]">{order.deliveryMethod} {order.deliveryMethod === 'EXPRESS' ? '⚡' : ''}</span>
-                            </div>
-                            {order.expectedDeliveryStart && order.expectedDeliveryEnd && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Expected</span>
-                                <span className="font-black text-[#1B1B1B] uppercase tracking-wider text-[11px]">{formatDateRange(new Date(order.expectedDeliveryStart), new Date(order.expectedDeliveryEnd))}</span>
-                              </div>
-                            )}
-                            {order.deliveryPincode && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Pincode</span>
-                                <span className="font-bold text-gray-700 uppercase tracking-wider text-[11px]">{order.deliveryPincode}</span>
-                              </div>
-                            )}
-                            {order.customizationProcessingDays ? (
-                              <div className="mt-1 pt-1 border-t border-gray-200 flex justify-between items-center">
-                                <span className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Customization</span>
-                                <span className="font-bold text-gray-700 text-[10px]">2-3 Days Processing</span>
-                              </div>
-                            ) : null}
-                          </div>
-                        )}`;
-file = file.replace(regexJSX, replacementJSX);
-
-const regexTracking = /<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">/g;
-// Actually I need to add tracking button. Let's find where to add it.
