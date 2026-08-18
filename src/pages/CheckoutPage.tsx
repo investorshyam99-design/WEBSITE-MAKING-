@@ -497,7 +497,7 @@ export function CheckoutPage() {
             {/* Order Summary */}
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
               <div className="flex justify-between text-sm text-gray-600">
-                <span>Subtotal ({itemsCount} items)</span>
+                <span>Subtotal ({jerseyCart.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
                 <span>₹{productSubtotal.toFixed(2)}</span>
               </div>
               {fastDeliveryCharge > 0 && (
