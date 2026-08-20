@@ -439,8 +439,8 @@ function AdminOrderCard({
   const handleDelhiveryShipment = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
-      alert(`Shipment already created\nAWB: ${order.delhiveryShipmentId || order.awbNumber || order.trackingId}`);
+    if (order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
+      alert(`SHIPMENT ALREADY CREATED\n\nAWB:\n${order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId}`);
       return;
     }
 
@@ -450,40 +450,23 @@ function AdminOrderCard({
     
     setIsShippingDelhivery(true);
     try {
-      const productDesc = `${order.productName} - Size ${order.size} - Customization: ${order.customization ? order.customization : "None"}`;
-      const orderData = {
-         orderNumber: order.orderNumber || order.id,
-         fullName: order.fullName || "Guest",
-         phone: order.phone,
-         address: order.address,
-         city: order.city || "Not Provided",
-         state: order.state || "Not Provided",
-         pincode: order.pincode,
-         paymentMode: calc.paymentMode,
-         codAmount: calc.codAmount,
-         productDesc,
-         quantity: order.quantity || 1,
-         finalTotal: calc.finalTotalAmount,
-         weight: 500
-      };
-
       const response = await fetch("/api/delhivery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create", orderData })
+        body: JSON.stringify({ action: "create", orderId: order.id })
       });
 
       const data = await response.json();
       if (!data.success) {
-        const fullErr = data.delhiveryResponse ? `${data.error}\nHTTP: ${data.delhiveryStatus}\nResponse: ${JSON.stringify(data.delhiveryResponse)}` : data.error;
-        throw new Error(fullErr || "Failed to create shipment");
+        const fullErr = `DELHIVERY SHIPMENT FAILED\n\nReason:\n${data.error}\n\nHTTP:\n${data.delhiveryStatus || 400}\n\nResponse:\n${JSON.stringify(data.delhiveryResponse || {}, null, 2)}`;
+        throw new Error(fullErr);
       }
 
       const awb = data.awb;
       
       // Update order in Firestore
-      const { doc, updateDoc } = require('firebase/firestore');
-      const { db } = require('../lib/firebase');
+      
+      
       
       await updateDoc(doc(db, "orders", order.id), {
          awbNumber: awb,
@@ -500,7 +483,7 @@ function AdminOrderCard({
       window.location.reload(); // Refresh to show new state
     } catch (err: any) {
       console.error(err);
-      alert("Delhivery shipment creation failed: " + err.message);
+      alert(err.message); setFulfillmentErr(err.message);
     } finally {
       setIsShippingDelhivery(false);
     }

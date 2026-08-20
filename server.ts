@@ -4,6 +4,13 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import Razorpay from "razorpay";
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import firebaseConfig from './firebase-applet-config.json';
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+
 import crypto from "crypto";
 
 let razorpayClient: Razorpay | null = null;
@@ -602,22 +609,90 @@ WASHING INSTRUCTIONS
         });
       }
 
+      
+      if (action === 'diagnostic') {
+        if (!req.body.orderId) return res.status(400).json({ success: false, error: "Missing orderId" });
+        const orderSnap = await getDoc(doc(db, 'orders', req.body.orderId));
+        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order not found" });
+        const order = orderSnap.data();
+        const isCod = order.paymentMode === "partial";
+        
+        let productDesc = order.productName || "Jersey";
+        if (order.category) productDesc += ` - ${order.category.replace("-", " ")}`;
+        if (order.size) productDesc += ` - Size ${order.size}`;
+        
+        return res.json({
+           success: true,
+           diagnostic: {
+              orderId: req.body.orderId,
+              pickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House",
+              destinationPincode: order.pincode,
+              paymentMode: isCod ? "COD" : "Prepaid",
+              codAmount: isCod ? (order.codAmount || 0) : 0,
+              product: productDesc,
+              quantity: order.quantity || 1,
+              weight: 500,
+              endpointUsed: "https://track.delhivery.com/api/cmu/create.json"
+           }
+        });
+      }
+
       if (action === 'create') {
+        if (!req.body.orderId) return res.status(400).json({ success: false, error: "Missing orderId" });
+        const orderId = req.body.orderId;
+        
+        // Fetch authoritative order record from database
+        const orderSnap = await getDoc(doc(db, 'orders', orderId));
+        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order not found" });
+        
+        const order = orderSnap.data();
+        
+        if (order.delhiveryAwb || order.delhiveryShipmentId) {
+           return res.status(400).json({ success: false, error: "Shipment already created", awb: order.delhiveryAwb });
+        }
+        
+        // Validate required fields
+        const required = ['fullName', 'phone', 'address', 'pincode'];
+        for (const field of required) {
+          if (!order[field]) return res.status(400).json({ success: false, error: `Missing required Delhivery field: ${field}` });
+        }
+        
+        const isCod = order.paymentMode === "partial";
+        
+        let productDesc = order.productName || "Jersey";
+        if (order.category) productDesc += ` - ${order.category.replace("-", " ")}`;
+        if (order.size) productDesc += ` - Size ${order.size}`;
+        if (order.customization) {
+           if (typeof order.customization === 'string') productDesc += ` - Customization: ${order.customization}`;
+           else if (order.customization.name) productDesc += ` - Customization: ${order.customization.name} ${order.customization.number || ''}`;
+        }
+
         const payload = {
-          shipments: [{
-            name: orderData.fullName, add: orderData.address, pin: orderData.pincode, city: orderData.city,
-            state: orderData.state, country: "India", phone: orderData.phone, order: String(orderData.orderNumber),
-            payment_mode: orderData.paymentMode === "full" ? "Prepaid" : "COD",
-            cod_amount: orderData.paymentMode === "full" ? 0 : orderData.codAmount,
-            products_desc: orderData.productDesc, quantity: String(orderData.quantity || 1),
-            weight: String(orderData.weight || 500), 
-            shipment_length: 20, shipment_width: 20, shipment_height: 5,
-            total_amount: orderData.finalTotal, shipping_mode: orderData.shippingMode || "Surface"
-          }],
-          pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION || "Primary" }
+          format: "json",
+          data: {
+            shipments: [{
+              name: order.fullName,
+              add: order.address,
+              pin: order.pincode,
+              city: order.city || "",
+              state: order.state || "",
+              country: "India",
+              phone: order.phone,
+              order: String(order.orderNumber || orderId),
+              payment_mode: isCod ? "COD" : "Prepaid",
+              cod_amount: isCod ? (order.codAmount || 0) : 0,
+              products_desc: productDesc,
+              quantity: String(order.quantity || 1),
+              weight: String(500), 
+              shipment_length: 20, shipment_width: 20, shipment_height: 5,
+              total_amount: order.finalTotalAmount || order.totalOrderValue || 0,
+              shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
+            }],
+            pickup_location: { name: "The Fashion House" }
+          }
         };
-        const formData = new URLSearchParams();
-        formData.append("format", "json"); formData.append("data", JSON.stringify(payload));
+
+        const formData = new URLSearchParams(); formData.append("format", "json"); formData.append("data", JSON.stringify(payload.data));
         const response = await fetch("https://track.delhivery.com/api/cmu/create.json", {
           method: "POST", headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/x-www-form-urlencoded" },
           body: formData.toString()
@@ -646,7 +721,21 @@ WASHING INSTRUCTIONS
             delhiveryResponse: data
           });
         }
-        return res.json({ success: true, awb: data.packages[0].waybill, data });
+        const awb = data.packages[0].waybill;
+        
+        // Save to DB
+        await updateDoc(doc(db, 'orders', orderId), {
+          delhiveryAwb: awb,
+          delhiveryShipmentId: data.packages[0].client || "",
+          delhiveryOrderId: String(order.orderNumber || orderId),
+          delhiveryStatus: "Manifested",
+          delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+          delhiveryPickupLocation: "The Fashion House",
+          delhiveryCreatedAt: new Date().toISOString(),
+          delhiveryUpdatedAt: new Date().toISOString()
+        });
+        
+        return res.json({ success: true, awb, data });
       }
 
       if (action === 'label') {
