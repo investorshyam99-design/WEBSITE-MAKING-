@@ -625,7 +625,7 @@ WASHING INSTRUCTIONS
            success: true,
            diagnostic: {
               orderId: req.body.orderId,
-              pickupLocation: process.env.DELHIVERY_PICKUP_LOCATION,
+              pickupLocation: (process.env.DELHIVERY_PICKUP_LOCATION || "").trim(),
               destinationPincode: order.pincode,
               paymentMode: isCod ? "COD" : "Prepaid",
               codAmount: isCod ? (order.codAmount || 0) : 0,
@@ -661,8 +661,13 @@ WASHING INSTRUCTIONS
         }
         
         // WAREHOUSE VALIDATION
-        const pickupLocation = process.env.DELHIVERY_PICKUP_LOCATION;
-        if (!pickupLocation || pickupLocation.trim() === "") {
+        const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
+        const pickupLocation = rawWarehouse.trim();
+        
+        console.log("[Delhivery Diagnostic] Raw WAREHOUSE:", `"${rawWarehouse}"`);
+        console.log("[Delhivery Diagnostic] Trimmed WAREHOUSE:", `"${pickupLocation}"`);
+        
+        if (!pickupLocation) {
              return res.status(400).json({ success: false, error: "Delhivery Configuration Error: DELHIVERY_PICKUP_LOCATION environment variable is not set. Please configure the exact registered warehouse name." });
         }
         
@@ -731,7 +736,7 @@ WASHING INSTRUCTIONS
               total_amount: totalOrderValue,
               shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
             }],
-            pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION }
+            pickup_location: { name: pickupLocation }
           }
         };
         
@@ -764,7 +769,7 @@ WASHING INSTRUCTIONS
           errorMsg = String(errorMsg); // Ensure it is always a string
           
           if (errorMsg.includes('ClientWarehouse')) {
-            const usedWarehouse = process.env.DELHIVERY_PICKUP_LOCATION;
+            const usedWarehouse = pickupLocation;
             errorMsg = `Delhivery pickup warehouse ('${usedWarehouse}') is not registered or active. Please check the exact warehouse name configured in your Delhivery account.\n\nActual Error: ${errorMsg}`;
           }
           
@@ -785,7 +790,7 @@ WASHING INSTRUCTIONS
           delhiveryOrderId: String(order.orderNumber || orderId),
           delhiveryStatus: "Manifested",
           delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          delhiveryPickupLocation: process.env.DELHIVERY_PICKUP_LOCATION,
+          delhiveryPickupLocation: pickupLocation,
           delhiveryCreatedAt: new Date().toISOString(),
           delhiveryUpdatedAt: new Date().toISOString(),
           // Standard generic shipping fields
