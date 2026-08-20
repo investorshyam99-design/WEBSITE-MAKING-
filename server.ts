@@ -637,27 +637,61 @@ WASHING INSTRUCTIONS
         });
       }
 
-      if (action === 'create') {
+            if (action === 'create') {
         if (!req.body.orderId) return res.status(400).json({ success: false, error: "Missing orderId" });
         const orderId = req.body.orderId;
         
         // Fetch authoritative order record from database
         const orderSnap = await getDoc(doc(db, 'orders', orderId));
-        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order not found" });
+        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order Data Error: Order not found in database" });
         
         const order = orderSnap.data();
         
-        if (order.delhiveryAwb || order.delhiveryShipmentId) {
-           return res.status(400).json({ success: false, error: "Shipment already created", awb: order.delhiveryAwb });
+        // DUPLICATE SHIPMENT PROTECTION
+        if (order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
+           return res.status(400).json({ success: false, error: "Duplicate Shipment: Order already has an AWB or Tracking ID", awb: order.delhiveryAwb || order.awbNumber || order.trackingId });
         }
         
         // Validate required fields
-        const required = ['fullName', 'phone', 'address', 'pincode'];
+        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode', 'deliveryType'];
         for (const field of required) {
-          if (!order[field]) return res.status(400).json({ success: false, error: `Missing required Delhivery field: ${field}` });
+          if (order[field] === undefined || order[field] === null || order[field] === "") {
+             return res.status(400).json({ success: false, error: `Order Data Error: Missing required field: ${field}` });
+          }
         }
         
-        const isCod = order.paymentMode === "partial";
+        // CUSTOMER NAME LOGIC
+        const nameParts = String(order.fullName).trim().split(" ");
+        const firstName = nameParts[0] || "";
+        const lastName = nameParts.slice(1).join(" ") || "";
+        const formattedName = lastName ? `${firstName} ${lastName}` : firstName;
+        
+        if (!firstName) {
+            return res.status(400).json({ success: false, error: "Order Data Error: First name is missing from fullName" });
+        }
+        
+        // PAYMENT CALCULATION
+        const isCod = order.paymentMode === "partial" || order.paymentMode === "cod";
+        
+        const totalOrderValue = Number(order.totalOrderValue);
+        const advancePaid = Number(order.advancePaid || 0);
+        const storedCodAmount = Number(order.codAmount || 0);
+        const productSubtotal = Number(order.productSubtotal || order.price || 0);
+        
+        if (isNaN(totalOrderValue) || isNaN(advancePaid) || isNaN(storedCodAmount) || isNaN(productSubtotal)) {
+            return res.status(400).json({ success: false, error: "Payment Calculation Error: One or more payment values are invalid (NaN)" });
+        }
+        
+        let calculatedCodAmount = 0;
+        
+        if (isCod) {
+            calculatedCodAmount = totalOrderValue - advancePaid;
+            
+            // Validate that the calculation matches the stored expected COD
+            if (calculatedCodAmount !== storedCodAmount) {
+                return res.status(400).json({ success: false, error: `Payment Calculation Error: Expected COD amount (${calculatedCodAmount}) does not match stored COD amount (${storedCodAmount}).` });
+            }
+        }
         
         let productDesc = order.productName || "Jersey";
         if (order.category) productDesc += ` - ${order.category.replace("-", " ")}`;
@@ -666,12 +700,12 @@ WASHING INSTRUCTIONS
            if (typeof order.customization === 'string') productDesc += ` - Customization: ${order.customization}`;
            else if (order.customization.name) productDesc += ` - Customization: ${order.customization.name} ${order.customization.number || ''}`;
         }
-
+        
         const payload = {
           format: "json",
           data: {
             shipments: [{
-              name: order.fullName,
+              name: formattedName,
               add: order.address,
               pin: order.pincode,
               city: order.city || "",
@@ -680,24 +714,29 @@ WASHING INSTRUCTIONS
               phone: order.phone,
               order: String(order.orderNumber || orderId),
               payment_mode: isCod ? "COD" : "Prepaid",
-              cod_amount: isCod ? (order.codAmount || 0) : 0,
+              cod_amount: isCod ? calculatedCodAmount : 0,
               products_desc: productDesc,
               quantity: String(order.quantity || 1),
               weight: String(500), 
               shipment_length: 20, shipment_width: 20, shipment_height: 5,
-              total_amount: order.finalTotalAmount || order.totalOrderValue || 0,
+              total_amount: totalOrderValue,
               shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
             }],
-            pickup_location: { name: "The Fashion House" }
+            pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House" }
           }
         };
-
-        const formData = new URLSearchParams(); formData.append("format", "json"); formData.append("data", JSON.stringify(payload.data));
+        
+        const formData = new URLSearchParams(); 
+        formData.append("format", "json"); 
+        formData.append("data", JSON.stringify(payload.data));
+        
         const response = await fetch("https://track.delhivery.com/api/cmu/create.json", {
           method: "POST", headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/x-www-form-urlencoded" },
           body: formData.toString()
         });
+        
         const data = await response.json();
+        
         if (!data.success && (!data.packages || data.packages.length === 0 || !data.packages[0].waybill || data.packages[0].status === "Fail")) {
           console.error("[Delhivery API Error] Status:", response.status);
           console.error("[Delhivery API Error] Body:", JSON.stringify(data, null, 2));
@@ -714,13 +753,15 @@ WASHING INSTRUCTIONS
           }
           
           errorMsg = String(errorMsg); // Ensure it is always a string
+          
           return res.status(400).json({ 
-            success: false, 
-            error: errorMsg,
-            delhiveryStatus: response.status,
-            delhiveryResponse: data
+             success: false, 
+             error: `Delhivery API Error: ${errorMsg}`,
+             delhiveryStatus: response.status,
+             delhiveryResponse: data
           });
         }
+        
         const awb = data.packages[0].waybill;
         
         // Save to DB
@@ -730,14 +771,21 @@ WASHING INSTRUCTIONS
           delhiveryOrderId: String(order.orderNumber || orderId),
           delhiveryStatus: "Manifested",
           delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          delhiveryPickupLocation: "The Fashion House",
+          delhiveryPickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House",
           delhiveryCreatedAt: new Date().toISOString(),
-          delhiveryUpdatedAt: new Date().toISOString()
+          delhiveryUpdatedAt: new Date().toISOString(),
+          // Standard generic shipping fields
+          awbNumber: awb,
+          shippingProvider: "Delhivery",
+          shippingStatus: "Manifested",
+          courierName: "Delhivery",
+          trackingId: awb,
+          trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+          shipmentCreatedAt: new Date().toISOString()
         });
         
         return res.json({ success: true, awb, data });
       }
-
       if (action === 'label') {
         const response = await fetch(`https://track.delhivery.com/api/p/packing_slip?wbns=${awb}&pdf=true`, { headers: { "Authorization": `Token ${apiKey}` } });
         const data = await response.json(); return res.json(data);

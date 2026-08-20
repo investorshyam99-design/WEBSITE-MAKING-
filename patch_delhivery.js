@@ -1,20 +1,12 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+    return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
+  } catch (error: any) {
+    console.error("[Gemini AI] Unexpected Server Error: ", error);
+    return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
+  }
+});
 
-const firebaseConfig = {
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "gen-lang-client-0849052766",
-  appId: process.env.VITE_FIREBASE_APP_ID || "1:320269995644:web:88f1b87e16d535458a83f9",
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "AIzaSyCPq999mn6aTViDVo7IdCFV2P7hO7YVMYs",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "gen-lang-client-0849052766.firebaseapp.com",
-  firestoreDatabaseId: process.env.VITE_FIREBASE_DATABASE_ID || "ai-studio-f2809a7f-0532-4842-a146-4ab39cf8afb0"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-
+  // Unified Delhivery Endpoint for local dev
+  app.all("/api/delhivery", async (req, res) => {
     const { action, awb, dest, pincode, orderData } = req.method === 'POST' ? req.body : req.query;
 
     const apiKey = process.env.DELHIVERY_API_TOKEN;
@@ -128,61 +120,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-            if (action === 'create') {
+      if (action === 'create') {
         if (!req.body.orderId) return res.status(400).json({ success: false, error: "Missing orderId" });
         const orderId = req.body.orderId;
         
         // Fetch authoritative order record from database
         const orderSnap = await getDoc(doc(db, 'orders', orderId));
-        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order Data Error: Order not found in database" });
+        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order not found" });
         
         const order = orderSnap.data();
         
-        // DUPLICATE SHIPMENT PROTECTION
-        if (order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
-           return res.status(400).json({ success: false, error: "Duplicate Shipment: Order already has an AWB or Tracking ID", awb: order.delhiveryAwb || order.awbNumber || order.trackingId });
+        if (order.delhiveryAwb || order.delhiveryShipmentId) {
+           return res.status(400).json({ success: false, error: "Shipment already created", awb: order.delhiveryAwb });
         }
         
         // Validate required fields
-        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode', 'deliveryType'];
+        const required = ['fullName', 'phone', 'address', 'pincode'];
         for (const field of required) {
-          if (order[field] === undefined || order[field] === null || order[field] === "") {
-             return res.status(400).json({ success: false, error: `Order Data Error: Missing required field: ${field}` });
-          }
+          if (!order[field]) return res.status(400).json({ success: false, error: `Missing required Delhivery field: ${field}` });
         }
         
-        // CUSTOMER NAME LOGIC
-        const nameParts = String(order.fullName).trim().split(" ");
-        const firstName = nameParts[0] || "";
-        const lastName = nameParts.slice(1).join(" ") || "";
-        const formattedName = lastName ? `${firstName} ${lastName}` : firstName;
-        
-        if (!firstName) {
-            return res.status(400).json({ success: false, error: "Order Data Error: First name is missing from fullName" });
-        }
-        
-        // PAYMENT CALCULATION
-        const isCod = order.paymentMode === "partial" || order.paymentMode === "cod";
-        
-        const totalOrderValue = Number(order.totalOrderValue);
-        const advancePaid = Number(order.advancePaid || 0);
-        const storedCodAmount = Number(order.codAmount || 0);
-        const productSubtotal = Number(order.productSubtotal || order.price || 0);
-        
-        if (isNaN(totalOrderValue) || isNaN(advancePaid) || isNaN(storedCodAmount) || isNaN(productSubtotal)) {
-            return res.status(400).json({ success: false, error: "Payment Calculation Error: One or more payment values are invalid (NaN)" });
-        }
-        
-        let calculatedCodAmount = 0;
-        
-        if (isCod) {
-            calculatedCodAmount = totalOrderValue - advancePaid;
-            
-            // Validate that the calculation matches the stored expected COD
-            if (calculatedCodAmount !== storedCodAmount) {
-                return res.status(400).json({ success: false, error: `Payment Calculation Error: Expected COD amount (${calculatedCodAmount}) does not match stored COD amount (${storedCodAmount}).` });
-            }
-        }
+        const isCod = order.paymentMode === "partial";
         
         let productDesc = order.productName || "Jersey";
         if (order.category) productDesc += ` - ${order.category.replace("-", " ")}`;
@@ -191,12 +149,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            if (typeof order.customization === 'string') productDesc += ` - Customization: ${order.customization}`;
            else if (order.customization.name) productDesc += ` - Customization: ${order.customization.name} ${order.customization.number || ''}`;
         }
-        
+
         const payload = {
           format: "json",
           data: {
             shipments: [{
-              name: formattedName,
+              name: order.fullName,
               add: order.address,
               pin: order.pincode,
               city: order.city || "",
@@ -205,29 +163,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               phone: order.phone,
               order: String(order.orderNumber || orderId),
               payment_mode: isCod ? "COD" : "Prepaid",
-              cod_amount: isCod ? calculatedCodAmount : 0,
+              cod_amount: isCod ? (order.codAmount || 0) : 0,
               products_desc: productDesc,
               quantity: String(order.quantity || 1),
               weight: String(500), 
               shipment_length: 20, shipment_width: 20, shipment_height: 5,
-              total_amount: totalOrderValue,
+              total_amount: order.finalTotalAmount || order.totalOrderValue || 0,
               shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
             }],
-            pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House" }
+            pickup_location: { name: "The Fashion House" }
           }
         };
-        
-        const formData = new URLSearchParams(); 
-        formData.append("format", "json"); 
-        formData.append("data", JSON.stringify(payload.data));
-        
+
+        const formData = new URLSearchParams(); formData.append("format", "json"); formData.append("data", JSON.stringify(payload.data));
         const response = await fetch("https://track.delhivery.com/api/cmu/create.json", {
           method: "POST", headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/x-www-form-urlencoded" },
           body: formData.toString()
         });
-        
         const data = await response.json();
-        
         if (!data.success && (!data.packages || data.packages.length === 0 || !data.packages[0].waybill || data.packages[0].status === "Fail")) {
           console.error("[Delhivery API Error] Status:", response.status);
           console.error("[Delhivery API Error] Body:", JSON.stringify(data, null, 2));
@@ -244,15 +197,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
           
           errorMsg = String(errorMsg); // Ensure it is always a string
-          
           return res.status(400).json({ 
-             success: false, 
-             error: `Delhivery API Error: ${errorMsg}`,
-             delhiveryStatus: response.status,
-             delhiveryResponse: data
+            success: false, 
+            error: errorMsg,
+            delhiveryStatus: response.status,
+            delhiveryResponse: data
           });
         }
-        
         const awb = data.packages[0].waybill;
         
         // Save to DB
@@ -262,34 +213,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           delhiveryOrderId: String(order.orderNumber || orderId),
           delhiveryStatus: "Manifested",
           delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          delhiveryPickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House",
+          delhiveryPickupLocation: "The Fashion House",
           delhiveryCreatedAt: new Date().toISOString(),
-          delhiveryUpdatedAt: new Date().toISOString(),
-          // Standard generic shipping fields
-          awbNumber: awb,
-          shippingProvider: "Delhivery",
-          shippingStatus: "Manifested",
-          courierName: "Delhivery",
-          trackingId: awb,
-          trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          shipmentCreatedAt: new Date().toISOString()
+          delhiveryUpdatedAt: new Date().toISOString()
         });
         
         return res.json({ success: true, awb, data });
       }
-      if (action === 'label') {
-        const response = await fetch(`https://track.delhivery.com/api/p/packing_slip?wbns=${awb}&pdf=true`, { headers: { "Authorization": `Token ${apiKey}` } });
-        const data = await response.json(); return res.json(data);
-      }
 
-      if (action === 'track') {
-        const response = await fetch(`https://track.delhivery.com/api/v1/packages/json/?waybill=${awb}`, { headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/json" } });
-        const data = await response.json(); return res.json(data);
-      }
-
-      return res.status(400).json({ success: false, error: "Invalid action" });
-    } catch (e: any) {
-      return res.status(500).json({ success: false, error: e.message });
-    }
-  
-}
