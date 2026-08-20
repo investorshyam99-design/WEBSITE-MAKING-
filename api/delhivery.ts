@@ -116,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            success: true,
            diagnostic: {
               orderId: req.body.orderId,
-              pickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House",
+              pickupLocation: process.env.DELHIVERY_PICKUP_LOCATION,
               destinationPincode: order.pincode,
               paymentMode: isCod ? "COD" : "Prepaid",
               codAmount: isCod ? (order.codAmount || 0) : 0,
@@ -151,11 +151,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         }
         
+        // WAREHOUSE VALIDATION
+        const pickupLocation = process.env.DELHIVERY_PICKUP_LOCATION;
+        if (!pickupLocation || pickupLocation.trim() === "") {
+             return res.status(400).json({ success: false, error: "Delhivery Configuration Error: DELHIVERY_PICKUP_LOCATION environment variable is not set. Please configure the exact registered warehouse name." });
+        }
+        
         // CUSTOMER NAME LOGIC
         const nameParts = String(order.fullName).trim().split(" ");
         const firstName = nameParts[0] || "";
-        const lastName = nameParts.slice(1).join(" ") || "";
-        const formattedName = lastName ? `${firstName} ${lastName}` : firstName;
+        let lastName = nameParts.slice(1).join(" ").trim();
+        if (!lastName) {
+            lastName = firstName;
+        }
+        const formattedName = `${firstName} ${lastName}`;
         
         if (!firstName) {
             return res.status(400).json({ success: false, error: "Order Data Error: First name is missing from fullName" });
@@ -213,7 +222,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               total_amount: totalOrderValue,
               shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
             }],
-            pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House" }
+            pickup_location: { name: process.env.DELHIVERY_PICKUP_LOCATION }
           }
         };
         
@@ -228,7 +237,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         const data = await response.json();
         
-        if (!data.success && (!data.packages || data.packages.length === 0 || !data.packages[0].waybill || data.packages[0].status === "Fail")) {
+        if (!data.success || data.error === true || !data.packages || data.packages.length === 0 || !data.packages[0].waybill || data.packages[0].status === "Fail") {
           console.error("[Delhivery API Error] Status:", response.status);
           console.error("[Delhivery API Error] Body:", JSON.stringify(data, null, 2));
           
@@ -244,6 +253,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
           
           errorMsg = String(errorMsg); // Ensure it is always a string
+          
+          if (errorMsg.includes('ClientWarehouse')) {
+            const usedWarehouse = process.env.DELHIVERY_PICKUP_LOCATION;
+            errorMsg = `Delhivery pickup warehouse ('${usedWarehouse}') is not registered or active. Please check the exact warehouse name configured in your Delhivery account.\n\nActual Error: ${errorMsg}`;
+          }
           
           return res.status(400).json({ 
              success: false, 
@@ -262,7 +276,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           delhiveryOrderId: String(order.orderNumber || orderId),
           delhiveryStatus: "Manifested",
           delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          delhiveryPickupLocation: process.env.DELHIVERY_PICKUP_LOCATION || "The Fashion House",
+          delhiveryPickupLocation: process.env.DELHIVERY_PICKUP_LOCATION,
           delhiveryCreatedAt: new Date().toISOString(),
           delhiveryUpdatedAt: new Date().toISOString(),
           // Standard generic shipping fields
