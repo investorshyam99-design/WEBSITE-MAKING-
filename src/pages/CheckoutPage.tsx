@@ -221,6 +221,11 @@ export function CheckoutPage() {
             tat: deliveryTat || undefined
           });
 
+          const resolvedDeliveryType = deliveryMethod === "FAST" ? "Express" : "Surface";
+          if (!deliveryMethod) {
+            console.warn("Order creation: deliveryMethod is missing! Defaulting deliveryType to Surface.");
+          }
+
           const docRef = await addDoc(collection(db, "orders"), {
             orderNumber: nextOrderNumber,
             userId: user ? user.uid : "guest",
@@ -232,7 +237,7 @@ export function CheckoutPage() {
             quantity: 1,
             customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
             productSubtotal: item.price,
-            deliveryType: deliveryMethod,
+            deliveryType: resolvedDeliveryType,
             fastDeliveryCharge: itemFastDelivery,
             codHandlingCharge: itemCodExtra,
             totalOrderValue: itemTotalOrderValue,

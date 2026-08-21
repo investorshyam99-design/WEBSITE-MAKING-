@@ -633,7 +633,7 @@ WASHING INSTRUCTIONS
               product: productDesc,
               quantity: order.quantity || 1,
               weight: 500,
-              shipping_mode: (String(order.deliveryType || "NORMAL").toUpperCase() === "FAST") ? "Express" : "Surface",
+              shipping_mode: (String(order.deliveryType || "").toLowerCase() === "fast" || String(order.deliveryType || "").toLowerCase() === "express") ? "Express" : "Surface",
               endpointUsed: "https://track.delhivery.com/api/cmu/create.json"
 
            }
@@ -664,8 +664,8 @@ WASHING INSTRUCTIONS
         }
         
         
-        const rawType = order.deliveryType || "NORMAL";
-        const effectiveDeliveryType = String(rawType).toUpperCase() === "FAST" ? "FAST" : "NORMAL";
+        const rawType = String(order.deliveryType || "").toLowerCase();
+        const effectiveDeliveryType = (rawType === "fast" || rawType === "express") ? "Express" : "Surface";
 
         
         // WAREHOUSE VALIDATION
@@ -739,7 +739,7 @@ WASHING INSTRUCTIONS
               weight: String(500), 
               shipment_length: 20, shipment_width: 20, shipment_height: 5,
               total_amount: totalOrderValue,
-              shipping_mode: effectiveDeliveryType === "FAST" ? "Express" : "Surface"
+              shipping_mode: effectiveDeliveryType
             }],
             pickup_location: { name: pickupLocation }
           }
