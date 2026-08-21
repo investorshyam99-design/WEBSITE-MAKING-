@@ -144,13 +144,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         
         // Validate required fields
-        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode', 'deliveryType'];
+        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode'];
         for (const field of required) {
           if (order[field] === undefined || order[field] === null || order[field] === "") {
              return res.status(400).json({ success: false, error: `Order Data Error: Missing required field: ${field}` });
           }
         }
         
+        const rawType = String(order.deliveryType || "").toLowerCase();
+        const effectiveDeliveryType = (rawType === "fast" || rawType === "express") ? "Express" : "Surface";
+
         // WAREHOUSE VALIDATION
         const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
         const pickupLocation = rawWarehouse.trim();
@@ -225,7 +228,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               weight: String(500), 
               shipment_length: 20, shipment_width: 20, shipment_height: 5,
               total_amount: totalOrderValue,
-              shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
+              shipping_mode: effectiveDeliveryType
             }],
             pickup_location: { name: pickupLocation }
           }
