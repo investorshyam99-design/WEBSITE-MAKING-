@@ -652,9 +652,6 @@ WASHING INSTRUCTIONS
            return res.status(400).json({ success: false, error: "Duplicate Shipment: Order already has an AWB or Tracking ID", awb: order.delhiveryAwb || order.awbNumber || order.trackingId });
         }
         
-        const rawDeliveryType = String(order.deliveryType || "").toUpperCase();
-        const resolvedDeliveryType = rawDeliveryType === "FAST" ? "FAST" : "NORMAL";
-
         // Validate required fields
         const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode'];
         for (const field of required) {
@@ -662,6 +659,11 @@ WASHING INSTRUCTIONS
              return res.status(400).json({ success: false, error: `Order Data Error: Missing required field: ${field}` });
           }
         }
+        
+        
+        const rawType = order.deliveryType || "NORMAL";
+        const effectiveDeliveryType = String(rawType).toUpperCase() === "FAST" ? "FAST" : "NORMAL";
+
         
         // WAREHOUSE VALIDATION
         const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
@@ -677,11 +679,8 @@ WASHING INSTRUCTIONS
         // CUSTOMER NAME LOGIC
         const nameParts = String(order.fullName).trim().split(" ");
         const firstName = nameParts[0] || "";
-        let lastName = nameParts.slice(1).join(" ").trim();
-        if (!lastName) {
-            lastName = firstName;
-        }
-        const formattedName = `${firstName} ${lastName}`;
+        const lastName = nameParts.slice(1).join(" ").trim();
+        const formattedName = `${firstName}${lastName ? " " + lastName : ""}`;
         
         if (!firstName) {
             return res.status(400).json({ success: false, error: "Order Data Error: First name is missing from fullName" });
@@ -737,7 +736,7 @@ WASHING INSTRUCTIONS
               weight: String(500), 
               shipment_length: 20, shipment_width: 20, shipment_height: 5,
               total_amount: totalOrderValue,
-              shipping_mode: resolvedDeliveryType === "FAST" ? "Express" : "Surface"
+              shipping_mode: effectiveDeliveryType === "FAST" ? "Express" : "Surface"
             }],
             pickup_location: { name: pickupLocation }
           }

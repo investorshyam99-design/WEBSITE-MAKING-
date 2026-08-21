@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { IndianRupee, TrendingUp, Package, Trophy, Loader2, Edit3 } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { getOrderCalculations } from '../lib/utils';
-import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, getDocsFromCache } from 'firebase/firestore';
 
 import { query, where, orderBy, limit } from 'firebase/firestore';
 export function AdminProfitsDashboard({ updateOrderCost }: { updateOrderCost: (id: string, costs: any) => Promise<void> }) {
@@ -10,10 +10,49 @@ export function AdminProfitsDashboard({ updateOrderCost }: { updateOrderCost: (i
   useEffect(() => {
     const fetchOrdersForProfits = async () => {
       try {
-        const q = query(collection(db, 'orders'), where('status', 'in', ['Order Placed', 'Delivered']), orderBy('createdAt', 'desc'), limit(500));
-        const snapshot = await getDocs(q);
-        setOrders(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
-      } catch(e) { console.warn(e); }
+        // Check cache first
+        const cachedData = sessionStorage.getItem('adminProfitsOrders');
+        const cacheTime = sessionStorage.getItem('adminProfitsOrdersTime');
+        const isCacheValid = cachedData && cacheTime && (Date.now() - Number(cacheTime) < 1000 * 60 * 5); // 5 min cache
+        
+        if (isCacheValid) {
+            setOrders(JSON.parse(cachedData));
+            return;
+        }
+
+        const q = query(collection(db, 'orders'), where('status', 'in', ['Fully Paid', 'Advance Paid', 'Fampay', 'Received', 'Order Placed', 'Delivered']), orderBy('createdAt', 'desc'), limit(500));
+        let snapshot;
+        try {
+            snapshot = await getDocs(q);
+        } catch (fetchErr: any) {
+            if (fetchErr.message?.includes("Quota")) {
+                try {
+                    snapshot = await getDocsFromCache(q);
+                } catch (cacheErr) {
+                    const allDocs = await getDocsFromCache(collection(db, "orders"));
+                    const validDocs = allDocs.docs.filter(d => 
+                        ['Fully Paid', 'Advance Paid', 'Fampay', 'Received', 'Order Placed', 'Delivered'].includes(d.data().status)
+                    );
+                    validDocs.sort((a, b) => {
+                        const aTime = a.data().createdAt?.toMillis ? a.data().createdAt.toMillis() : 0;
+                        const bTime = b.data().createdAt?.toMillis ? b.data().createdAt.toMillis() : 0;
+                        return bTime - aTime;
+                    });
+                    snapshot = { docs: validDocs } as any;
+                }
+            } else {
+                throw fetchErr;
+            }
+        }
+        const fetchedOrders = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+        setOrders(fetchedOrders);
+        
+        sessionStorage.setItem('adminProfitsOrders', JSON.stringify(fetchedOrders));
+        sessionStorage.setItem('adminProfitsOrdersTime', Date.now().toString());
+        
+      } catch(e: any) { 
+          console.warn(e); 
+      }
     };
     fetchOrdersForProfits();
   }, []);
@@ -389,7 +428,7 @@ export function AdminProfitsDashboard({ updateOrderCost }: { updateOrderCost: (i
                   )}
                   <div>
                     <p className="font-bold text-[#1E2A44] text-sm flex items-center gap-2">
-                      <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}</span>
+                      <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable"}</span>
                       {order.fullName || "Guest Customer"}
                     </p>
                     <p className="text-xs text-gray-500 mb-2 truncate max-w-xs md:max-w-sm">{order.productName}</p>

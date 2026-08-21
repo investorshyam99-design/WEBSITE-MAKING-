@@ -11,7 +11,7 @@ import { AdminOrdersDashboard } from "../components/AdminDashboard";
 import { useProducts } from "../data/products";
 import { signOut } from "firebase/auth";
 
-interface Order {
+interface Order { [key: string]: any;
   id: string;
   orderNumber?: number;
   userId: string;

@@ -1,5 +1,4 @@
 import { AdminOrdersDashboard } from "../components/AdminDashboard";
-import { getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy, limit, getDocs, getCountFromServer, getAggregateFromServer, average } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -47,21 +46,45 @@ export function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        
+        // Check cache first
+        const cachedData = sessionStorage.getItem('adminDashboardStats');
+        const cacheTime = sessionStorage.getItem('adminDashboardStatsTime');
+        const isCacheValid = cachedData && cacheTime && (Date.now() - Number(cacheTime) < 1000 * 60 * 5); // 5 minute cache
+        
+        if (isCacheValid) {
+            const data = JSON.parse(cachedData);
+            if (isMounted) {
+                setUsersCount(data.usersCount);
+                setVisitorsCount(data.visitorsCount);
+                setAvgTimeSpent(data.avgTimeSpent);
+                setVisitors(data.visitors);
+                setUsers(data.users);
+                setLoading(false);
+            }
+            return;
+        }
+
         // 1. Fetch counts
         const usersCountSnap = await getCountFromServer(collection(db, "users"));
         const visitorsCountSnap = await getCountFromServer(collection(db, "visitors"));
         
+        let fetchedUsersCount = usersCountSnap.data().count;
+        let fetchedVisitorsCount = visitorsCountSnap.data().count;
+        
         if (isMounted) {
-            setUsersCount(usersCountSnap.data().count);
-            setVisitorsCount(visitorsCountSnap.data().count);
+            setUsersCount(fetchedUsersCount);
+            setVisitorsCount(fetchedVisitorsCount);
         }
         
         // 2. Fetch aggregate average time spent
+        let fetchedAvgTime = 0;
         try {
             const avgSnap = await getAggregateFromServer(collection(db, "visitors"), {
                 avgTime: average("timeSpent")
             });
-            if (isMounted) setAvgTimeSpent(avgSnap.data().avgTime || 0);
+            fetchedAvgTime = avgSnap.data().avgTime || 0;
+            if (isMounted) setAvgTimeSpent(fetchedAvgTime);
         } catch (e) {
             console.warn("Average aggregation failed, falling back to 0");
         }
@@ -78,9 +101,25 @@ export function AdminDashboard() {
         const usersData = uSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (isMounted) setUsers(usersData);
         
+        // Save to cache
+        sessionStorage.setItem('adminDashboardStats', JSON.stringify({
+            usersCount: fetchedUsersCount,
+            visitorsCount: fetchedVisitorsCount,
+            avgTimeSpent: fetchedAvgTime,
+            visitors: visitorsData,
+            users: usersData
+        }));
+        sessionStorage.setItem('adminDashboardStatsTime', Date.now().toString());
+        
       } catch (err: any) {
         console.warn("Error fetching dashboard data:", err);
-        if (isMounted) setError("Failed to fetch some dashboard data. " + err.message);
+        if (isMounted) {
+           if (err.message?.includes("Quota")) {
+               setError("Firestore daily quota limit reached. The dashboard data will be available again after Midnight PT.");
+           } else {
+               setError("Failed to fetch some dashboard data. " + err.message);
+           }
+        }
       } finally {
         if (isMounted) setLoading(false);
       }

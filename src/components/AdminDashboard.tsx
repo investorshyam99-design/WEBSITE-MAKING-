@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { db } from "../lib/firebase";
 import { getOrderCalculations } from "../lib/utils";
-import { doc, updateDoc, deleteDoc, collection, query, orderBy, limit, getDocs, getCountFromServer, where, startAfter } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, collection, query, orderBy, limit, getDocs, getDocsFromCache, getCountFromServer, where, startAfter } from "firebase/firestore";
 import {
   Package,
   Search,
@@ -23,7 +23,7 @@ import { AdminProfitsDashboard } from "./AdminProfitsDashboard";
 import { AdminChatsList } from "./AdminChatsList";
 import { useProducts } from "../data/products";
 
-interface Order {
+interface Order { [key: string]: any;
   id: string;
   orderNumber?: number;
   userId: string;
@@ -95,17 +95,24 @@ export function AdminOrdersDashboard() {
   const [currentOrders, setCurrentOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   
-  const [counts, setCounts] = useState({ new: 0, drafts: 0, abandoned: 0 });
+  const [counts, setCounts] = useState({ new: 0, drafts: 0, abandoned: 0, placed: 0, delivered: 0 });
 
+  
   const fetchTabCounts = async () => {
     try {
-        const cNew = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["Fully Paid", "Advance Paid"])));
-        const cDrafts = await getCountFromServer(collection(db, "draft_orders"));
+        const cNew = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["Fully Paid", "Advance Paid", "Fampay", "Received"])));
+        const cDrafts1 = await getCountFromServer(collection(db, "draft_orders"));
+        const cDrafts2 = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["pending advance payment", "pending full payment", "pending_cart", "draft"])));
         const cAban = await getCountFromServer(collection(db, "abandoned_carts"));
+        const cPlaced = await getCountFromServer(query(collection(db, "orders"), where("status", "==", "Order Placed")));
+        const cDelivered = await getCountFromServer(query(collection(db, "orders"), where("status", "==", "Delivered")));
+        
         setCounts({
             new: cNew.data().count,
-            drafts: cDrafts.data().count,
-            abandoned: cAban.data().count
+            drafts: cDrafts1.data().count + cDrafts2.data().count,
+            abandoned: cAban.data().count,
+            placed: cPlaced.data().count,
+            delivered: cDelivered.data().count
         });
     } catch (e) {
         console.warn("Failed to fetch order counts", e);
@@ -127,91 +134,117 @@ export function AdminOrdersDashboard() {
     refreshOrders(true);
   }, [activeTab]);
 
+
   const refreshOrders = async (reset = false, goBack = false) => {
     setIsLoadingOrders(true);
     if (reset) fetchTabCounts();
     try {
-        let q;
-        const colMap: any = {
-            "new": "orders", "drafts": "draft_orders", "abandoned": "abandoned_carts",
-            "placed": "orders", "delivered": "orders", "cancelled": "orders"
-        };
-        const colRef = collection(db, colMap[activeTab] || "orders");
-        
-        let conditions: any[] = [];
-        if (activeTab === "new") conditions.push(where("status", "in", ["Fully Paid", "Advance Paid"]));
-        else if (activeTab === "placed") conditions.push(where("status", "==", "Order Placed"));
-        else if (activeTab === "delivered") conditions.push(where("status", "==", "Delivered"));
-        else if (activeTab === "cancelled") conditions.push(where("status", "==", "cancelled"));
-        
-        let orderByClause = orderBy("createdAt", "desc");
-        // abandoned carts might not have createdAt, but they actually do in our creation logic. 
-        // We will order them if possible, but let's stick to the previous logic where abandoned didn't have orderBy if not needed, 
-        // actually they all have createdAt or we can just orderBy document ID if no createdAt. Wait, abandoned_carts have updatedAt or createdAt.
-        // For safety, let's use the same query logic as before but with startAfter.
-        
-        // Actually, previous logic for abandoned: q = query(collection(db, "abandoned_carts"), limit(30));
-        if (activeTab !== "abandoned") {
-            conditions.push(orderByClause);
-        }
+        let fetchedOrders: Order[] = [];
 
-        let queryArgs = [colRef, ...conditions];
-        
-        if (!reset) {
-            if (goBack) {
-                // If going back, we pop the last doc. But the new "last doc" we start after is the one before the previous page.
-                const prevLast = lastDocs[lastDocs.length - 2];
-                if (prevLast) {
-                    queryArgs.push(startAfter(prevLast));
-                }
-            } else if (currentLastDoc) {
-                queryArgs.push(startAfter(currentLastDoc));
+        // ABANDONED CARTS
+        if (activeTab === "abandoned") {
+            const q = query(collection(db, "abandoned_carts"), limit(200));
+            let snapshot;
+            try { snapshot = await getDocs(q); }
+            catch (e: any) { 
+                if (e.message?.includes("Quota")) snapshot = await getDocsFromCache(q); 
+                else throw e;
             }
-        }
-
-        queryArgs.push(limit(PAGE_SIZE));
-        q = query.apply(null, queryArgs as any);
-
-        const snapshot = await getDocs(q);
-        
-        if (snapshot.docs.length > 0) {
-            const fetched = snapshot.docs.map(doc => {
-                 const data = doc.data();
-                 let status = data.status;
-                 if (activeTab === "drafts") status = "pending draft";
-                 if (activeTab === "abandoned") status = "abandoned";
-                 
+            
+            fetchedOrders = snapshot.docs.map(doc => {
+                 const data = doc.data() as any;
                  let productName = data.productName || "Order";
-                 if (activeTab === "abandoned" && !data.productName && data.items) {
-                     productName = data.items.map((i: any) => i.name).join(", ");
-                 }
-
-                 return { id: doc.id, ...data, status, productName } as Order;
+                 if (!data.productName && data.items) productName = data.items.map((i: any) => i.name).join(", ");
+                 else if (!data.productName && data.cartItems) productName = data.cartItems.map((i: any) => i.name).join(", ");
+                 return { id: doc.id, ...data, status: "abandoned", productName } as Order;
             });
+            fetchedOrders.sort((a, b) => {
+                const aTime = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
+                const bTime = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
+                return bTime - aTime;
+            });
+        } 
+        // DRAFT ORDERS (Both old draft_orders and new pending orders)
+        else if (activeTab === "drafts") {
+            let oldDrafts: any[] = [];
+            try {
+                const qOld = query(collection(db, "draft_orders"), orderBy("createdAt", "desc"), limit(100));
+                let snapOld;
+                try { snapOld = await getDocs(qOld); } catch(e: any) { snapOld = await getDocsFromCache(qOld); }
+                oldDrafts = snapOld.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch(e) { console.warn("Failed to fetch old drafts", e); }
             
-            setCurrentOrders(fetched);
-            const lastVisible = snapshot.docs[snapshot.docs.length - 1];
-            
-            if (!reset && !goBack) {
-                setLastDocs(prev => [...prev, currentLastDoc]);
-            } else if (goBack) {
-                setLastDocs(prev => prev.slice(0, -1));
-            } else if (reset) {
-                setLastDocs([]);
-            }
-            
-            setCurrentLastDoc(lastVisible);
-            setHasNextPage(snapshot.docs.length === PAGE_SIZE);
-        } else {
-            if (reset) {
-               setCurrentOrders([]);
-               setHasNextPage(false);
-            } else if (!goBack) {
-               setHasNextPage(false);
-            }
+            let newDrafts: any[] = [];
+            try {
+                const qNew = query(collection(db, "orders"), where("status", "in", ["pending advance payment", "pending full payment", "pending_cart", "draft"]), orderBy("createdAt", "desc"), limit(200));
+                let snapNew;
+                try { snapNew = await getDocs(qNew); } catch(e: any) { snapNew = await getDocsFromCache(qNew); }
+                newDrafts = snapNew.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch(e) { console.warn("Failed to fetch new drafts", e); }
+
+            fetchedOrders = [...oldDrafts, ...newDrafts].map(data => {
+                 let productName = data.productName || "Order";
+                 if (!data.productName && data.cartItems) productName = data.cartItems.map((i: any) => i.name).join(", ");
+                 return { ...data, status: "pending draft", productName } as Order;
+            });
+            fetchedOrders.sort((a, b) => {
+                const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return bTime - aTime;
+            });
         }
-    } catch (e) {
+        // ALL OTHER TABS
+        else {
+            let conditions: any[] = [];
+            if (activeTab === "new") conditions.push(where("status", "in", ["Fully Paid", "Advance Paid", "Fampay", "Received"]));
+            else if (activeTab === "placed") conditions.push(where("status", "==", "Order Placed"));
+            else if (activeTab === "delivered") conditions.push(where("status", "==", "Delivered"));
+            else if (activeTab === "cancelled") conditions.push(where("status", "==", "cancelled"));
+            
+            conditions.push(orderBy("createdAt", "desc"));
+            conditions.push(limit(300));
+            
+            const q = query.apply(null, [collection(db, "orders"), ...conditions] as any);
+            let snapshot;
+            try {
+                snapshot = await getDocs(q);
+            } catch (fetchErr: any) {
+                if (fetchErr.message?.includes("Quota")) {
+                    try { snapshot = await getDocsFromCache(q); } 
+                    catch (cacheErr) {
+                        const allDocs = await getDocsFromCache(collection(db, "orders"));
+                        let validDocs = allDocs.docs;
+                        if (activeTab === "new") validDocs = validDocs.filter(d => ["Fully Paid", "Advance Paid", "Fampay", "Received"].includes(d.data().status));
+                        else if (activeTab === "placed") validDocs = validDocs.filter(d => d.data().status === "Order Placed");
+                        else if (activeTab === "delivered") validDocs = validDocs.filter(d => d.data().status === "Delivered");
+                        else if (activeTab === "cancelled") validDocs = validDocs.filter(d => d.data().status === "cancelled");
+                        validDocs.sort((a, b) => {
+                           const aTime = a.data().createdAt?.toMillis ? a.data().createdAt.toMillis() : 0;
+                           const bTime = b.data().createdAt?.toMillis ? b.data().createdAt.toMillis() : 0;
+                           return bTime - aTime;
+                        });
+                        snapshot = { docs: validDocs } as any;
+                    }
+                } else throw fetchErr;
+            }
+
+            fetchedOrders = snapshot.docs.map(doc => {
+                 const data = doc.data() as any;
+                 return { id: doc.id, ...data, productName: data.productName || "Order" } as Order;
+            });
+        }
+
+        setCurrentOrders(fetchedOrders);
+        setHasNextPage(false);
+        if (reset) {
+            setLastDocs([]);
+        }
+    } catch (e: any) {
         console.warn("Failed to fetch tab orders", e);
+        if (e.message?.includes("Quota")) {
+           // We might still fail if cache is empty
+           console.log("Could not even load from cache due to quota/offline.");
+        }
     } finally {
         setIsLoadingOrders(false);
     }
@@ -298,7 +331,7 @@ export function AdminOrdersDashboard() {
     );
     if (newPrice && !isNaN(Number(newPrice))) {
       try {
-        const order = orders.find(o => o.id === orderId);
+        const order = currentOrders.find(o => o.id === orderId);
         if (!order) return;
         
         const calc = getOrderCalculations(order);
@@ -328,7 +361,7 @@ export function AdminOrdersDashboard() {
 
   const handleUpdateCustomizationStatus = async (orderId: string, status: string) => {
     try {
-      const order = orders.find(o => o.id === orderId);
+      const order = currentOrders.find(o => o.id === orderId);
       if (!order) return;
       
       const calc = getOrderCalculations(order);
@@ -435,6 +468,16 @@ export function AdminOrdersDashboard() {
               {tab.id === "abandoned" && counts.abandoned > 0 && (
                 <span className="ml-2 bg-rose-100 text-rose-800 py-0.5 px-2 rounded-full text-[10px]">
                   {counts.abandoned}
+                </span>
+              )}
+              {tab.id === "placed" && counts.placed > 0 && (
+                <span className="ml-2 bg-emerald-100 text-emerald-800 py-0.5 px-2 rounded-full text-[10px]">
+                  {counts.placed}
+                </span>
+              )}
+              {tab.id === "delivered" && counts.delivered > 0 && (
+                <span className="ml-2 bg-purple-100 text-purple-800 py-0.5 px-2 rounded-full text-[10px]">
+                  {counts.delivered}
                 </span>
               )}
             </button>
@@ -549,7 +592,7 @@ function AdminOrderCard({
       return;
     }
 
-    if (!confirm(`Are you sure you want to Fulfill with Delhivery for Order ${order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}?`)) {
+    if (!confirm(`Are you sure you want to Fulfill with Delhivery for Order ${order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable"}?`)) {
       return;
     }
     
@@ -663,7 +706,7 @@ function AdminOrderCard({
   };
 
   // WhatsApp Templates
-  const displayOrderNumber = order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`;
+  const displayOrderNumber = order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable";
   const templates = {
     orderReceived: `Hey ${customerName} 👋\n\nYour Jersey Unicorn order ${displayOrderNumber} has been received successfully ⚽\n\nWe’ll update you once shipped 🚚`,
     draftReminder: `Hey ${customerName},\n\nYour Jersey Unicorn order ${displayOrderNumber} is waiting for confirmation ⚽\n\nComplete your order here:\n${paymentLink}`,
@@ -697,7 +740,7 @@ function AdminOrderCard({
           <div className="flex justify-between items-start">
             <div>
               <p className="font-bold text-[#1E2A44] text-sm truncate pr-2 flex items-center gap-2">
-                <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : `#${order.id}`}</span>
+                <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable"}</span>
                 {customerName}
               </p>
               <p className="text-xs text-gray-500 truncate">
