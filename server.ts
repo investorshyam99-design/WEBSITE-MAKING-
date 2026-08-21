@@ -628,11 +628,14 @@ WASHING INSTRUCTIONS
               pickupLocation: (process.env.DELHIVERY_PICKUP_LOCATION || "").trim(),
               destinationPincode: order.pincode,
               paymentMode: isCod ? "COD" : "Prepaid",
+              
               codAmount: isCod ? (order.codAmount || 0) : 0,
               product: productDesc,
               quantity: order.quantity || 1,
               weight: 500,
+              shipping_mode: (String(order.deliveryType || "NORMAL").toUpperCase() === "FAST") ? "Express" : "Surface",
               endpointUsed: "https://track.delhivery.com/api/cmu/create.json"
+
            }
         });
       }
