@@ -162,14 +162,26 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     // Slight delay to not block main thread on load
     setTimeout(trackVisitor, 1500);
 
-    const interval = setInterval(() => {
+    const timeInterval = setInterval(() => {
        let cumulativeTime = parseInt(safeGetItem('cumulative_time_spent') || '0', 10);
-       cumulativeTime += 10; // add 10 seconds tracking
+       cumulativeTime += 10; // Local counter updates every 10s
        safeSetItem('cumulative_time_spent', cumulativeTime.toString());
-       trackVisitor(); // update firestore
     }, 10000);
 
-    return () => clearInterval(interval);
+    const dbInterval = setInterval(() => {
+       trackVisitor(); // Update firestore only every 60s to save massive write costs
+    }, 60000);
+
+    const handleBeforeUnload = () => {
+       trackVisitor(); // Final write when they leave
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+        clearInterval(timeInterval);
+        clearInterval(dbInterval);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   const { products, isLoading: isProductsLoading } = useProducts();

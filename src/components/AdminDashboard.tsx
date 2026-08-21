@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { db } from "../lib/firebase";
 import { getOrderCalculations } from "../lib/utils";
-import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, collection, query, orderBy, limit, getDocs, getCountFromServer, where, startAfter } from "firebase/firestore";
 import {
   Package,
   Search,
@@ -88,16 +88,148 @@ function generateWhatsAppLink(phone: string, text: string) {
   return `https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`;
 }
 
-export function AdminOrdersDashboard({
-  orders,
-  refreshOrders,
-}: {
-  orders: Order[];
-  refreshOrders: () => void;
-}) {
+export function AdminOrdersDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("new");
   const [search, setSearch] = useState("");
+  const [currentOrders, setCurrentOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  
+  const [counts, setCounts] = useState({ new: 0, drafts: 0, abandoned: 0 });
+
+  const fetchTabCounts = async () => {
+    try {
+        const cNew = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["Fully Paid", "Advance Paid"])));
+        const cDrafts = await getCountFromServer(collection(db, "draft_orders"));
+        const cAban = await getCountFromServer(collection(db, "abandoned_carts"));
+        setCounts({
+            new: cNew.data().count,
+            drafts: cDrafts.data().count,
+            abandoned: cAban.data().count
+        });
+    } catch (e) {
+        console.warn("Failed to fetch order counts", e);
+    }
+  };
+
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(1);
+  const [lastDocs, setLastDocs] = useState<any[]>([]); // stack of previous last docs
+  const [currentLastDoc, setCurrentLastDoc] = useState<any>(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  // Reset pagination when tab changes
+  React.useEffect(() => {
+    setPage(1);
+    setLastDocs([]);
+    setCurrentLastDoc(null);
+    setHasNextPage(true);
+    refreshOrders(true);
+  }, [activeTab]);
+
+  const refreshOrders = async (reset = false, goBack = false) => {
+    setIsLoadingOrders(true);
+    if (reset) fetchTabCounts();
+    try {
+        let q;
+        const colMap: any = {
+            "new": "orders", "drafts": "draft_orders", "abandoned": "abandoned_carts",
+            "placed": "orders", "delivered": "orders", "cancelled": "orders"
+        };
+        const colRef = collection(db, colMap[activeTab] || "orders");
+        
+        let conditions: any[] = [];
+        if (activeTab === "new") conditions.push(where("status", "in", ["Fully Paid", "Advance Paid"]));
+        else if (activeTab === "placed") conditions.push(where("status", "==", "Order Placed"));
+        else if (activeTab === "delivered") conditions.push(where("status", "==", "Delivered"));
+        else if (activeTab === "cancelled") conditions.push(where("status", "==", "cancelled"));
+        
+        let orderByClause = orderBy("createdAt", "desc");
+        // abandoned carts might not have createdAt, but they actually do in our creation logic. 
+        // We will order them if possible, but let's stick to the previous logic where abandoned didn't have orderBy if not needed, 
+        // actually they all have createdAt or we can just orderBy document ID if no createdAt. Wait, abandoned_carts have updatedAt or createdAt.
+        // For safety, let's use the same query logic as before but with startAfter.
+        
+        // Actually, previous logic for abandoned: q = query(collection(db, "abandoned_carts"), limit(30));
+        if (activeTab !== "abandoned") {
+            conditions.push(orderByClause);
+        }
+
+        let queryArgs = [colRef, ...conditions];
+        
+        if (!reset) {
+            if (goBack) {
+                // If going back, we pop the last doc. But the new "last doc" we start after is the one before the previous page.
+                const prevLast = lastDocs[lastDocs.length - 2];
+                if (prevLast) {
+                    queryArgs.push(startAfter(prevLast));
+                }
+            } else if (currentLastDoc) {
+                queryArgs.push(startAfter(currentLastDoc));
+            }
+        }
+
+        queryArgs.push(limit(PAGE_SIZE));
+        q = query.apply(null, queryArgs as any);
+
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.docs.length > 0) {
+            const fetched = snapshot.docs.map(doc => {
+                 const data = doc.data();
+                 let status = data.status;
+                 if (activeTab === "drafts") status = "pending draft";
+                 if (activeTab === "abandoned") status = "abandoned";
+                 
+                 let productName = data.productName || "Order";
+                 if (activeTab === "abandoned" && !data.productName && data.items) {
+                     productName = data.items.map((i: any) => i.name).join(", ");
+                 }
+
+                 return { id: doc.id, ...data, status, productName } as Order;
+            });
+            
+            setCurrentOrders(fetched);
+            const lastVisible = snapshot.docs[snapshot.docs.length - 1];
+            
+            if (!reset && !goBack) {
+                setLastDocs(prev => [...prev, currentLastDoc]);
+            } else if (goBack) {
+                setLastDocs(prev => prev.slice(0, -1));
+            } else if (reset) {
+                setLastDocs([]);
+            }
+            
+            setCurrentLastDoc(lastVisible);
+            setHasNextPage(snapshot.docs.length === PAGE_SIZE);
+        } else {
+            if (reset) {
+               setCurrentOrders([]);
+               setHasNextPage(false);
+            } else if (!goBack) {
+               setHasNextPage(false);
+            }
+        }
+    } catch (e) {
+        console.warn("Failed to fetch tab orders", e);
+    } finally {
+        setIsLoadingOrders(false);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (hasNextPage) {
+        setPage(p => p + 1);
+        refreshOrders(false, false);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (page > 1) {
+        setPage(p => p - 1);
+        refreshOrders(false, true);
+    }
+  };
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     try {
@@ -233,60 +365,13 @@ export function AdminOrdersDashboard({
   };
 
   // Filter orders into categories
-  const newOrders = orders.filter(
-    (o) =>
-      !o.status?.toLowerCase().includes("pending") &&
-      !o.status?.toLowerCase().includes("abandoned") &&
-      !o.status?.toLowerCase().includes("draft") &&
-      o.status?.toLowerCase() !== "delivered" &&
-      o.status?.toLowerCase() !== "order placed" &&
-      o.status?.toLowerCase() !== "cancelled" &&
-      o.address,
-  );
 
-  const cancelledOrders = orders.filter(
-    (o) => o.status?.toLowerCase() === "cancelled"
-  );
-
-  const draftOrders = orders.filter(
-    (o) =>
-      (o.status?.toLowerCase().includes("pending") || o.status?.toLowerCase().includes("draft")) &&
-      o.address,
-  );
-
-  const abandonedCarts = orders.filter(
-    (o) =>
-      o.status?.toLowerCase().includes("abandoned") ||
-      ((o.status?.toLowerCase().includes("pending") || o.status?.toLowerCase().includes("draft")) && !o.address),
-  );
-
-  const placedOrders = orders.filter(
-    (o) => o.status?.toLowerCase() === "order placed",
-  );
-
-  const deliveredOrders = orders.filter(
-    (o) => o.status?.toLowerCase() === "delivered",
-  );
-
-  let currentOrders = [];
-  if (activeTab === "new") currentOrders = newOrders;
-  if (activeTab === "drafts") currentOrders = draftOrders;
-  if (activeTab === "abandoned") currentOrders = abandonedCarts;
-  if (activeTab === "placed") currentOrders = placedOrders;
-  if (activeTab === "delivered") currentOrders = deliveredOrders;
-  if (activeTab === "cancelled") currentOrders = cancelledOrders;
-
-  // Sort orders newest first
-  currentOrders.sort((a, b) => {
-    const timeA = a.createdAt?.toMillis?.() || new Date(a.createdAt).getTime() || 0;
-    const timeB = b.createdAt?.toMillis?.() || new Date(b.createdAt).getTime() || 0;
-    return timeB - timeA;
-  });
 
   // Apply search
+  let displayOrders = currentOrders;
   if (search) {
     const searchLower = search.toLowerCase();
-    currentOrders = currentOrders.filter(
+    displayOrders = displayOrders.filter(
       (o) =>
         (o.orderNumber && o.orderNumber.toString().includes(searchLower)) ||
         o.id.toLowerCase().includes(searchLower) ||
@@ -337,19 +422,19 @@ export function AdminOrdersDashboard({
               }`}
             >
               {tab.label}
-              {tab.id === "new" && newOrders.length > 0 && (
+              {tab.id === "new" && counts.new > 0 && (
                 <span className="ml-2 bg-blue-100 text-blue-800 py-0.5 px-2 rounded-full text-[10px]">
-                  {newOrders.length}
+                  {counts.new}
                 </span>
               )}
-              {tab.id === "drafts" && draftOrders.length > 0 && (
+              {tab.id === "drafts" && counts.drafts > 0 && (
                 <span className="ml-2 bg-amber-100 text-amber-800 py-0.5 px-2 rounded-full text-[10px]">
-                  {draftOrders.length}
+                  {counts.drafts}
                 </span>
               )}
-              {tab.id === "abandoned" && abandonedCarts.length > 0 && (
+              {tab.id === "abandoned" && counts.abandoned > 0 && (
                 <span className="ml-2 bg-rose-100 text-rose-800 py-0.5 px-2 rounded-full text-[10px]">
-                  {abandonedCarts.length}
+                  {counts.abandoned}
                 </span>
               )}
             </button>
@@ -372,13 +457,10 @@ export function AdminOrdersDashboard({
       {/* Order List */}
       <div className="p-4 space-y-4 max-w-3xl mx-auto">
         {activeTab === "profits" ? (
-          <AdminProfitsDashboard
-            orders={orders}
-            updateOrderCost={handleUpdateOrderCost}
-          />
+          <AdminProfitsDashboard updateOrderCost={handleUpdateOrderCost} />
         ) : activeTab === "chats" ? (
           <AdminChatsList />
-        ) : currentOrders.length === 0 ? (
+        ) : displayOrders.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
             <Package className="h-12 w-12 mx-auto text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">
@@ -386,7 +468,7 @@ export function AdminOrdersDashboard({
             </p>
           </div>
         ) : (
-          currentOrders.map((order) => (
+          displayOrders.map((order) => (
             <AdminOrderCard
               key={order.id}
               order={order}
@@ -400,6 +482,29 @@ export function AdminOrdersDashboard({
           ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {!["profits", "chats"].includes(activeTab) && (currentOrders.length > 0) && (
+        <div className="flex justify-between items-center max-w-3xl mx-auto px-4 py-4">
+            <button 
+                onClick={handlePrevPage} 
+                disabled={page === 1 || isLoadingOrders}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 disabled:opacity-50 hover:bg-gray-50"
+            >
+                ← Previous
+            </button>
+            <span className="text-sm font-bold text-gray-500">
+                Page {page}
+            </span>
+            <button 
+                onClick={handleNextPage} 
+                disabled={!hasNextPage || isLoadingOrders}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 disabled:opacity-50 hover:bg-gray-50"
+            >
+                Next →
+            </button>
+        </div>
+      )}
     </div>
   );
 }

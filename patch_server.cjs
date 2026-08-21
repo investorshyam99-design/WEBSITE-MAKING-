@@ -1,20 +1,26 @@
 const fs = require('fs');
+let content = fs.readFileSync('server.ts', 'utf8');
 
-let server = fs.readFileSync('server.ts', 'utf8');
+const validationRegex = /\/\/ Validate required fields\s+const required = \['fullName', 'phone', 'address', 'pincode', 'paymentMode', 'deliveryType'\];\s+for \(const field of required\) \{\s+if \(order\[field\] === undefined \|\| order\[field\] === null \|\| order\[field\] === ""\) \{\s+return res\.status\(400\)\.json\(\{ success: false, error: \`Order Data Error: Missing required field: \$\{field\}\` \}\);\s+\}\s+\}/;
 
-// Also inject the Gemini API back to server.ts for local development
-const geminiCode = fs.readFileSync('api/gemini.ts', 'utf8')
-  .replace(/import { GoogleGenAI, Modality } from "@google\/genai";/, '')
-  .replace(/export default async function handler\(req: any, res: any\) \{/, 'app.post("/api/gemini", async (req, res) => {')
-  .replace(/}$/, '});');
+const newValidation = `
+        const rawDeliveryType = String(order.deliveryType || "").toUpperCase();
+        const resolvedDeliveryType = rawDeliveryType === "FAST" ? "FAST" : "NORMAL";
 
-const search = '  // Unified Delhivery Endpoint for local dev';
-server = server.replace(search, geminiCode + '\n' + search);
+        // Validate required fields
+        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode'];
+        for (const field of required) {
+          if (order[field] === undefined || order[field] === null || order[field] === "") {
+             return res.status(400).json({ success: false, error: \`Order Data Error: Missing required field: \${field}\` });
+          }
+        }
+`;
 
-// Add import if missing
-if (!server.includes('GoogleGenAI')) {
-  server = 'import { GoogleGenAI } from "@google/genai";\n' + server;
-}
+content = content.replace(validationRegex, newValidation.trim());
 
-fs.writeFileSync('server.ts', server);
-console.log('patched server.ts with gemini');
+content = content.replace(
+  'shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"',
+  'shipping_mode: resolvedDeliveryType === "FAST" ? "Express" : "Surface"'
+);
+
+fs.writeFileSync('server.ts', content);

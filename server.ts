@@ -652,8 +652,11 @@ WASHING INSTRUCTIONS
            return res.status(400).json({ success: false, error: "Duplicate Shipment: Order already has an AWB or Tracking ID", awb: order.delhiveryAwb || order.awbNumber || order.trackingId });
         }
         
+        const rawDeliveryType = String(order.deliveryType || "").toUpperCase();
+        const resolvedDeliveryType = rawDeliveryType === "FAST" ? "FAST" : "NORMAL";
+
         // Validate required fields
-        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode', 'deliveryType'];
+        const required = ['fullName', 'phone', 'address', 'pincode', 'paymentMode'];
         for (const field of required) {
           if (order[field] === undefined || order[field] === null || order[field] === "") {
              return res.status(400).json({ success: false, error: `Order Data Error: Missing required field: ${field}` });
@@ -734,7 +737,7 @@ WASHING INSTRUCTIONS
               weight: String(500), 
               shipment_length: 20, shipment_width: 20, shipment_height: 5,
               total_amount: totalOrderValue,
-              shipping_mode: order.deliveryType === "FAST" ? "Express" : "Surface"
+              shipping_mode: resolvedDeliveryType === "FAST" ? "Express" : "Surface"
             }],
             pickup_location: { name: pickupLocation }
           }

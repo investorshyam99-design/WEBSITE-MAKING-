@@ -4,7 +4,19 @@ import { db } from '../lib/firebase';
 import { getOrderCalculations } from '../lib/utils';
 import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
 
-export function AdminProfitsDashboard({ orders, updateOrderCost }: { orders: any[]; updateOrderCost: (id: string, costs: any) => Promise<void> }) {
+import { query, where, orderBy, limit } from 'firebase/firestore';
+export function AdminProfitsDashboard({ updateOrderCost }: { updateOrderCost: (id: string, costs: any) => Promise<void> }) {
+  const [orders, setOrders] = useState<any[]>([]);
+  useEffect(() => {
+    const fetchOrdersForProfits = async () => {
+      try {
+        const q = query(collection(db, 'orders'), where('status', 'in', ['Order Placed', 'Delivered']), orderBy('createdAt', 'desc'), limit(500));
+        const snapshot = await getDocs(q);
+        setOrders(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
+      } catch(e) { console.warn(e); }
+    };
+    fetchOrdersForProfits();
+  }, []);
   const [dateFilter, setDateFilter] = useState('all'); // 'today', 'week', 'month', 'all'
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Loader2, User, MessageCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export function AdminChatsList() {
   const [expandedChat, setExpandedChat] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'chats'));
+    const q = query(collection(db, 'chats'), orderBy('lastUpdated', 'desc'), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedChats = snapshot.docs.map(doc => ({
         id: doc.id,

@@ -1,7 +1,7 @@
 import { AdminOrdersDashboard } from "../components/AdminDashboard";
 import { getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, limit, getDocs, getCountFromServer, getAggregateFromServer, average } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useShop } from "../context/ShopContext";
 import { ShieldAlert, Users, Calendar, Loader2, Clock } from "lucide-react";
@@ -29,109 +29,11 @@ export function AdminDashboard() {
   // We can just rely on the rules returning a permission denied error, but we'll show UI as well.
   const isAdmin = user?.email === "investorshyam99@gmail.com";
 
-  const fetchOrders = async () => {
-    try {
-      const ordersRef = collection(db, "orders");
-      const q = query(ordersRef);
-      const snapshot = await getDocs(q);
-      const fetchedOrders = snapshot.docs.map(
-        (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-          }) as any,
-      );
+  
 
-      // Fetch abandoned_carts collection
-      let fetchedAbandoned: any[] = [];
-      try {
-        const abandonedRef = collection(db, "abandoned_carts");
-        const abandonedSnap = await getDocs(query(abandonedRef));
-        fetchedAbandoned = abandonedSnap.docs.map((doc) => {
-          const data = doc.data();
-          const firstItem = data.items?.[0] || {};
-          return {
-            id: doc.id,
-            userId: data.userId || doc.id,
-            productName: data.productName || (data.items?.map((i: any) => i.name).join(", ")) || "Abandoned Cart",
-            image: firstItem.image || "",
-            size: firstItem.selectedSize || "N/A",
-            quantity: data.itemCount || data.items?.length || 1,
-            cartItems: data.items || [],
-            price: data.total || 0,
-            status: "abandoned",
-            createdAt: data.updatedAt || data.createdAt || new Date().toISOString(),
-            address: data.address || "",
-            phone: data.phone || data.userPhone || "",
-            fullName: data.fullName || data.userName || "Guest Customer",
-          };
-        });
-      } catch (e) {
-        console.warn("Error fetching abandoned_carts:", e);
-      }
-
-      // Fetch draft_orders collection
-      let fetchedDrafts: any[] = [];
-      try {
-        const draftsRef = collection(db, "draft_orders");
-        const draftsSnap = await getDocs(query(draftsRef));
-        fetchedDrafts = draftsSnap.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            userId: data.userId || doc.id,
-            productName: data.productName || "Draft Order",
-            status: "pending draft",
-            ...data,
-          };
-        });
-      } catch (e) {
-        console.warn("Error fetching draft_orders:", e);
-      }
-
-      const rawOrders = [...fetchedOrders, ...fetchedAbandoned, ...fetchedDrafts];
-
-      // Sort ascending to assign sequential order numbers (1, 2, 3, 4...)
-      const sortedAsc = [...rawOrders].sort((a: any, b: any) => {
-        const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (a.createdAt?.toMillis?.() || new Date(a.createdAt || 0).getTime() || 0);
-        const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (b.createdAt?.toMillis?.() || new Date(b.createdAt || 0).getTime() || 0);
-        return timeA - timeB;
-      });
-
-      let seq = 1;
-      const mappedOrders = sortedAsc.map((order: any) => {
-        const fullName = (order.fullName || order.name || "").toLowerCase();
-        const address = (order.address || "").toLowerCase();
-        const isSahil = fullName.includes("sahil") || address.includes("sahil");
-        const price = isSahil ? 2100 : (order.price || 0);
-
-        let num = order.orderNumber;
-        if (typeof num !== "number" || isNaN(num) || num <= 0 || num >= 10000) {
-          num = seq;
-        }
-        seq = Math.max(seq + 1, num + 1);
-
-        return {
-          ...order,
-          price,
-          orderNumber: num,
-        };
-      });
-
-      // Sort descending (newest first) for UI display
-      const allOrders = mappedOrders.sort((a: any, b: any) => {
-        const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (a.createdAt?.toMillis?.() || new Date(a.createdAt || 0).getTime() || 0);
-        const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (b.createdAt?.toMillis?.() || new Date(b.createdAt || 0).getTime() || 0);
-        return timeB - timeA;
-      });
-
-      setOrders(allOrders);
-    } catch (e: any) {
-      console.warn(e);
-      setError((prev) => (prev ? prev + " | " : "") + "Failed to fetch orders: " + e.message);
-    }
-  };
-
+  
+  const [usersCount, setUsersCount] = useState(0);
+  const [visitorsCount, setVisitorsCount] = useState(0);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -139,83 +41,55 @@ export function AdminDashboard() {
       setLoading(false);
       return;
     }
-
-    let unsubscribeUsers: () => void;
-    let unsubscribeVisitors: () => void;
-
-    try {
-      unsubscribeUsers = onSnapshot(
-        collection(db, "users"),
-        (snapshot) => {
-          const usersData = snapshot.docs
-            .map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }))
-            .sort((a: any, b: any) => {
-              const timeA = a.lastLogin ? new Date(a.lastLogin).getTime() : 0;
-              const timeB = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
-              return timeB - timeA;
+    
+    let isMounted = true;
+    
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        // 1. Fetch counts
+        const usersCountSnap = await getCountFromServer(collection(db, "users"));
+        const visitorsCountSnap = await getCountFromServer(collection(db, "visitors"));
+        
+        if (isMounted) {
+            setUsersCount(usersCountSnap.data().count);
+            setVisitorsCount(visitorsCountSnap.data().count);
+        }
+        
+        // 2. Fetch aggregate average time spent
+        try {
+            const avgSnap = await getAggregateFromServer(collection(db, "visitors"), {
+                avgTime: average("timeSpent")
             });
-          setUsers(usersData);
-        },
-        (err) => {
-          console.warn("Error fetching users:", err);
-          setError("Failed to fetch users. " + err.message);
-          setLoading(false);
-        },
-      );
-
-      unsubscribeVisitors = onSnapshot(
-        collection(db, "visitors"),
-        (snapshot) => {
-          const visitorsData = snapshot.docs
-            .map(
-              (doc) =>
-                ({
-                  id: doc.id,
-                  ...doc.data(),
-                }) as any,
-            )
-            .sort((a: any, b: any) => {
-              const timeA = a.lastVisit ? new Date(a.lastVisit).getTime() : 0;
-              const timeB = b.lastVisit ? new Date(b.lastVisit).getTime() : 0;
-              return timeB - timeA;
-            });
-
-          setVisitors(visitorsData);
-
-          const visitorsWithTime = visitorsData.filter(
-            (v) => typeof v.timeSpent === "number" && v.timeSpent > 0,
-          );
-          if (visitorsWithTime.length > 0) {
-            const totalTime = visitorsWithTime.reduce(
-              (acc, v) => acc + v.timeSpent,
-              0,
-            );
-            setAvgTimeSpent(totalTime / visitorsWithTime.length);
-          } else {
-            setAvgTimeSpent(0);
-          }
-          fetchOrders();
-          setLoading(false);
-        },
-        (err) => {
-          console.warn("Error fetching visitors:", err);
-          setError("Failed to fetch visitors. " + err.message);
-          fetchOrders();
-          setLoading(false);
-        },
-      );
-    } catch (err: any) {
-      console.warn("Error setting up listeners:", err);
-      setError("Failed to fetch data. " + err.message);
-      setLoading(false);
-    }
-
+            if (isMounted) setAvgTimeSpent(avgSnap.data().avgTime || 0);
+        } catch (e) {
+            console.warn("Average aggregation failed, falling back to 0");
+        }
+        
+        // 3. Fetch top 50 visitors
+        const vq = query(collection(db, "visitors"), orderBy("lastVisit", "desc"), limit(50));
+        const vSnap = await getDocs(vq);
+        const visitorsData = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (isMounted) setVisitors(visitorsData);
+        
+        // 4. Fetch top 50 users
+        const uq = query(collection(db, "users"), orderBy("lastLogin", "desc"), limit(50));
+        const uSnap = await getDocs(uq);
+        const usersData = uSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (isMounted) setUsers(usersData);
+        
+      } catch (err: any) {
+        console.warn("Error fetching dashboard data:", err);
+        if (isMounted) setError("Failed to fetch some dashboard data. " + err.message);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+    
     return () => {
-      if (unsubscribeUsers) unsubscribeUsers();
-      if (unsubscribeVisitors) unsubscribeVisitors();
+      isMounted = false;
     };
   }, [user, isAuthLoading]);
 
@@ -279,7 +153,7 @@ export function AdminDashboard() {
                   Total Logged-in Users
                 </h3>
                 <p className="text-4xl font-black text-[#1B1B1B] mt-2">
-                  {users.length}
+                  {usersCount}
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
@@ -291,7 +165,7 @@ export function AdminDashboard() {
                   Total Website Visitors
                 </h3>
                 <p className="text-4xl font-black text-[#1B1B1B] mt-2">
-                  {visitors.length}
+                  {visitorsCount}
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
@@ -309,7 +183,7 @@ export function AdminDashboard() {
             </div>
 
             <div className="mt-8">
-              <AdminOrdersDashboard orders={orders} refreshOrders={fetchOrders} />
+              <AdminOrdersDashboard />
             </div>
 
             {/* Visitors List */}
@@ -319,7 +193,7 @@ export function AdminDashboard() {
                   Recent Website Visitors
                 </h3>
                 <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
-                  {visitors.length} Unique Devices
+                  {visitorsCount} Unique Devices
                 </span>
               </div>
               <div className="overflow-x-auto h-64">
@@ -393,7 +267,7 @@ export function AdminDashboard() {
                   Registered Users
                 </h3>
                 <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
-                  {users.length} Users
+                  {usersCount} Users
                 </span>
               </div>
               <div className="overflow-x-auto">
