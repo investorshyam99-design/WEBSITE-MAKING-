@@ -696,15 +696,26 @@ WASHING INSTRUCTIONS
         // PAYMENT CALCULATION
         const totalOrderValue = Number(order.totalOrderValue ?? order.finalTotal ?? order.price ?? 0);
         const amountPaid = Number(order.amountPaid ?? order.advancePaid ?? 0);
-        const storedCodAmount = Number(order.codAmount ?? order.remainingCodAmount ?? 0);
         
-        const isCod = storedCodAmount > 0;
+        // Use existing payment calculation rules
+        let calculatedCodAmount = Number(order.codAmount ?? order.remainingCodAmount ?? 0);
+        if (order.codAmount === undefined && order.remainingCodAmount === undefined) {
+            calculatedCodAmount = Math.max(0, totalOrderValue - amountPaid);
+        }
         
-        if (isNaN(totalOrderValue) || isNaN(amountPaid) || isNaN(storedCodAmount)) {
+        // Also ensure a fully prepaid order has 0 COD
+        const isFullyPrepaid = order.paymentMode === "full" || String(order.status).toLowerCase().includes("full") || order.paymentMethod === "PREPAID" || order.paymentStatus === "FULLY_PAID" || amountPaid >= totalOrderValue;
+        if (isFullyPrepaid) {
+            calculatedCodAmount = 0;
+        }
+
+        const isCod = calculatedCodAmount > 0;
+        
+        if (isNaN(totalOrderValue) || isNaN(amountPaid) || isNaN(calculatedCodAmount)) {
             return res.status(400).json({ success: false, error: "Payment Calculation Error: One or more payment values are invalid (NaN)" });
         }
         
-        console.log(`[Delhivery API] Payment Mode: ${isCod ? "COD" : "Prepaid"} | COD Amount: ${isCod ? storedCodAmount : 0}`);
+        console.log(`[Delhivery API] Payment Mode: ${isCod ? "COD" : "Prepaid"} | COD Amount: ${isCod ? calculatedCodAmount : 0}`);
         
         let productDesc = order.productName || "Jersey";
         if (order.category) productDesc += ` - ${order.category.replace("-", " ")}`;

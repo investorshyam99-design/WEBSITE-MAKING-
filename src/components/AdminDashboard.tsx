@@ -96,6 +96,9 @@ export function AdminOrdersDashboard() {
   const [paymentEditTotal, setPaymentEditTotal] = useState<string>("");
   const [paymentEditPaid, setPaymentEditPaid] = useState<string>("");
   const [paymentEditCod, setPaymentEditCod] = useState<string>("");
+  const [initialPaymentEditTotal, setInitialPaymentEditTotal] = useState<string>("");
+  const [initialPaymentEditPaid, setInitialPaymentEditPaid] = useState<string>("");
+  const [initialPaymentEditCod, setInitialPaymentEditCod] = useState<string>("");
   const [currentOrders, setCurrentOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   
@@ -363,6 +366,22 @@ export function AdminOrdersDashboard() {
     }
   };
 
+    const handleEditPayment = (order: any, calc: any) => {
+    setEditingPaymentOrder(order);
+    
+    const initialTotal = String(calc.finalTotalAmount ?? 0);
+    const initialPaid = String(calc.amountPaid ?? 0);
+    const initialCod = String(calc.codAmount ?? 0);
+    
+    setInitialPaymentEditTotal(initialTotal);
+    setInitialPaymentEditPaid(initialPaid);
+    setInitialPaymentEditCod(initialCod);
+    
+    setPaymentEditTotal(initialTotal);
+    setPaymentEditPaid(initialPaid);
+    setPaymentEditCod(initialCod);
+  };
+
   const handleSavePaymentEdit = async () => {
     if (!editingPaymentOrder) return;
     try {
@@ -380,17 +399,27 @@ export function AdminOrdersDashboard() {
         return;
       }
 
-      const updateData: any = {
-        totalOrderValue: newTotal,
-        amountPaid: newPaid,
-        codAmount: newCod,
-        adjustedAmount: newCod, // Backwards compatibility
-        finalTotalAmount: newTotal, // Backwards compatibility
-      };
+      const updateData: any = {};
+      
+      // ONLY update fields that actually changed
+      if (paymentEditTotal !== initialPaymentEditTotal) {
+          updateData.totalOrderValue = newTotal;
+          updateData.finalTotalAmount = newTotal;
+      }
+      if (paymentEditPaid !== initialPaymentEditPaid) {
+          updateData.amountPaid = newPaid;
+          updateData.advancePaid = newPaid;
+      }
+      if (paymentEditCod !== initialPaymentEditCod) {
+          updateData.codAmount = newCod;
+          updateData.adjustedAmount = newCod;
+      }
 
-      await updateDoc(doc(db, "orders", editingPaymentOrder.id), updateData);
+      if (Object.keys(updateData).length > 0) {
+          await updateDoc(doc(db, "orders", editingPaymentOrder.id), updateData);
+          refreshOrders();
+      }
       setEditingPaymentOrder(null);
-      refreshOrders();
     } catch (e) {
       console.error("Error updating payment", e);
       alert("Failed to update payment");
@@ -559,6 +588,7 @@ export function AdminOrdersDashboard() {
               onUpdateTracking={(t, c) => handleUpdateTracking(order.id, t, c)}
               onUpdatePrice={(p) => handleUpdatePrice(order.id, p)}
               onUpdateCustomizationStatus={(s) => handleUpdateCustomizationStatus(order.id, s)}
+              onEditPayment={(order, calc) => handleEditPayment(order, calc)}
             />
           ))
         )}
