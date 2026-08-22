@@ -151,8 +151,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         }
         
-        const rawType = String(order.deliveryType || "").toLowerCase();
-        const effectiveDeliveryType = (rawType === "fast" || rawType === "express") ? "Express" : "Surface";
+        let effectiveDeliveryType = "Surface";
+        if (order.deliveryType) {
+            const rawType = String(order.deliveryType).trim().toLowerCase();
+            effectiveDeliveryType = (rawType === "fast" || rawType === "express") ? "Express" : "Surface";
+        }
+        console.log(`[Delhivery API] Final Delivery Type sent for order ${orderId}: ${effectiveDeliveryType}`);
 
         // WAREHOUSE VALIDATION
         const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
@@ -179,27 +183,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         
         // PAYMENT CALCULATION
-        const isCod = order.paymentMode === "partial" || order.paymentMode === "cod";
+        const totalOrderValue = Number(order.totalOrderValue ?? order.finalTotal ?? order.price ?? 0);
+        const amountPaid = Number(order.amountPaid ?? order.advancePaid ?? 0);
+        const storedCodAmount = Number(order.codAmount ?? order.remainingCodAmount ?? 0);
         
-        const totalOrderValue = Number(order.totalOrderValue);
-        const advancePaid = Number(order.advancePaid || 0);
-        const storedCodAmount = Number(order.codAmount || 0);
-        const productSubtotal = Number(order.productSubtotal || order.price || 0);
+        const isCod = storedCodAmount > 0;
         
-        if (isNaN(totalOrderValue) || isNaN(advancePaid) || isNaN(storedCodAmount) || isNaN(productSubtotal)) {
+        if (isNaN(totalOrderValue) || isNaN(amountPaid) || isNaN(storedCodAmount)) {
             return res.status(400).json({ success: false, error: "Payment Calculation Error: One or more payment values are invalid (NaN)" });
         }
         
-        let calculatedCodAmount = 0;
-        
-        if (isCod) {
-            calculatedCodAmount = totalOrderValue - advancePaid;
-            
-            // Validate that the calculation matches the stored expected COD
-            if (calculatedCodAmount !== storedCodAmount) {
-                return res.status(400).json({ success: false, error: `Payment Calculation Error: Expected COD amount (${calculatedCodAmount}) does not match stored COD amount (${storedCodAmount}).` });
-            }
-        }
+        console.log(`[Delhivery API] Payment Mode: ${isCod ? "COD" : "Prepaid"} | COD Amount: ${isCod ? storedCodAmount : 0}`);
         
         let productDesc = order.productName || "Jersey";
         if (order.category) productDesc += ` - ${order.category.replace("-", " ")}`;
@@ -234,6 +228,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         };
         
+        console.log("[Delhivery API Request Payload]:", JSON.stringify(payload.data, null, 2));
         const formData = new URLSearchParams(); 
         formData.append("format", "json"); 
         formData.append("data", JSON.stringify(payload.data));
