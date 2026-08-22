@@ -379,17 +379,7 @@ export function AdminOrdersDashboard() {
         alert("Payment values cannot be negative");
         return;
       }
-      
-      // If paymentMode is 'full', paid amount must be exactly total order value (but business rule could allow exceptions, let's keep it safe)
-      if (editingPaymentOrder.paymentMode === "full" && newPaid !== newTotal) {
-          // If they want to change a full payment to have COD, they'd have to change payment mode first, but let's just warn
-          if (!confirm("This is a fully paid order. Are you sure you want to change the paid amount to be different from the total?")) {
-              return;
-          }
-      }
 
-      const originalCalc = getOrderCalculations(editingPaymentOrder);
-      
       const updateData: any = {
         totalOrderValue: newTotal,
         amountPaid: newPaid,
@@ -625,17 +615,7 @@ export function AdminOrdersDashboard() {
                 <input 
                   type="number" 
                   value={paymentEditTotal}
-                  onChange={(e) => {
-                    const newTotal = e.target.value;
-                    setPaymentEditTotal(newTotal);
-                    const parsedTotal = Number(newTotal) || 0;
-                    const parsedPaid = Number(paymentEditPaid) || 0;
-                    if (editingPaymentOrder.paymentMode !== "full") {
-                        setPaymentEditCod(String(Math.max(0, parsedTotal - parsedPaid)));
-                    } else {
-                        setPaymentEditPaid(newTotal);
-                    }
-                  }}
+                  onChange={(e) => setPaymentEditTotal(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
                 />
               </div>
@@ -647,15 +627,7 @@ export function AdminOrdersDashboard() {
                 <input 
                   type="number" 
                   value={paymentEditPaid}
-                  onChange={(e) => {
-                    const newPaid = e.target.value;
-                    setPaymentEditPaid(newPaid);
-                    const parsedTotal = Number(paymentEditTotal) || 0;
-                    const parsedPaid = Number(newPaid) || 0;
-                    if (editingPaymentOrder.paymentMode !== "full") {
-                        setPaymentEditCod(String(Math.max(0, parsedTotal - parsedPaid)));
-                    }
-                  }}
+                  onChange={(e) => setPaymentEditPaid(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
                 />
               </div>
@@ -667,13 +639,7 @@ export function AdminOrdersDashboard() {
                 <input 
                   type="number" 
                   value={paymentEditCod}
-                  onChange={(e) => {
-                    const newCod = e.target.value;
-                    setPaymentEditCod(newCod);
-                    const parsedTotal = Number(paymentEditTotal) || 0;
-                    const parsedCod = Number(newCod) || 0;
-                    setPaymentEditPaid(String(Math.max(0, parsedTotal - parsedCod)));
-                  }}
+                  onChange={(e) => setPaymentEditCod(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
                 />
               </div>
@@ -709,6 +675,7 @@ function AdminOrderCard({
   onUpdateTracking,
   onUpdatePrice,
   onUpdateCustomizationStatus,
+  onEditPayment,
 }: {
   order: Order;
   activeTab: string;
@@ -717,6 +684,7 @@ function AdminOrderCard({
   onUpdateTracking: (t: string, c: string, url: string) => void;
   onUpdatePrice: (p: number) => void;
   onUpdateCustomizationStatus: (status: string) => void;
+  onEditPayment: (order: Order, calc: any) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [trackingId, setTrackingId] = useState(order.trackingId || "");
@@ -987,10 +955,7 @@ function AdminOrderCard({
                     title="Edit Payment"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setEditingPaymentOrder(order);
-                      setPaymentEditTotal(String(calc.finalTotalAmount));
-                      setPaymentEditPaid(String(calc.amountPaid));
-                      setPaymentEditCod(String(calc.codAmount));
+                      onEditPayment(order, calc);
                     }}
                     className="text-gray-400 hover:text-[#1E2A44] transition-colors"
                   >

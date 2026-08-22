@@ -1,17 +1,18 @@
 const fs = require('fs');
 
-const filePath = 'src/components/AdminDashboard.tsx';
-let content = fs.readFileSync(filePath, 'utf8');
+function patchFile(filePath) {
+  let content = fs.readFileSync(filePath, 'utf8');
 
-// Find start of handleSavePaymentEdit
-const startStr = "const handleSavePaymentEdit = async () => {";
-const endStr = "const handleUpdateCustomizationStatus = async (orderId: string, status: string) => {";
-
-const startIndex = content.indexOf(startStr);
-const endIndex = content.indexOf(endStr);
-
-if (startIndex > -1 && endIndex > -1) {
-  const newFunc = `const handleSavePaymentEdit = async () => {
+  // Replace handleSavePaymentEdit
+  const oldSaveStart = `  const handleSavePaymentEdit = async () => {`;
+  const oldSaveEnd = `  };`;
+  
+  const startIndex = content.indexOf(oldSaveStart);
+  if (startIndex === -1) return;
+  // find the NEXT "  };"
+  const endIndex = content.indexOf(oldSaveEnd, startIndex) + oldSaveEnd.length;
+  
+  const newSave = `  const handleSavePaymentEdit = async () => {
     if (!editingPaymentOrder) return;
     try {
       const newTotal = Number(paymentEditTotal);
@@ -43,12 +44,11 @@ if (startIndex > -1 && endIndex > -1) {
       console.error("Error updating payment", e);
       alert("Failed to update payment");
     }
-  };
-
-  `;
-  content = content.substring(0, startIndex) + newFunc + content.substring(endIndex);
+  };`;
+  
+  content = content.substring(0, startIndex) + newSave + content.substring(endIndex);
   fs.writeFileSync(filePath, content, 'utf8');
-  console.log("Fixed function!");
-} else {
-  console.log("Could not find boundaries");
+  console.log('Patched handleSavePaymentEdit');
 }
+
+patchFile('src/components/AdminDashboard.tsx');

@@ -113,22 +113,26 @@ export function AccountPage() {
       // Always filter out drafts and internal statuses
       fetchedOrders = fetchedOrders.filter((order) => {
         const s = (order.status || "").toLowerCase();
-        const payStatus = (order.paymentStatus || "").toLowerCase();
-        // Reject draft, pending, or abandoned orders
-        if (s.includes("draft") || s.includes("abandoned") || s.includes("pending")) return false;
-        if (payStatus.includes("pending") || payStatus.includes("failed")) return false;
-        // Accept paid or advance paid or active fulfillment status
+        
+        // Reject internal uncompleted states
+        if (s.includes("draft") || s.includes("abandoned") || s.includes("pending_cart")) return false;
+        
+        // We explicitly accept these statuses based on the admin dashboard tabs:
+        const isNewOrder = s.includes("fully paid") || s.includes("advance paid") || s.includes("fampay") || s.includes("received");
+        const isPlaced = s.includes("order placed");
+        const isDelivered = s.includes("delivered");
+        
+        // Accept common active fulfillment statuses
         return (
+          isNewOrder || 
+          isPlaced || 
+          isDelivered ||
           s.includes("paid") ||
           s.includes("shipped") ||
-          s.includes("delivered") ||
           s.includes("processing") ||
           s.includes("confirmed") ||
           s.includes("completed") ||
-          s.includes("cancelled") ||
-          payStatus.includes("paid") ||
-          payStatus.includes("success") ||
-          payStatus.includes("captured")
+          s.includes("cancelled")
         );
       });
       
@@ -592,24 +596,24 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
             >
               View Order
             </button>
-            {order.trackingId && order.trackingUrl && (
+            {(order.trackingId || order.delhiveryAwb) && (order.trackingUrl || order.delhiveryTrackingUrl) && (
               <a 
-                href={order.trackingUrl}
+                href={order.trackingUrl || order.delhiveryTrackingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block whitespace-nowrap"
+                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block whitespace-nowrap flex items-center justify-center gap-2"
               >
-                Track Order
+                <Truck className="w-4 h-4" /> Track Order
               </a>
             )}
-            {order.trackingId && !order.trackingUrl && (
+            {(order.trackingId || order.delhiveryAwb) && !(order.trackingUrl || order.delhiveryTrackingUrl) && (
               <a 
-                href={`https://shiprocket.co/tracking/${order.trackingId}`}
+                href={order.courierName === "Delhivery" || order.delhiveryAwb ? `https://www.delhivery.com/track/package/${order.trackingId || order.delhiveryAwb}` : `https://shiprocket.co/tracking/${order.trackingId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block whitespace-nowrap"
+                className="px-4 py-2 bg-white border-2 border-[#1E2A44] hover:bg-[#1E2A44] hover:text-white text-[#1E2A44] text-center text-sm font-bold rounded-lg transition-colors w-full block whitespace-nowrap flex items-center justify-center gap-2"
               >
-                Track Order
+                <Truck className="w-4 h-4" /> Track Order
               </a>
             )}
           </div>
