@@ -56,6 +56,10 @@ export function AIChatbot() {
     setIsLoading(true);
 
     try {
+      // Create an AbortController for a 15 second timeout to prevent hanging forever
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       // For static deployments (GitHub Pages), use the Firebase Function URL.
       // For local dev, it still falls back to the local proxy.
       const functionUrl = import.meta.env.VITE_GEMINI_FUNCTION_URL || '/api/gemini';
@@ -64,6 +68,7 @@ export function AIChatbot() {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         body: JSON.stringify({
           messages: [
             ...messages.map(m => ({ role: m.role, content: m.text })),
@@ -72,6 +77,8 @@ export function AIChatbot() {
           storeContext: products.length > 0 ? "Available Products:\n" + products.map(p => `- ${p.name} (₹${p.price}) [URL: /product/${p.slug}]`).join('\n') : ""
         })
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

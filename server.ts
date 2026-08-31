@@ -500,14 +500,21 @@ WASHING INSTRUCTIONS
         const ai = new GoogleGenAI({ apiKey: currentKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
         
         // Use timeout to prevent hanging on invalid dummy keys
-        const response = await ai.models.generateContent({
-          model: "gemini-3.7-flash",
-          contents: prompt,
-          config: {
-            systemInstruction,
-            temperature: 0.7
-          }
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("timeout")), 10000); // 10 seconds max per key
         });
+
+        const response = await Promise.race([
+          ai.models.generateContent({
+            model: "gemini-3.7-flash",
+            contents: prompt,
+            config: {
+              systemInstruction,
+              temperature: 0.7
+            }
+          }),
+          timeoutPromise
+        ]) as any;
         
         console.log(`[Gemini AI] Successfully used key index ${i}`);
         const responseText = response.text || "I'm sorry, I couldn't process your request.";
