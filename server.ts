@@ -441,7 +441,7 @@ app.post("/api/gemini", async (req, res) => {
   }
 
   try {
-    const { messages } = req.body;
+    const { messages, storeContext } = req.body;
     
     // Key rotation logic
     const keys = [
@@ -486,8 +486,10 @@ WASHING INSTRUCTIONS
     
     let contextStr = history.map((m: any) => `${m.role === "assistant" ? "Jersey Unicorn AI" : "User"}: ${m.content}`).join('\n');
     let prompt = `Conversation History:\n${contextStr}\n\nUser: ${currentMessage.content}\n\nPlease reply as Jersey Unicorn AI.`;
+    if (storeContext) prompt += `\n\nSTORE CONTEXT (For your reference to answer user queries about products):\n${storeContext}`;
     if (history.length === 0) {
       prompt = currentMessage.content;
+      if (storeContext) prompt += `\n\nSTORE CONTEXT (For your reference to answer user queries about products):\n${storeContext}`;
     }
 
     let lastError: any = null;
@@ -495,13 +497,15 @@ WASHING INSTRUCTIONS
     for (let i = 0; i < keys.length; i++) {
       const currentKey = keys[i];
       try {
-        const ai = new GoogleGenAI({ apiKey: currentKey });
+        const ai = new GoogleGenAI({ apiKey: currentKey, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+        
+        // Use timeout to prevent hanging on invalid dummy keys
         const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash", // stable fast model
+          model: "gemini-3.7-flash",
           contents: prompt,
           config: {
             systemInstruction,
-            temperature: 0.7,
+            temperature: 0.7
           }
         });
         
@@ -509,13 +513,41 @@ WASHING INSTRUCTIONS
         const responseText = response.text || "I'm sorry, I couldn't process your request.";
         return res.status(200).json({ text: responseText, audio: null });
       } catch (err: any) {
-        console.error(`[Gemini AI] Error with key index ${i}: `, err.message || err);
+        console.error(`[Gemini AI] Error with key index ${i}: `, err?.message || err);
         lastError = err;
+        
+        const status = err?.status || err?.response?.status;
+        const msg = err?.message || "";
+        
+        if (status === 401 || status === 403) {
+           console.log("[Gemini AI] Auth failure, rotating key...");
+           continue; // Try next key
+        }
+        if (status === 429) {
+           console.log("[Gemini AI] Quota exceeded, rotating key...");
+           continue; // Try next key
+        }
+        if (status === 404) {
+           return res.status(500).json({ error: "AI model configuration is invalid." });
+        }
+        if (status === 500) {
+           return res.status(500).json({ error: "AI backend error. Please try again later." });
+        }
+        if (status === 503 || msg.includes("UNAVAILABLE") || msg.includes("high demand") || msg.includes("overloaded")) {
+           // Return graceful error for temporary unavailability instead of looping through all keys
+           return res.status(503).json({ error: "AI is temporarily unavailable due to high demand. Please try again in a few minutes." });
+        }
+        
+        // If it was a timeout (AbortError) or other network error, try next key
+        if (msg.includes("abort") || msg.includes("timeout")) {
+            console.log("[Gemini AI] Request timed out, trying next key...");
+            continue;
+        }
       }
     }
 
-    console.error("[Gemini AI] All keys failed. Last error: ", lastError);
-    return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });
+    console.error("[Gemini AI] All keys failed. Last error: ", lastError?.message || lastError);
+    return res.status(500).json({ error: "AI is temporarily unavailable. Please try again in a few minutes." });
   } catch (error: any) {
     console.error("[Gemini AI] Unexpected Server Error: ", error);
     return res.status(500).json({ error: "Our AI Assistant is temporarily unavailable. Please try again in a few minutes." });

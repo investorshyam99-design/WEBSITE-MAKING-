@@ -1,0 +1,7 @@
+
+> react-example@0.0.0 dev
+> tsx server.ts
+
+Server running on http://localhost:3000
+[Gemini AI] Error with key index 0:  {"error":{"code":503,"message":"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.","status":"UNAVAILABLE"}}
+[Gemini AI] Successfully used key index 1

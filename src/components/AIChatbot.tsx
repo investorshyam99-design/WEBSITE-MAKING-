@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Sparkles, X, Send, Bot, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLocation } from 'react-router-dom';
+import { useProducts } from '../data/products';
 import { useShop, getGuestId } from '../context/ShopContext';
 import { db } from '../lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
 export function AIChatbot() {
+  const { products } = useProducts();
   const location = useLocation();
   const { user } = useShop();
 
@@ -66,7 +68,8 @@ export function AIChatbot() {
           messages: [
             ...messages.map(m => ({ role: m.role, content: m.text })),
             { role: 'user', content: userMessage }
-          ]
+          ],
+          storeContext: products.length > 0 ? "Available Products:\n" + products.map(p => `- ${p.name} (₹${p.price}) [URL: /product/${p.slug}]`).join('\n') : ""
         })
       });
 
