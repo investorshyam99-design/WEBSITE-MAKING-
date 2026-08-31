@@ -1,0 +1,13 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    52    0     0  100    52      0     43  0:00:01  0:00:01 --:--:--    43100    52    0     0  100    52      0     23  0:00:02  0:00:02 --:--:--    23100    52    0     0  100    52      0     16  0:00:03  0:00:03 --:--:--    16100    52    0     0  100    52      0     12  0:00:04  0:00:04 --:--:--    12100    52    0     0  100    52      0      9  0:00:05  0:00:05 --:--:--     9100    52    0     0  100    52      0      8  0:00:06  0:00:06 --:--:--     0100    52    0     0  100    52      0      7  0:00:07  0:00:07 --:--:--     0100    52    0     0  100    52      0      6  0:00:08  0:00:08 --:--:--     0100    52    0     0  100    52      0      5  0:00:10  0:00:09  0:00:01     0100    52    0     0  100    52      0      5  0:00:10  0:00:10 --:--:--     0100    52    0     0  100    52      0      4  0:00:13  0:00:11  0:00:02     0100    52    0     0  100    52      0      4  0:00:13  0:00:12  0:00:01     0100    52    0     0  100    52      0      3  0:00:17  0:00:13  0:00:04     0100    52    0     0  100    52      0      3  0:00:17  0:00:14  0:00:03     0100    52    0     0  100    52      0      3  0:00:17  0:00:15  0:00:02     0100    52    0     0  100    52      0      3  0:00:17  0:00:16  0:00:01     0100   298  100   246  100    52     15      3  0:00:17  0:00:16  0:00:01    59
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 246
+ETag: W/"f6-UliyrpSkKJeYS4De3k9+ypezcuo"
+Date: Mon, 31 Aug 2026 22:30:06 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"text":"Hello! Welcome to **JERSEY UNICORN**. \n\nHow can I help you today? Whether you have questions about sizing, need help choosing between our Player and Fan versions, or are looking for a specific jersey, I'm here to assist!","audio":null}

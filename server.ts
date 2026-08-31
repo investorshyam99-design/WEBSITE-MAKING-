@@ -506,7 +506,7 @@ WASHING INSTRUCTIONS
 
         const response = await Promise.race([
           ai.models.generateContent({
-            model: "gemini-3.7-flash",
+            model: "gemini-2.5-flash",
             contents: prompt,
             config: {
               systemInstruction,

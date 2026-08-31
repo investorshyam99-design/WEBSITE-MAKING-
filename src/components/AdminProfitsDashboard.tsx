@@ -246,19 +246,34 @@ export function AdminProfitsDashboard({ updateOrderCost }: { updateOrderCost: (i
 
   const handleSaveCosts = async (orderId: string) => {
     setIsSaving(true);
-    await updateOrderCost(orderId, {
+    const updatedCosts = {
       productCost: Number(productCost),
       shippingCost: Number(shippingCost),
       additionalCost: Number(additionalCost)
-    });
+    };
+    await updateOrderCost(orderId, updatedCosts);
+    
+    // Update local state directly so UI reflects immediately
+    setOrders(prevOrders => prevOrders.map(o => o.id === orderId ? { ...o, ...updatedCosts } : o));
+    
+    // Update cache so refresh retains the edit
+    const cachedData = sessionStorage.getItem('adminProfitsOrders');
+    if (cachedData) {
+       try {
+           const parsed = JSON.parse(cachedData);
+           const newCache = parsed.map((o: any) => o.id === orderId ? { ...o, ...updatedCosts } : o);
+           sessionStorage.setItem('adminProfitsOrders', JSON.stringify(newCache));
+       } catch(e) {}
+    }
+
     setEditingOrderId(null);
     setIsSaving(false);
   };
 
   const openEditor = (order: any) => {
-    setProductCost(order.productCost || '');
-    setShippingCost(order.shippingCost || '');
-    setAdditionalCost(order.additionalCost || '');
+    setProductCost(order.productCost !== undefined && order.productCost !== null ? String(order.productCost) : '');
+    setShippingCost(order.shippingCost !== undefined && order.shippingCost !== null ? String(order.shippingCost) : '');
+    setAdditionalCost(order.additionalCost !== undefined && order.additionalCost !== null ? String(order.additionalCost) : '');
     setEditingOrderId(order.id);
   };
 
