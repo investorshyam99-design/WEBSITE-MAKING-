@@ -1105,8 +1105,8 @@ function AdminOrderCard({
   const displayOrderNumber = order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable";
   const templates = {
     orderReceived: `Hey ${customerName} 👋\n\nYour Jersey Unicorn order ${displayOrderNumber} has been received successfully ⚽\n\nWe’ll update you once shipped 🚚`,
-    draftReminder: `Hey ${customerName},\n\nYour Jersey Unicorn order ${displayOrderNumber} is waiting for confirmation ⚽\n\nComplete your order here:\n${paymentLink}`,
-    codConfirm: `Please complete the ₹50 confirmation payment to process your COD order ${displayOrderNumber} ⚽\n\nLink: ${paymentLink}`,
+    draftReminder: `Hey ${customerName}\n\nYour Jersey Unicorn order ${displayOrderNumber} is waiting for confirmation ⚽\n\nComplete your order here:\nhttps://jerseyunicorn.com`,
+    codConfirm: `Hey ${customerName}\n\nYour Jersey Unicorn order ${displayOrderNumber} is waiting for confirmation ⚽\n\nComplete your order here:\nhttps://jerseyunicorn.com`,
     shipped: `Your Jersey Unicorn order ${displayOrderNumber} has been shipped 🚚\n\nTracking ID: ${trackingId}\nCourier: ${courierName}`,
     delivery: `Your Jersey Unicorn order ${displayOrderNumber} has been delivered ⚽🔥\n\nTag us on Instagram @jerseyunicorn1 to get featured ❤️`,
   };
