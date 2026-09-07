@@ -17,6 +17,7 @@ import {
   Star,
   X,
   Edit2,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminProfitsDashboard } from "./AdminProfitsDashboard";
@@ -74,11 +75,12 @@ interface Order { [key: string]: any;
 const TABS = [
   { id: "new", label: "New Orders" },
   { id: "drafts", label: "Draft Orders" },
-  { id: "abandoned", label: "Abandoned Carts" },
-  { id: "chats", label: "🤖 AI Chats" },
   { id: "placed", label: "Order Placed" },
   { id: "delivered", label: "Delivered" },
+  { id: "rto", label: "RTO" },
+  { id: "cancelled", label: "Cancelled" },
   { id: "profits", label: "📊 My Profits" },
+  { id: "chats", label: "🤖 AI Chats" },
 ];
 
 function generateWhatsAppLink(phone: string, text: string) {
@@ -102,7 +104,7 @@ export function AdminOrdersDashboard() {
   const [currentOrders, setCurrentOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   
-  const [counts, setCounts] = useState({ new: 0, drafts: 0, abandoned: 0, placed: 0, delivered: 0 });
+  const [counts, setCounts] = useState({ new: 0, drafts: 0, placed: 0, delivered: 0, rto: 0, cancelled: 0 });
 
   
   const fetchTabCounts = async () => {
@@ -110,16 +112,18 @@ export function AdminOrdersDashboard() {
         const cNew = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["Fully Paid", "Advance Paid", "Fampay", "Received"])));
         const cDrafts1 = await getCountFromServer(collection(db, "draft_orders"));
         const cDrafts2 = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["pending advance payment", "pending full payment", "pending_cart", "draft"])));
-        const cAban = await getCountFromServer(collection(db, "abandoned_carts"));
         const cPlaced = await getCountFromServer(query(collection(db, "orders"), where("status", "==", "Order Placed")));
         const cDelivered = await getCountFromServer(query(collection(db, "orders"), where("status", "==", "Delivered")));
+        const cRto = await getCountFromServer(query(collection(db, "orders"), where("status", "==", "RTO")));
+        const cCancelled = await getCountFromServer(query(collection(db, "orders"), where("status", "in", ["cancelled", "Cancelled"])));
         
         setCounts({
             new: cNew.data().count,
             drafts: cDrafts1.data().count + cDrafts2.data().count,
-            abandoned: cAban.data().count,
             placed: cPlaced.data().count,
-            delivered: cDelivered.data().count
+            delivered: cDelivered.data().count,
+            rto: cRto.data().count,
+            cancelled: cCancelled.data().count
         });
     } catch (e) {
         console.warn("Failed to fetch order counts", e);
@@ -148,31 +152,8 @@ export function AdminOrdersDashboard() {
     try {
         let fetchedOrders: Order[] = [];
 
-        // ABANDONED CARTS
-        if (activeTab === "abandoned") {
-            const q = query(collection(db, "abandoned_carts"), limit(200));
-            let snapshot;
-            try { snapshot = await getDocs(q); }
-            catch (e: any) { 
-                if (e.message?.includes("Quota")) snapshot = await getDocsFromCache(q); 
-                else throw e;
-            }
-            
-            fetchedOrders = snapshot.docs.map(doc => {
-                 const data = doc.data() as any;
-                 let productName = data.productName || "Order";
-                 if (!data.productName && data.items) productName = data.items.map((i: any) => i.name).join(", ");
-                 else if (!data.productName && data.cartItems) productName = data.cartItems.map((i: any) => i.name).join(", ");
-                 return { id: doc.id, ...data, status: "abandoned", productName } as Order;
-            });
-            fetchedOrders.sort((a, b) => {
-                const aTime = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
-                const bTime = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
-                return bTime - aTime;
-            });
-        } 
         // DRAFT ORDERS (Both old draft_orders and new pending orders)
-        else if (activeTab === "drafts") {
+        if (activeTab === "drafts") {
             let oldDrafts: any[] = [];
             try {
                 const qOld = query(collection(db, "draft_orders"), orderBy("createdAt", "desc"), limit(100));
@@ -206,7 +187,8 @@ export function AdminOrdersDashboard() {
             if (activeTab === "new") conditions.push(where("status", "in", ["Fully Paid", "Advance Paid", "Fampay", "Received"]));
             else if (activeTab === "placed") conditions.push(where("status", "==", "Order Placed"));
             else if (activeTab === "delivered") conditions.push(where("status", "==", "Delivered"));
-            else if (activeTab === "cancelled") conditions.push(where("status", "==", "cancelled"));
+            else if (activeTab === "rto") conditions.push(where("status", "==", "RTO"));
+            else if (activeTab === "cancelled") conditions.push(where("status", "in", ["cancelled", "Cancelled"]));
             
             conditions.push(orderBy("createdAt", "desc"));
             conditions.push(limit(300));
@@ -221,11 +203,12 @@ export function AdminOrdersDashboard() {
                     catch (cacheErr) {
                         const allDocs = await getDocsFromCache(collection(db, "orders"));
                         let validDocs = allDocs.docs;
-                        if (activeTab === "new") validDocs = validDocs.filter(d => ["Fully Paid", "Advance Paid", "Fampay", "Received"].includes(d.data().status));
-                        else if (activeTab === "placed") validDocs = validDocs.filter(d => d.data().status === "Order Placed");
-                        else if (activeTab === "delivered") validDocs = validDocs.filter(d => d.data().status === "Delivered");
-                        else if (activeTab === "cancelled") validDocs = validDocs.filter(d => d.data().status === "cancelled");
-                        validDocs.sort((a, b) => {
+                        if (activeTab === "new") validDocs = validDocs.filter((d: any) => ["Fully Paid", "Advance Paid", "Fampay", "Received"].includes(d.data().status));
+                        else if (activeTab === "placed") validDocs = validDocs.filter((d: any) => d.data().status === "Order Placed");
+                        else if (activeTab === "delivered") validDocs = validDocs.filter((d: any) => d.data().status === "Delivered");
+                        else if (activeTab === "rto") validDocs = validDocs.filter((d: any) => d.data().status === "RTO");
+                        else if (activeTab === "cancelled") validDocs = validDocs.filter((d: any) => d.data().status === "cancelled" || d.data().status === "Cancelled");
+                        validDocs.sort((a: any, b: any) => {
                            const aTime = a.data().createdAt?.toMillis ? a.data().createdAt.toMillis() : 0;
                            const bTime = b.data().createdAt?.toMillis ? b.data().createdAt.toMillis() : 0;
                            return bTime - aTime;
@@ -235,23 +218,15 @@ export function AdminOrdersDashboard() {
                 } else throw fetchErr;
             }
 
-            fetchedOrders = snapshot.docs.map(doc => {
+            fetchedOrders = snapshot.docs.map((doc: any) => {
                  const data = doc.data() as any;
                  return { id: doc.id, ...data, productName: data.productName || "Order" } as Order;
             });
         }
-
+        
         setCurrentOrders(fetchedOrders);
-        setHasNextPage(false);
-        if (reset) {
-            setLastDocs([]);
-        }
-    } catch (e: any) {
-        console.warn("Failed to fetch tab orders", e);
-        if (e.message?.includes("Quota")) {
-           // We might still fail if cache is empty
-           console.log("Could not even load from cache due to quota/offline.");
-        }
+    } catch (err) {
+        console.error("Error fetching orders:", err);
     } finally {
         setIsLoadingOrders(false);
     }
@@ -564,41 +539,18 @@ export function AdminOrdersDashboard() {
                   {counts.drafts}
                 </span>
               )}
-              {tab.id === "abandoned" && counts.abandoned > 0 && (
-                <span className="ml-2 bg-rose-100 text-rose-800 py-0.5 px-2 rounded-full text-[10px]">
-                  {counts.abandoned}
-                </span>
-              )}
-              {tab.id === "placed" && counts.placed > 0 && (
-                <span className="ml-2 bg-emerald-100 text-emerald-800 py-0.5 px-2 rounded-full text-[10px]">
-                  {counts.placed}
-                </span>
-              )}
-              {tab.id === "delivered" && counts.delivered > 0 && (
-                <span className="ml-2 bg-purple-100 text-purple-800 py-0.5 px-2 rounded-full text-[10px]">
-                  {counts.delivered}
-                </span>
-              )}
             </button>
           ))}
-          <div className="relative flex items-center shrink-0">
-             <select 
-               className="ml-2 pl-3 pr-8 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 bg-white border border-gray-200 rounded-md shadow-sm outline-none cursor-pointer hover:bg-gray-50 appearance-none"
-               value={activeTab === "cancelled" ? "cancelled" : "more"}
-               onChange={(e) => {
-                 if(e.target.value === "cancelled") setActiveTab("cancelled");
-               }}
-             >
-               <option value="more" disabled>MORE ▼</option>
-               <option value="cancelled">❌ Cancelled Orders</option>
-             </select>
-          </div>
         </div>
       </div>
-
-      {/* Order List */}
-      <div className="p-4 space-y-4 max-w-3xl mx-auto">
-        {activeTab === "profits" ? (
+      
+      <div className="p-4 sm:p-6">
+        {isLoadingOrders ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-[#1E2A44] mb-4" />
+            <p className="text-gray-500 font-medium">Loading orders...</p>
+          </div>
+        ) : activeTab === "profits" ? (
           <AdminProfitsDashboard updateOrderCost={handleUpdateOrderCost} />
         ) : activeTab === "chats" ? (
           <AdminChatsList />
@@ -615,99 +567,101 @@ export function AdminOrdersDashboard() {
               key={group.id}
               group={group}
               activeTab={activeTab}
-              onUpdateStatus={handleUpdateStatus}
-              onDelete={handleDelete}
-              onUpdateTracking={handleUpdateTracking}
-              onUpdatePrice={handleUpdatePrice}
-              onUpdateCustomizationStatus={handleUpdateCustomizationStatus}
+              handleUpdateStatus={handleUpdateStatus}
+              handleUpdateTracking={handleUpdateTracking}
+              handleDelete={handleDelete}
               onEditPayment={handleEditPayment}
+              handleUpdatePrice={handleUpdatePrice}
+              handleUpdateCustomizationStatus={handleUpdateCustomizationStatus}
+              refreshOrders={refreshOrders}
             />
           ))
         )}
-      </div>
 
-      {/* Pagination Controls */}
-      {!["profits", "chats"].includes(activeTab) && (currentOrders.length > 0) && (
-        <div className="flex justify-between items-center max-w-3xl mx-auto px-4 py-4">
-            <button 
-                onClick={handlePrevPage} 
-                disabled={page === 1 || isLoadingOrders}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 disabled:opacity-50 hover:bg-gray-50"
+        {/* Pagination Controls */}
+        {!search && ["new", "placed", "delivered", "rto", "cancelled"].includes(activeTab) && (
+          <div className="flex justify-between items-center mt-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+            <button
+              onClick={handlePrevPage}
+              disabled={page === 1}
+              className="px-4 py-2 text-sm font-bold uppercase text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50"
             >
-                ← Previous
+              Previous
             </button>
-            <span className="text-sm font-bold text-gray-500">
-                Page {page}
-            </span>
-            <button 
-                onClick={handleNextPage} 
-                disabled={!hasNextPage || isLoadingOrders}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 disabled:opacity-50 hover:bg-gray-50"
+            <span className="text-sm font-bold text-gray-700">Page {page}</span>
+            <button
+              onClick={handleNextPage}
+              disabled={!hasNextPage}
+              className="px-4 py-2 text-sm font-bold uppercase text-blue-600 hover:bg-blue-50 rounded disabled:opacity-50"
             >
-                Next →
+              Next
             </button>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Payment Edit Modal */}
       {editingPaymentOrder && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={() => setEditingPaymentOrder(null)}
-        >
-          <div 
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-900">Edit Payment Amounts</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-[#1B1B1B]">Edit Payment Totals</h3>
               <button 
                 onClick={() => setEditingPaymentOrder(null)}
-                className="text-gray-400 hover:text-gray-700 p-1"
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
             
-            <div className="p-5 space-y-4">
+            <div className="p-6 space-y-5">
               <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">
-                  Total Order Value (₹)
-                </label>
-                <input 
-                  type="number" 
-                  value={paymentEditTotal}
-                  onChange={(e) => setPaymentEditTotal(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">
-                  Paid / Advance Amount (₹)
-                </label>
-                <input 
-                  type="number" 
-                  value={paymentEditPaid}
-                  onChange={(e) => setPaymentEditPaid(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Total Order Value</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 font-semibold">₹</span>
+                  </div>
+                  <input
+                    type="number"
+                    value={paymentEditTotal}
+                    onChange={e => setPaymentEditTotal(e.target.value)}
+                    className="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold text-[#1B1B1B]"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1.5">
-                  To Collect / COD Amount (₹)
-                </label>
-                <input 
-                  type="number" 
-                  value={paymentEditCod}
-                  onChange={(e) => setPaymentEditCod(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Advance / Amount Paid</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 font-semibold">₹</span>
+                  </div>
+                  <input
+                    type="number"
+                    value={paymentEditPaid}
+                    onChange={e => setPaymentEditPaid(e.target.value)}
+                    className="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold text-[#1B1B1B]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">To Collect (COD Amount)</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 font-semibold">₹</span>
+                  </div>
+                  <input
+                    type="number"
+                    value={paymentEditCod}
+                    onChange={e => setPaymentEditCod(e.target.value)}
+                    className="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold text-[#1B1B1B]"
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button 
                 onClick={() => setEditingPaymentOrder(null)}
                 className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -729,26 +683,17 @@ export function AdminOrdersDashboard() {
   );
 }
 
-
 function AdminCustomerGroupCard({
   group,
   activeTab,
-  onUpdateStatus,
-  onDelete,
-  onUpdateTracking,
-  onUpdatePrice,
-  onUpdateCustomizationStatus,
+  handleUpdateStatus: onUpdateStatus,
+  handleUpdateTracking: onUpdateTracking,
+  handleDelete: onDelete,
   onEditPayment,
-}: {
-  group: any;
-  activeTab: string;
-  onUpdateStatus: (orderId: string, s: string) => void;
-  onDelete: (orderId: string) => void;
-  onUpdateTracking: (orderId: string, t: string, c: string, url: string) => void;
-  onUpdatePrice: (orderId: string, p: number) => void;
-  onUpdateCustomizationStatus: (orderId: string, status: string) => void;
-  onEditPayment: (order: any, calc: any) => void;
-}) {
+  handleUpdatePrice: onUpdatePrice,
+  handleUpdateCustomizationStatus: onUpdateCustomizationStatus,
+  refreshOrders,
+}: any) {
   const [isFulfillingAll, setIsFulfillingAll] = useState(false);
   const [isMovingAll, setIsMovingAll] = useState(false);
   const [showConfirmFulfill, setShowConfirmFulfill] = useState(false);
@@ -1436,10 +1381,10 @@ function AdminOrderCard({
                 {(order.awbNumber || order.delhiveryShipmentId || order.trackingId) ? (
                   <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg mb-2">
                     <p className="text-xs font-bold text-green-700 uppercase mb-1">Shipment Created</p>
-                    <p className="text-[11px] text-green-600 mb-2 font-mono">AWB: {order.awbNumber || order.delhiveryShipmentId || order.trackingId}</p>
+                    <p className="text-[11px] text-green-600 mb-2 font-mono">TRACKING NUMBER: {order.awbNumber || order.delhiveryShipmentId || order.trackingId}</p>
                     <div className="flex gap-2">
                        <a href={order.trackingUrl || `https://www.delhivery.com/track/package/${order.awbNumber || order.delhiveryShipmentId || order.trackingId}`} target="_blank" className="flex-1 py-1.5 bg-white border border-green-300 text-green-700 text-[10px] font-bold uppercase text-center rounded shadow-sm hover:bg-green-50">Track</a>
-                       <a href={`/api/delhivery?action=label&awb=${order.awbNumber || order.delhiveryShipmentId || order.trackingId}`} target="_blank" className="flex-1 py-1.5 bg-white border border-green-300 text-green-700 text-[10px] font-bold uppercase text-center rounded shadow-sm hover:bg-green-50">View Label</a>
+                       {(order.awbNumber || order.delhiveryShipmentId) && (<a href={`/api/delhivery?action=label&awb=${order.awbNumber || order.delhiveryShipmentId}`} target="_blank" className="flex-1 py-1.5 bg-white border border-green-300 text-green-700 text-[10px] font-bold uppercase text-center rounded shadow-sm hover:bg-green-50">View Label</a>)}
                     </div>
                   </div>
                 ) : (
@@ -1523,7 +1468,7 @@ function AdminOrderCard({
                     onClick={() => setShowTrackingForm(true)}
                     className="w-full py-2.5 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 border border-blue-200 mb-2"
                   >
-                    <Truck className="h-4 w-4" /> Add Tracking
+                    <Truck className="h-4 w-4" /> {(order.awbNumber || order.delhiveryShipmentId || order.trackingId) ? "Update Tracking" : "Add Tracking"}
                   </button>
                 )}
 
@@ -1533,25 +1478,123 @@ function AdminOrderCard({
                 >
                   <Check className="h-4 w-4" /> Mark Delivered
                 </button>
+
+                <button
+                  onClick={() => onUpdateStatus("RTO")}
+                  className="w-full py-2.5 bg-amber-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 hover:bg-amber-700"
+                >
+                  <RefreshCw className="h-4 w-4" /> Move to RTO
+                </button>
+                <button
+                  onClick={() => onUpdateStatus("Cancelled")}
+                  className="w-full py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 hover:bg-red-700"
+                >
+                  <Trash2 className="h-4 w-4" /> Cancel Order
+                </button>
+
               </>
             )}
 
             {activeTab === "placed" && (
               <>
+                {(order.awbNumber || order.delhiveryShipmentId || order.trackingId) ? (
+                  <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg mb-2">
+                    <p className="text-xs font-bold text-green-700 uppercase mb-1">Shipment Created</p>
+                    <p className="text-[11px] text-green-600 mb-2 font-mono">TRACKING NUMBER: {order.awbNumber || order.delhiveryShipmentId || order.trackingId}</p>
+                    <div className="flex gap-2">
+                       <a href={order.trackingUrl || `https://www.delhivery.com/track/package/${order.awbNumber || order.delhiveryShipmentId || order.trackingId}`} target="_blank" className="flex-1 py-1.5 bg-white border border-green-300 text-green-700 text-[10px] font-bold uppercase text-center rounded shadow-sm hover:bg-green-50">Track</a>
+                       {(order.awbNumber || order.delhiveryShipmentId) && (
+                         <a href={`/api/delhivery?action=label&awb=${order.awbNumber || order.delhiveryShipmentId}`} target="_blank" className="flex-1 py-1.5 bg-white border border-green-300 text-green-700 text-[10px] font-bold uppercase text-center rounded shadow-sm hover:bg-green-50">View Label</a>
+                       )}
+                    </div>
+                  </div>
+                ) : null}
+                
+                
+                {showTrackingForm ? (
+                  <div className="bg-white p-3 rounded-lg border border-blue-200 shadow-sm space-y-3 mb-2">
+                    <select
+                      value={courierName}
+                      onChange={(e) => setCourierName(e.target.value)}
+                      className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
+                    >
+                      <option value="">Select Courier</option>
+                      <option value="Delhivery">Delhivery</option>
+                      <option value="BlueDart">BlueDart</option>
+                      <option value="DTDC">DTDC</option>
+                      <option value="XpressBees">XpressBees</option>
+                      <option value="Ecom Express">Ecom Express</option>
+                      <option value="India Post">India Post</option>
+                      <option value="Ekart">Ekart</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Tracking Number"
+                      value={trackingId}
+                      onChange={(e) => setTrackingId(e.target.value)}
+                      className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-sm focus:outline-none focus:border-blue-400"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowTrackingForm(false)}
+                        className="flex-1 py-2 bg-gray-100 text-gray-600 text-xs font-bold uppercase rounded"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          onUpdateTracking(trackingId, courierName, trackingUrl);
+                          window.open(
+                            generateWhatsAppLink(
+                              order.phone || "",
+                              templates.shipped,
+                            ),
+                            "_blank",
+                          );
+                          setShowTrackingForm(false);
+                        }}
+                        className="flex-1 py-2 bg-blue-600 text-white text-xs font-bold uppercase rounded flex items-center justify-center gap-1"
+                      >
+                        <Truck className="h-3 w-3" /> Save & Send
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowTrackingForm(true)}
+                    className="w-full py-2.5 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 border border-blue-200 mb-2"
+                  >
+                    <Truck className="h-4 w-4" /> {(order.awbNumber || order.delhiveryShipmentId || order.trackingId) ? "Update Tracking" : "Add Tracking"}
+                  </button>
+                )}
+
                 
                 <button
                   onClick={() => onUpdateStatus("Received")}
                   className="w-full py-2.5 bg-gray-100 text-gray-800 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm border border-gray-200 mb-2 hover:bg-gray-200"
                 >
-                  <ChevronDown className="h-4 w-4 rotate-90" /> Move to New
-                  Orders
+                  <ChevronDown className="h-4 w-4 rotate-90" /> Move to New Orders
                 </button>
                 <button
                   onClick={() => onUpdateStatus("Delivered")}
-                  className="w-full py-2.5 bg-gray-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm hover:bg-gray-900"
+                  className="w-full py-2.5 bg-gray-800 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm hover:bg-gray-900 mb-2"
                 >
                   <Check className="h-4 w-4" /> Mark Delivered
                 </button>
+                
+                <button
+                  onClick={() => onUpdateStatus("RTO")}
+                  className="w-full py-2.5 bg-amber-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 hover:bg-amber-700"
+                >
+                  <RefreshCw className="h-4 w-4" /> Move to RTO
+                </button>
+                <button
+                  onClick={() => onUpdateStatus("Cancelled")}
+                  className="w-full py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-sm mb-2 hover:bg-red-700"
+                >
+                  <Trash2 className="h-4 w-4" /> Cancel Order
+                </button>
+
               </>
             )}
 

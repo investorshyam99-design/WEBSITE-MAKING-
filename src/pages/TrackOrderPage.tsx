@@ -20,22 +20,6 @@ export function TrackOrderPage() {
     setTrackingData(null);
     try {
       let awbToTrack = queryVal;
-
-      // If it looks like an order number or we just want to check the DB first
-      if (!queryVal.match(/^[0-9A-Z]{10,}$/i)) { // Rough check if it's NOT an AWB, maybe it's an order ID
-        const q1 = query(collection(db, "orders"), where("orderNumber", "==", Number(queryVal)));
-        const snap1 = await getDocs(q1);
-        if (!snap1.empty && snap1.docs[0].data().awbNumber) {
-           awbToTrack = snap1.docs[0].data().awbNumber;
-        } else {
-           const q2 = query(collection(db, "orders"), where("id", "==", queryVal));
-           const snap2 = await getDocs(q2);
-           if (!snap2.empty && snap2.docs[0].data().awbNumber) {
-              awbToTrack = snap2.docs[0].data().awbNumber;
-           }
-        }
-      }
-
       const res = await fetch(`/api/delhivery`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,7 +58,7 @@ export function TrackOrderPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-black tracking-tight text-[#1E2A44] mb-2 uppercase">Track Order</h1>
-            <p className="text-gray-500 font-medium text-sm">Enter your Order Number or AWB to check delivery status.</p>
+            <p className="text-gray-500 font-medium text-sm">Enter your AWB / Tracking Number to check delivery status.</p>
           </div>
 
           <form 
@@ -87,7 +71,7 @@ export function TrackOrderPage() {
               </div>
               <input
                 type="text"
-                placeholder="Order # or AWB Number"
+                placeholder="AWB Number"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#1E2A44] focus:ring-0 outline-none transition-colors font-semibold"

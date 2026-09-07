@@ -469,16 +469,43 @@ GENERAL BEHAVIOUR
 - Never provide false information.
 - Never guess information that you do not know.
 - Never promise discounts, refunds, or delivery dates beyond the official policy.
+- Customer Care Number: 9930234467
 
-PLAYER / MASTER / FAN DIFFERENCE
-Player Version: Same style worn by professional players. Slim, athletic fit. Heat-pressed rubberized crests. Highly breathable performance fabric.
-Master/Fan Version: Looser, more relaxed fit. Embroidered fabric crests. Standard breathable fabric. Designed for everyday wear.
+BUSINESS KNOWLEDGE & POLICIES
 
-WASHING INSTRUCTIONS
-- Hand wash recommended.
-- Do not machine wash.
-- Wash inside out in cold water.
-- Do not iron on prints or logos.`;
+1. COD (Cash on Delivery)
+- COD is AVAILABLE.
+- ₹50 ADVANCE PAYMENT IS REQUIRED PER JERSEY for COD orders. (Example: 1 jersey = ₹50 advance, 2 jerseys = ₹100 advance, 3 jerseys = ₹150 advance).
+- The remaining amount is collected as COD according to the checkout calculation.
+
+2. CUSTOMIZATION
+- Customization is available (Name and Number).
+- CUSTOMIZED JERSEYS ARE NOT ELIGIBLE FOR COD. If a customer asks to customize with COD, tell them "Customization is available, but customized jerseys are not available on COD. Customized orders require online/prepaid payment."
+- Original-style font options are available where supported by our customization service.
+
+3. EXCHANGE POLICY
+- SIZE EXCHANGE: Available, but the customer has to pay the applicable delivery/shipping charges.
+- DEFECTIVE/DAMAGED PRODUCT: If the product arrives defective or damaged, Jersey Unicorn will pay the applicable delivery charges for the exchange.
+- DO NOT invent refund policies. We offer exchanges based on these rules.
+
+4. SHIPPING INFORMATION
+- Delivery charges and options (Fast/Normal) are shown at checkout.
+- Customers can check pincode serviceability and ETA using the tracking API.
+
+5. TRACKING ORDERS
+- Track orders using the AWB Number ONLY. DO NOT ask for the order number.
+- If a customer says "Track my order" or similar, respond: "Sure. Please enter your AWB / tracking number and I'll help you track your shipment."
+- DO NOT ask the customer to enter their order number to track.
+- If they ask HOW to track, explain: "We'll send your order tracking/AWB number to you through WhatsApp. You can also track your order on our website by going to My Orders or Track Order in the menu and entering your AWB number."
+
+6. PRODUCTS
+- Use the STORE CONTEXT to answer questions about products, prices, and sizes.
+- Player Version: Same style worn by professional players. Slim, athletic fit. Heat-pressed rubberized crests. Highly breathable performance fabric.
+- Master/Fan Version: Looser, more relaxed fit. Embroidered fabric crests. Standard breathable fabric. Designed for everyday wear.
+
+7. WASHING INSTRUCTIONS
+- Hand wash recommended. Do not machine wash.
+- Wash inside out in cold water. Do not iron on prints or logos.`;
 
     // Convert messages to string context
     const currentMessage = messages[messages.length - 1];
@@ -510,15 +537,118 @@ WASHING INSTRUCTIONS
             contents: prompt,
             config: {
               systemInstruction,
-              temperature: 0.7
+              temperature: 0.7,
+            tools: [{
+              functionDeclarations: [
+                {
+                  name: "checkPincodeServiceability",
+                  description: "Check if a pincode is serviceable for delivery and get ETA.",
+                  parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                      pincode: { type: Type.STRING, description: "The 6-digit postal code to check." }
+                    },
+                    required: ["pincode"]
+                  }
+                },
+                {
+                  name: "trackShipmentByAWB",
+                  description: "Track the status of a shipment using its AWB number.",
+                  parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                      awb: { type: Type.STRING, description: "The AWB or tracking number." }
+                    },
+                    required: ["awb"]
+                  }
+                }
+              ]
+            }],
+
             }
           }),
           timeoutPromise
         ]) as any;
         
+        
         console.log(`[Gemini AI] Successfully used key index ${i}`);
+        
+        // Check for function calls
+        if (response.functionCalls && response.functionCalls.length > 0) {
+            const call = response.functionCalls[0];
+            let functionResult = {};
+            
+            try {
+                if (call.name === 'checkPincodeServiceability') {
+                    const pincode = call.args.pincode;
+                    const apiKey = process.env.DELHIVERY_API_TOKEN;
+                    if (!apiKey) throw new Error("Delhivery API token missing");
+                    
+                    const res = await fetch(`https://track.delhivery.com/c/api/pin-codes/json/?filter_codes=${pincode}`, {
+                        headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/json" }
+                    });
+                    const data = await res.json();
+                    
+                    if (data?.delivery_codes?.length > 0) {
+                        const center = data.delivery_codes[0].postal_code;
+                        functionResult = {
+                            isServiceable: true,
+                            city: center.city,
+                            state: center.state,
+                            codAvailable: center.cod === "Y",
+                            eta: "5-7 business days normally, 3-5 days for Express delivery."
+                        };
+                    } else {
+                        functionResult = { isServiceable: false, error: "Pincode valid but not serviceable." };
+                    }
+                } else if (call.name === 'trackShipmentByAWB') {
+                    const awb = call.args.awb;
+                    const apiKey = process.env.DELHIVERY_API_TOKEN;
+                    const res = await fetch(`https://track.delhivery.com/api/v1/packages/json/?waybill=${awb}`, {
+                        headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/json" }
+                    });
+                    const data = await res.json();
+                    
+                    if (data && data.ShipmentData && data.ShipmentData.length > 0) {
+                        const shipment = data.ShipmentData[0].Shipment;
+                        functionResult = {
+                            awb: shipment.AWB,
+                            status: shipment.Status?.Status || "Pending",
+                            statusType: shipment.Status?.StatusType || "Info",
+                            statusDateTime: shipment.Status?.StatusDateTime || "",
+                            destination: shipment.Destination || "",
+                            expectedDelivery: shipment.ExpectedDeliveryDate || "Not available yet"
+                        };
+                    } else {
+                        functionResult = { error: "Shipment not found or tracking unavailable for this AWB." };
+                    }
+                }
+            } catch (error) {
+                console.error("Tool execution error:", error);
+                functionResult = { error: "Failed to execute function." };
+            }
+            
+            // Return result to Gemini
+            const followUpResponse = await ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [
+                    { role: "user", parts: [{ text: prompt }] },
+                    { role: "model", parts: [{ functionCall: call }] },
+                    { role: "user", parts: [{ functionResponse: { name: call.name, response: functionResult } }] }
+                ],
+                config: {
+                    systemInstruction,
+                    temperature: 0.7
+                }
+            });
+            
+            const finalResponseText = followUpResponse.text || "I processed your request but have no response.";
+            return res.status(200).json({ text: finalResponseText, audio: null });
+        }
+
         const responseText = response.text || "I'm sorry, I couldn't process your request.";
         return res.status(200).json({ text: responseText, audio: null });
+
       } catch (err: any) {
         console.error(`[Gemini AI] Error with key index ${i}: `, err?.message || err);
         lastError = err;

@@ -1,0 +1,653 @@
+490:  return (
+491-    <div className="bg-gray-50 min-h-screen pb-20">
+492-      {/* Mobile-first Header */}
+493-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+494-        <div className="p-4">
+495-          <div className="flex justify-between items-center mb-3">
+496-            <h2 className="text-xl font-black text-[#1E2A44] uppercase tracking-widest flex items-center gap-2">
+497-              Operations
+498-            </h2>
+499-            <button
+500-              onClick={() => navigate("/")}
+501-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+502-            >
+503-              <X className="h-6 w-6 text-gray-500" />
+504-            </button>
+505-          </div>
+506-          <div className="relative">
+507-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+508-            <input
+509-              type="text"
+510-              placeholder="Search orders..."
+511-              value={search}
+512-              onChange={(e) => setSearch(e.target.value)}
+513-              className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E2A44] text-sm font-medium"
+514-            />
+515-          </div>
+516-        </div>
+517-
+518-        {/* Tabs */}
+519-        <div className="flex overflow-x-auto px-2 scrollbar-hide border-t border-gray-100">
+520-          {TABS.map((tab) => (
+521-            <button
+522-              key={tab.id}
+523-              onClick={() => setActiveTab(tab.id)}
+524-              className={`px-4 py-3 whitespace-nowrap text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex-shrink-0 ${
+525-                activeTab === tab.id
+526-                  ? "border-[#1E2A44] text-[#1E2A44]"
+527-                  : "border-transparent text-gray-400 hover:text-gray-600"
+528-              }`}
+529-            >
+530-              {tab.label}
+531-              {tab.id === "new" && counts.new > 0 && (
+532-                <span className="ml-2 bg-blue-100 text-blue-800 py-0.5 px-2 rounded-full text-[10px]">
+533-                  {counts.new}
+534-                </span>
+535-              )}
+536-              {tab.id === "drafts" && counts.drafts > 0 && (
+537-                <span className="ml-2 bg-amber-100 text-amber-800 py-0.5 px-2 rounded-full text-[10px]">
+538-                  {counts.drafts}
+539-                </span>
+540-              )}
+541-               {
+542-  const [isFulfillingAll, setIsFulfillingAll] = useState(false);
+543-  const [isMovingAll, setIsMovingAll] = useState(false);
+544-  const [showConfirmFulfill, setShowConfirmFulfill] = useState(false);
+545-  const [fulfillResults, setFulfillResults] = useState<{id: string, success: boolean, msg: string}[]>([]);
+546-  const [moveResults, setMoveResults] = useState<{id: string, success: boolean, msg: string}[]>([]);
+547-
+548-  // Calculate totals
+549-  let totalOrderValue = 0;
+550-  let totalPaid = 0;
+551-  let totalCod = 0;
+552-
+553-  group.orders.forEach((o: any) => {
+554-    const calc = getOrderCalculations(o);
+555-    totalOrderValue += (calc.finalTotalAmount || 0);
+556-    totalPaid += (calc.amountPaid || 0);
+557-    totalCod += (calc.codAmount || 0);
+558-  });
+559-
+560-  const handleFulfillAllClick = () => {
+561-    // 1. Check for already fulfilled orders
+562-    const unfulfilled = group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId));
+563-    if (unfulfilled.length === 0) {
+564-      alert("All orders in this group are already fulfilled.");
+565-      return;
+566-    }
+567-    
+568-    // 2. Validate shipping details consistency
+569-    const first = unfulfilled[0];
+570-    const basePhone = String(first.phone).replace(/\D/g, '').slice(-10);
+571-    const baseAddress = String(first.address).toLowerCase().trim();
+572-    const basePincode = String(first.pincode).toLowerCase().trim();
+573-    const baseType = (first.deliveryType && (String(first.deliveryType).toLowerCase() === "fast" || String(first.deliveryType).toLowerCase() === "express")) ? "fast" : "normal";
+574-    
+575-    for (const o of unfulfilled) {
+576-       const p = String(o.phone).replace(/\D/g, '').slice(-10);
+577-       const a = String(o.address).toLowerCase().trim();
+578-       const pin = String(o.pincode).toLowerCase().trim();
+579-       const t = (o.deliveryType && (String(o.deliveryType).toLowerCase() === "fast" || String(o.deliveryType).toLowerCase() === "express")) ? "fast" : "normal";
+580-       
+581-       if (p !== basePhone || pin !== basePincode) {
+582-           alert("Cannot combine shipments: customer shipping details differ.\n\nPlease fulfill them separately.");
+583-           return;
+584-       }
+585-       if (t !== baseType) {
+586-           alert("These orders have different delivery types and cannot be combined into one shipment.\n\nPlease fulfill them separately.");
+587-           return;
+588-       }
+589-    }
+590-    
+591-    setShowConfirmFulfill(true);
+592-  };
+593-
+594-  const handleFulfillAllConfirm = async () => {
+595-    setShowConfirmFulfill(false);
+596-    setIsFulfillingAll(true);
+597-    setFulfillResults([]);
+598-    
+599-    const unfulfilled = group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId));
+600-    
+601-    if (unfulfilled.length === 0) {
+602-       setIsFulfillingAll(false);
+603-       return;
+604-    }
+605-    
+606-    try {
+607-        const response = await fetch("/api/delhivery", {
+608-            method: "POST",
+609-            headers: { "Content-Type": "application/json" },
+610-            body: JSON.stringify({ action: "create_combined", orderIds: unfulfilled.map((o: any) => o.id) })
+611-        });
+612-        const data = await response.json();
+613-        
+614-        const results = [];
+615-        if (!data.success) {
+616-           results.push({ id: "Group", success: false, msg: data.error || "Failed" });
+617-        } else {
+618-           const awb = data.awb;
+619-           for (const order of unfulfilled) {
+620-               // Update local UI immediately for responsiveness (real-time listener will also fire)
+621-               results.push({ id: order.orderNumber || order.id, success: true, msg: "AWB " + awb });
+622-           }
+623-        }
+624-        setFulfillResults(results);
+625-    } catch (err: any) {
+626-        setFulfillResults([{ id: "Group", success: false, msg: err.message }]);
+627-    }
+628-    setIsFulfillingAll(false);
+629-  };
+630-
+631-  const handleMoveAllToPlaced = async () => {
+632-    setIsMovingAll(true);
+633-    setMoveResults([]);
+634-    const results = [];
+635-    for (const order of group.orders) {
+636-      try {
+637-        onUpdateStatus(order.id, "Order Placed");
+638-        results.push({ id: order.orderNumber || order.id, success: true, msg: "Moved successfully" });
+639-      } catch (err: any) {
+640-        results.push({ id: order.orderNumber || order.id, success: false, msg: err.message });
+641-      }
+642-    }
+643-    setMoveResults(results);
+644-    setIsMovingAll(false);
+645-  };
+646-  const [isMarkingDelivered, setIsMarkingDelivered] = useState(false);
+647-  
+648-  const handleMarkAllDelivered = async () => {
+649-    setIsMarkingDelivered(true);
+650-    setMoveResults([]);
+651-    const results = [];
+652-    for (const order of group.orders) {
+653-      if (String(order.status).toLowerCase() === "delivered") {
+654-         results.push({ id: order.orderNumber || order.id, success: false, msg: "Already delivered" });
+655-         continue;
+656-      }
+657-      try {
+658-        onUpdateStatus(order.id, "Delivered");
+659-        results.push({ id: order.orderNumber || order.id, success: true, msg: "Marked as Delivered" });
+660-      } catch (err: any) {
+661-        results.push({ id: order.orderNumber || order.id, success: false, msg: err.message });
+662-      }
+663-    }
+664-    setMoveResults(results);
+665-    setIsMarkingDelivered(false);
+666-  };
+667-
+668-
+669:  return (
+670-    <div className="mb-6 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+671-      {/* Group Header */}
+672-      <div className="bg-[#1E2A44] p-4 text-white">
+673-        <div className="flex justify-between items-center mb-3">
+674-          <div>
+675-            <h3 className="font-black text-lg tracking-wider uppercase">{group.customerName}</h3>
+676-            <p className="text-xs text-blue-200 font-bold tracking-widest">{group.orders.length} ORDER{group.orders.length !== 1 ? 'S' : ''}</p>
+677-          </div>
+678-          <div className="text-right">
+679-            <p className="text-xs text-blue-200 uppercase font-bold tracking-widest">Total Order Value: <span className="text-white">₹{totalOrderValue.toLocaleString("en-IN")}</span></p>
+680-            <p className="text-xs text-blue-200 uppercase font-bold tracking-widest">Total Paid: <span className="text-white">₹{totalPaid.toLocaleString("en-IN")}</span></p>
+681-            <p className="text-xs text-blue-200 uppercase font-bold tracking-widest">Total COD: <span className="text-white">₹{totalCod.toLocaleString("en-IN")}</span></p>
+682-          </div>
+683-        </div>
+684-
+685-        {activeTab === "new" && group.orders.length > 0 && (
+686-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+687-            <button
+688-              onClick={handleFulfillAllClick}
+689-              disabled={isFulfillingAll}
+690-              className="flex-1 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm disabled:opacity-50"
+691-            >
+692-              {isFulfillingAll ? "Processing..." : "Fulfill With Delhivery — All Orders"}
+693-            </button>
+694-            <button
+695-              onClick={handleMoveAllToPlaced}
+696-              disabled={isMovingAll}
+697-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm disabled:opacity-50"
+698-            >
+699-              {isMovingAll ? "Moving..." : "Move All Orders To Order Placed"}
+700-            </button>
+701-          </div>
+702-        )}
+703-        {activeTab === "placed" && group.orders.length > 0 && (
+704-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+705-            <button
+706-              onClick={handleMarkAllDelivered}
+707-              disabled={isMarkingDelivered}
+708-              className="flex-1 py-2 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm disabled:opacity-50"
+709-            >
+710-              {isMarkingDelivered ? "Marking..." : "Mark All Orders Delivered"}
+711-            </button>
+712-          </div>
+713-        )}
+714-      </div>
+715-      
+716-      {/* Group Results */}
+717-      {(fulfillResults.length > 0 || moveResults.length > 0) && (
+718-        <div className="p-3 bg-gray-50 border-b border-gray-100 text-xs font-mono space-y-1">
+719-           {fulfillResults.map((r, idx) => (
+720-             <div key={"f"+idx} className={r.success ? "text-green-700" : "text-red-700"}>
+721-               Order #{r.id} — {r.success ? "SUCCESS" : "FAILED"} — {r.msg}
+722-             </div>
+723-           ))}
+724-           {moveResults.map((r, idx) => (
+725-             <div key={"m"+idx} className={r.success ? "text-green-700" : "text-red-700"}>
+726-               Order #{r.id} — {r.success ? "SUCCESS" : "FAILED"} — {r.msg}
+727-             </div>
+728-           ))}
+729-        </div>
+730-      )}
+731-
+732-      {/* Confirmation Modal */}
+733-      {showConfirmFulfill && (
+734-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+735-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden p-5">
+736-            <h3 className="font-black text-lg uppercase tracking-wider text-gray-900 mb-1">{group.customerName}</h3>
+737-            <div className="space-y-2 my-4 max-h-60 overflow-y-auto">
+738-              {group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId)).map((o: any, idx: number) => {
+739-                 const calc = getOrderCalculations(o);
+740:                 return (
+741-                   <div key={o.id} className="text-sm border-b border-gray-100 pb-2">
+742-                     <span className="font-bold text-gray-800">{idx + 1}. #{o.orderNumber || o.id}</span> — {o.productName} — Size {o.size} {o.customization ? (typeof o.customization === 'string' ? `— Cust: ${o.customization}` : `— Cust: ${o.customization.name} ${o.customization.number || ''}`) : ''} — COD ₹{(calc.codAmount || 0).toLocaleString("en-IN")}
+743-                   </div>
+744-                 );
+745-              })}
+746-            </div>
+747-            <div className="text-right mb-4 text-sm font-bold space-y-1">
+748-              <p className="text-gray-600 uppercase">Total Items: {group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId)).length}</p>
+749-              <p className="text-gray-600 uppercase">Total Order Value: ₹{group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId)).reduce((sum: number, o: any) => sum + (getOrderCalculations(o).finalTotalAmount || 0), 0).toLocaleString("en-IN")}</p>
+750-              <p className="text-gray-600 uppercase">Total Paid/Advance: ₹{group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId)).reduce((sum: number, o: any) => sum + (getOrderCalculations(o).amountPaid || 0), 0).toLocaleString("en-IN")}</p>
+751-              <p className="font-black text-indigo-700 text-lg uppercase">Total COD: ₹{group.orders.filter((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId)).reduce((sum: number, o: any) => sum + (getOrderCalculations(o).codAmount || 0), 0).toLocaleString("en-IN")}</p>
+752-              <p className="text-gray-500 uppercase mt-2">Delivery Type: {(group.orders.find((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId))?.deliveryType?.toLowerCase() === 'fast' || group.orders.find((o: any) => !(o.delhiveryAwb || o.delhiveryShipmentId || o.awbNumber || o.trackingId))?.deliveryType?.toLowerCase() === 'express') ? 'FAST' : 'NORMAL'}</p>
+753-              <p className="text-indigo-600 mt-2">ONE SHIPMENT <br/> ONE AWB</p>
+754-            </div>
+755-            <div className="flex gap-2 justify-end">
+756-              <button
+757-                onClick={() => setShowConfirmFulfill(false)}
+758-                className="px-4 py-2 text-gray-600 font-bold uppercase text-xs hover:bg-gray-100 rounded"
+759-              >
+760-                Cancel
+761-              </button>
+762-              <button
+763-                onClick={handleFulfillAllConfirm}
+764-                className="px-4 py-2 bg-indigo-600 text-white font-bold uppercase text-xs rounded hover:bg-indigo-700 shadow-sm"
+765-              >
+766-                Confirm Fulfill All
+767-              </button>
+768-            </div>
+769-          </div>
+770-        </div>
+771-      )}
+772-
+773-      {/* Individual Orders */}
+774-      <div className="divide-y divide-gray-100">
+775-        {group.orders.map((order: any) => (
+776-          <div key={order.id} className="p-4 bg-gray-50/30">
+777-            <AdminOrderCard
+778-              order={order}
+779-              activeTab={activeTab}
+780-              onUpdateStatus={(s) => onUpdateStatus(order.id, s)}
+781-              onDelete={() => onDelete(order.id)}
+782-              onUpdateTracking={(t, c, url) => onUpdateTracking(order.id, t, c, url)}
+783-              onUpdatePrice={(p) => onUpdatePrice(order.id, p)}
+784-              onUpdateCustomizationStatus={(s) => onUpdateCustomizationStatus(order.id, s)}
+785-              onEditPayment={onEditPayment}
+786-            />
+787-          </div>
+788-        ))}
+789-      </div>
+790-    </div>
+791-  );
+792-}
+793-
+794-function AdminOrderCard({
+795-  order,
+796-  activeTab,
+797-  onUpdateStatus,
+798-  onDelete,
+799-  onUpdateTracking,
+800-  onUpdatePrice,
+801-  onUpdateCustomizationStatus,
+802-  onEditPayment,
+803-}: {
+804-  order: Order;
+805-  activeTab: string;
+806-  onUpdateStatus: (s: string) => void;
+807-  onDelete: () => void;
+808-  onUpdateTracking: (t: string, c: string, url: string) => void;
+809-  onUpdatePrice: (p: number) => void;
+810-  onUpdateCustomizationStatus: (status: string) => void;
+811-  onEditPayment: (order: Order, calc: any) => void;
+812-}) {
+813-  const [isExpanded, setIsExpanded] = useState(false);
+814-  const [trackingId, setTrackingId] = useState(order.trackingId || "");
+815-  const [trackingUrl, setTrackingUrl] = useState(order.trackingUrl || "");
+816-  const [courierName, setCourierName] = useState(order.courierName || "");
+817-  const [showTrackingForm, setShowTrackingForm] = useState(false);
+818-  const calc = getOrderCalculations(order);
+819-  const [isFulfilling, setIsFulfilling] = useState(false);
+820-  const [fulfillmentSuccess, setFulfillmentSuccess] = useState("");
+821-  const [fulfillmentErr, setFulfillmentErr] = useState("");
+822-  const navigate = useNavigate();
+823-  const { products } = useProducts();
+824-
+825-
+826-  const [isShippingDelhivery, setIsShippingDelhivery] = useState(false);
+827-  
+828-  const handleDelhiveryShipment = async (e: React.MouseEvent) => {
+829-    e.stopPropagation();
+830-    
+831-    if (order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
+832-      alert(`SHIPMENT ALREADY CREATED\n\nAWB:\n${order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId}`);
+833-      return;
+834-    }
+835-
+836-    if (!confirm(`Are you sure you want to Fulfill with Delhivery for Order ${order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable"}?`)) {
+837-      return;
+838-    }
+839-    
+840-    setIsShippingDelhivery(true);
+841-    try {
+842-      const response = await fetch("/api/delhivery", {
+843-        method: "POST",
+844-        headers: { "Content-Type": "application/json" },
+845-        body: JSON.stringify({ action: "create", orderId: order.id })
+846-      });
+847-
+848-      const data = await response.json();
+849-      if (!data.success) {
+850-        const fullErr = `DELHIVERY SHIPMENT FAILED\n\nReason:\n${data.error}\n\nHTTP:\n${data.delhiveryStatus || 400}\n\nResponse:\n${JSON.stringify(data.delhiveryResponse || {}, null, 2)}`;
+851-        throw new Error(fullErr);
+852-      }
+853-
+854-      const awb = data.awb;
+855-      
+856-      // Update order in Firestore
+857-      
+858-      
+859-      
+860-      await updateDoc(doc(db, "orders", order.id), {
+861-         awbNumber: awb,
+862-         delhiveryShipmentId: awb,
+863-         shippingProvider: "Delhivery",
+864-         shippingStatus: "Manifested",
+865-         courierName: "Delhivery",
+866-         trackingId: awb,
+867-         trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+868-         shipmentCreatedAt: new Date().toISOString()
+869-      });
+870-      
+871-      alert("Success! Delhivery shipment created. AWB: " + awb);
+872-      window.location.reload(); // Refresh to show new state
+873-    } catch (err: any) {
+874-      console.error(err);
+875-      alert(err.message); setFulfillmentErr(err.message);
+876-    } finally {
+877-      setIsShippingDelhivery(false);
+878-    }
+879-  };
+880-
+881-  const handleImageClick = (e: React.MouseEvent) => {
+882-    e.stopPropagation();
+883-    const product = products.find((p) => p.name === order.productName || p.id === (order as any).productId);
+884-    if (product) {
+885-      navigate(`/product/${product.slug}`);
+886-    } else {
+887-      const pid = (order as any).productId;
+888-      if (pid) {
+889-        navigate(`/product/${encodeURIComponent(pid)}`);
+890-      }
+891-    }
+892-  };
+893-
+894-  const orderDate = (() => {
+895-    if (!order.createdAt) return "Just now";
+896-    try {
+897-      const d = typeof order.createdAt?.toDate === 'function' 
+898-        ? order.createdAt.toDate() 
+899-        : new Date(order.createdAt);
+900-      if (isNaN(d.getTime())) return "Just now";
+901-      return d.toLocaleDateString("en-US", {
+902-        month: "short",
+903-        day: "numeric",
+904-        hour: "2-digit",
+905-        minute: "2-digit",
+906-      });
+907-    } catch(e) {
+908-      return "Just now";
+909-    }
+910-  })();
+911-
+912-  const customerName = order.fullName || "Guest Customer";
+913-  const paymentLink = `https://jerseyunicorn.com/checkout?order=${order.id}`;
+914-
+915-  // Heuristic for older orders that missed the quantity field
+916-  let effectiveQuantity = order.quantity;
+917-  if (!effectiveQuantity) {
+918-    if (order.price >= 1800) {
+919-      if (order.price % 1499 === 0) effectiveQuantity = order.price / 1499;
+920-      else if (order.price % 1099 === 0) effectiveQuantity = order.price / 1099;
+921-      else if (order.price % 999 === 0) effectiveQuantity = order.price / 999;
+922-      else if (order.price % 1149 === 0) effectiveQuantity = order.price / 1149;
+923-      else
+924-        effectiveQuantity = Math.max(
+925-          1,
+926-          Math.round(
+927-            order.price /
+928-              (order.productName?.toLowerCase().includes("player")
+929-                ? 1499
+930-                : 999),
+931-          ),
+932-        );
+933-    } else {
+934-      effectiveQuantity = 1;
+935-    }
+936-  }
+937-
+938-  const handleCopy = (e: React.MouseEvent, text: string) => {
+939-    e.stopPropagation();
+940-    navigator.clipboard.writeText(text);
+--
+959:  return (
+960-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden mb-4">
+961-      {/* Compact Header (Always visible) */}
+962-      <div
+963-        className="p-4 flex gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
+964-        onClick={() => setIsExpanded(!isExpanded)}
+965-      >
+966-        <div
+967-          className="h-16 w-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+968-          onClick={handleImageClick}
+969-        >
+970-          {order.image ? (
+971-            <img
+972-              src={order.image}
+973-              alt="Product"
+974-              className="w-full h-full object-cover hover:scale-105 transition-transform"
+975-            />
+976-          ) : (
+977-            <Package className="h-6 w-6 m-auto text-gray-400 mt-5" />
+978-          )}
+979-        </div>
+980-        <div className="flex-1 min-w-0 flex flex-col justify-between">
+981-          <div className="flex justify-between items-start">
+982-            <div>
+983-              <p className="font-bold text-[#1E2A44] text-sm truncate pr-2 flex items-center gap-2">
+984-                <span className="text-[#38D9A9]">{order.orderNumber ? `#${order.orderNumber}` : "Order number unavailable"}</span>
+985-                {customerName}
+986-              </p>
+987-              <p className="text-xs text-gray-500 truncate">
+988-                {order.productName}
+989-              </p>
+990-            </div>
+991-            <div className="text-right">
+992-              <div className="flex justify-end items-center gap-2">
+993-                <p className="font-black text-[#1B1B1B] text-sm">
+994-                  ₹{(order.finalTotalAmount !== undefined ? order.finalTotalAmount : ((order.price || 0) + (order.paymentMode === "full" ? 0 : (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid !== undefined ? order.advancePaid : (order.paymentMode === "partial" || String(order.status).toLowerCase().includes("advance") ? 50 * effectiveQuantity : 0)))))).toLocaleString("en-IN")}
+995-                </p>
+996-                <button
+997-                  title="Edit Price"
+998-                  onClick={(e) => {
+999-                    e.stopPropagation();
+1000-                    onUpdatePrice(order.adjustedAmount ?? order.codAmount ?? order.remainingCodAmount ?? Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0)))));
+1001-                  }}
+1002-                  className="text-gray-400 hover:text-[#1E2A44] transition-colors"
+1003-                >
+1004-                  <Edit2 className="w-3.5 h-3.5" />
+1005-                </button>
+1006-              </div>
+1007-              {((order.paymentMode === "partial" ||
+1008-                String(order.status).toLowerCase().includes("advance") || String(order.status).toLowerCase() === "fampay") && order.paymentMode !== "full") && (
+1009-                <p className="text-[10px] font-bold text-red-600 mt-1 uppercase">
+1010-                  COD: ₹
+1011-                  {(
+1012-                      order.codAmount !== undefined ? order.codAmount : (order.adjustedAmount !== undefined ? order.adjustedAmount : (order.remainingCodAmount !== undefined ? order.remainingCodAmount : Math.max(0, (order.price || 0) - (order.amountPaid !== undefined ? order.amountPaid : (order.advancePaid || (order.paymentMode === "partial" ? 50 * effectiveQuantity : 0))))))
+1013-                    ).toLocaleString("en-IN")}
+1014-                </p>
+1015-              )}
+1016-            </div>
+1017-          </div>
+1018-          <div className="flex justify-between items-center mt-2">
+1019-            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm bg-gray-100 text-gray-600">
+1020-              {activeTab === "new" ? ((order.status === "Fampay" || order.status === "Advance Paid (Fampay)") ? "Fampay" : order.status || "Received") : activeTab}
+1021-            </span>
+1022-            <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
+1023-              {orderDate}
+1024-              <ChevronDown
+1025-                className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+1026-              />
+1027-            </span>
+1028-          </div>
+1029-        </div>
+1030-      </div>
+1031-
+1032-      {/* Expanded Actions & Details */}
+1033-      {isExpanded && (
+1034-        <div className="border-t border-gray-100 bg-gray-50/50 p-4 space-y-4">
+1035-          {/* Detailed Info Grid */}
+1036-          <div className="grid grid-cols-2 gap-3 text-xs bg-white p-3 rounded-lg border border-gray-100">
+1037-            <div className="col-span-2 flex flex-col gap-2 bg-gray-50 p-3 rounded border border-gray-100">
+1038-
+1039-              {/* Breakdown Fields */}
+1040-              {order.productSubtotal !== undefined && (
+1041-                <>
+1042-                  <div className="flex justify-between items-center">
+1043-                    <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">Product Subtotal</p>
+1044-                    <p className="font-semibold text-gray-800 text-sm">₹{order.productSubtotal.toLocaleString("en-IN")}</p>
+1045-                  </div>
+1046-                  
+1047-                  <div className="flex justify-between items-center">
+1048-                    <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">Delivery Type</p>
+1049-                    <p className="font-semibold text-gray-800 text-sm">{order.deliveryType || "NORMAL"}</p>
+1050-                  </div>
+1051-
+1052-                  {order.fastDeliveryCharge > 0 && (
+1053-                    <div className="flex justify-between items-center">
+1054-                      <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">Fast Delivery Charge</p>
+1055-                      <p className="font-semibold text-gray-800 text-sm">₹{order.fastDeliveryCharge.toLocaleString("en-IN")}</p>
+1056-                    </div>
+1057-                  )}
+1058-
+1059-                  {order.codHandlingCharge > 0 && (
+1060-                    <div className="flex justify-between items-center">
+1061-                      <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">COD Handling Charge</p>
+1062-                      <p className="font-semibold text-gray-800 text-sm">₹{order.codHandlingCharge.toLocaleString("en-IN")}</p>
+1063-                    </div>
+1064-                  )}
+1065-                  
+1066-                  <div className="border-t border-gray-200 my-1"></div>
+1067-                </>
+1068-              )}
+1069-
+1070-              <div className="flex justify-between items-center">
+1071-                <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+1072-                  TOTAL ORDER VALUE
+1073-                </p>
+1074-                <div className="flex items-center gap-2">
+1075-                  <p className="font-black text-gray-800 text-sm">
+1076-                    ₹{calc.finalTotalAmount.toLocaleString("en-IN")}
+1077-                  </p>
+1078-                  <button
+1079-                    title="Edit Payment"
+1080-                    onClick={(e) => {
+1081-                      e.stopPropagation();
+1082-                      onEditPayment(order, calc);
+1083-                    }}
+1084-                    className="text-gray-400 hover:text-[#1E2A44] transition-colors"
+1085-                  >
+1086-                    <Edit2 className="w-3.5 h-3.5" />
+1087-                  </button>
+1088-                </div>
+1089-              </div>
+1090-              
+1091-              {calc.paymentMode === "full" ? (
+1092-                <div className="flex justify-between items-center">
+1093-                  <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+1094-                    PAYMENT
+1095-                  </p>
+1096-                  <p className="font-black text-green-600 text-sm">
+1097-                    FULLY PAID (₹{calc.amountPaid.toLocaleString("en-IN")})
+1098-                  </p>
+1099-                </div>
+1100-              ) : (
+1101-                <>
+1102-                  <div className="flex justify-between items-center">
+1103-                    <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+1104-                      PAID / ADVANCE
+1105-                    </p>
+1106-                    <p className="font-black text-green-600 text-sm">
+1107-                      ₹{calc.amountPaid.toLocaleString("en-IN")}
+1108-                    </p>
+1109-                  </div>
+1110-                  <div className="flex justify-between items-center">
+1111-                    <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+1112-                      TO COLLECT (COD)
+1113-                    </p>
+1114-                    <p className="font-black text-red-600 text-sm">
+1115-                      ₹{calc.codAmount.toLocaleString("en-IN")}
+1116-                    </p>
+1117-                  </div>
+1118-                </>
+1119-              )}
+1120-              
+1121-              <div className="flex justify-between items-center">
+1122-                <p className="text-gray-400 font-bold uppercase tracking-wider mb-0.5">
+1123-                  PRICE DEDUCTION
+1124-                </p>
+1125-                <p className="font-black text-gray-800 text-sm">
+1126-                  ₹{order.deductionAmount || order.priceAdjustment || (order.customizationStatus === "NO" ? "199" : "0")}
+1127-                </p>
+1128-              </div>
+1129-            </div>
+1130-            
+1131-            <div className="col-span-2">
+1132-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">
+1133-                Items
+1134-              </p>
+1135-              {order.cartItems && order.cartItems.length > 0 ? (
+1136-                <div className="space-y-1">
+1137-                  {order.cartItems.map((item: any, idx: number) => (
+1138-                    <p key={idx} className="font-semibold text-gray-800">
+1139-                      {item.quantity}x {item.name} (Size: {item.size})
+1140-                    </p>
+1141-                  ))}
+1142-                </div>
+1143-              ) : (
+1144-                <p className="font-semibold text-gray-800">
+1145-                  {effectiveQuantity}x Size: {order.size}
+1146-                </p>
+1147-              )}
+1148-            </div>
+1149-            <div className="col-span-2">
+1150-              <p className="text-gray-400 font-bold uppercase tracking-wider mb-1">
+1151-                Customization
+1152-              </p>
+1153-              <div className="flex flex-col gap-1">
+1154-                <p className="font-semibold text-gray-800">
+1155-                  {order.customization || "None"}
+1156-                </p>
+1157-                {order.customization && (
+1158-                   <div className="flex items-center gap-2 mt-1">
+1159-                     <span className="text-[10px] font-bold text-gray-500 uppercase">Status:</span>

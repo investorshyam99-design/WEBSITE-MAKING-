@@ -1,372 +1,76 @@
 import { AdminOrdersDashboard } from "../components/AdminDashboard";
-import React, { useEffect, useState } from "react";
-import { collection, onSnapshot, query, orderBy, limit, getDocs, getCountFromServer, getAggregateFromServer, average } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import React from "react";
 import { useShop } from "../context/ShopContext";
-import { ShieldAlert, Users, Calendar, Loader2, Clock } from "lucide-react";
+import { ShieldAlert, Loader2 } from "lucide-react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
-function formatTime(seconds: number) {
-  if (!seconds) return "0s";
-  const m = Math.floor(seconds / 60);
-  const s = Math.round(seconds % 60);
-  if (m > 0) return `${m}m ${s}s`;
-  return `${s}s`;
-}
-
 export function AdminDashboard() {
   const { user, isAuthLoading } = useShop();
-  const [users, setUsers] = useState<any[]>([]);
-  const [visitors, setVisitors] = useState<any[]>([]);
-  const [avgTimeSpent, setAvgTimeSpent] = useState(0);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  // Define admin email here - matching our firestore rules.
-  // We can just rely on the rules returning a permission denied error, but we'll show UI as well.
-  const isAdmin = user?.email === "investorshyam99@gmail.com";
+  const isAdmin = user?.email === "investorshyam99@gmail.com" || user?.email === "jerseyunicornhelp@gmail.com";
 
-  
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
-  
-  const [usersCount, setUsersCount] = useState(0);
-  const [visitorsCount, setVisitorsCount] = useState(0);
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-md text-center">
+            <ShieldAlert className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-[#1B1B1B] mb-2">Access Denied</h2>
+            <p className="text-gray-500">Please log in to view the admin dashboard.</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (isAuthLoading) return;
-    if (!user || user.email !== "investorshyam99@gmail.com") {
-      setLoading(false);
-      return;
-    }
-    
-    let isMounted = true;
-    
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // Check cache first
-        const cachedData = sessionStorage.getItem('adminDashboardStats');
-        const cacheTime = sessionStorage.getItem('adminDashboardStatsTime');
-        const isCacheValid = cachedData && cacheTime && (Date.now() - Number(cacheTime) < 1000 * 60 * 5); // 5 minute cache
-        
-        if (isCacheValid) {
-            const data = JSON.parse(cachedData);
-            if (isMounted) {
-                setUsersCount(data.usersCount);
-                setVisitorsCount(data.visitorsCount);
-                setAvgTimeSpent(data.avgTimeSpent);
-                setVisitors(data.visitors);
-                setUsers(data.users);
-                setLoading(false);
-            }
-            return;
-        }
-
-        // 1. Fetch counts
-        const usersCountSnap = await getCountFromServer(collection(db, "users"));
-        const visitorsCountSnap = await getCountFromServer(collection(db, "visitors"));
-        
-        let fetchedUsersCount = usersCountSnap.data().count;
-        let fetchedVisitorsCount = visitorsCountSnap.data().count;
-        
-        if (isMounted) {
-            setUsersCount(fetchedUsersCount);
-            setVisitorsCount(fetchedVisitorsCount);
-        }
-        
-        // 2. Fetch aggregate average time spent
-        let fetchedAvgTime = 0;
-        try {
-            const avgSnap = await getAggregateFromServer(collection(db, "visitors"), {
-                avgTime: average("timeSpent")
-            });
-            fetchedAvgTime = avgSnap.data().avgTime || 0;
-            if (isMounted) setAvgTimeSpent(fetchedAvgTime);
-        } catch (e) {
-            console.warn("Average aggregation failed, falling back to 0");
-        }
-        
-        // 3. Fetch top 50 visitors
-        const vq = query(collection(db, "visitors"), orderBy("lastVisit", "desc"), limit(50));
-        const vSnap = await getDocs(vq);
-        const visitorsData = vSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (isMounted) setVisitors(visitorsData);
-        
-        // 4. Fetch top 50 users
-        const uq = query(collection(db, "users"), orderBy("lastLogin", "desc"), limit(50));
-        const uSnap = await getDocs(uq);
-        const usersData = uSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (isMounted) setUsers(usersData);
-        
-        // Save to cache
-        sessionStorage.setItem('adminDashboardStats', JSON.stringify({
-            usersCount: fetchedUsersCount,
-            visitorsCount: fetchedVisitorsCount,
-            avgTimeSpent: fetchedAvgTime,
-            visitors: visitorsData,
-            users: usersData
-        }));
-        sessionStorage.setItem('adminDashboardStatsTime', Date.now().toString());
-        
-      } catch (err: any) {
-        console.warn("Error fetching dashboard data:", err);
-        if (isMounted) {
-           if (err.message?.includes("Quota")) {
-               setError("Firestore daily quota limit reached. The dashboard data will be available again after Midnight PT.");
-           } else {
-               setError("Failed to fetch some dashboard data. " + err.message);
-           }
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-    
-    fetchDashboardData();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [user, isAuthLoading]);
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-md text-center">
+            <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-[#1B1B1B] mb-2">Restricted Area</h2>
+            <p className="text-gray-500">
+              You do not have permission to view the admin dashboard. This area
+              is restricted to administrators.
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-black text-[#1E2A44] uppercase tracking-wider">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-500 mt-2 font-medium">
-            Manage your store and customers
-          </p>
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-[#1B1B1B] uppercase tracking-wider">
+              Control Panel
+            </h1>
+            <p className="text-gray-500 mt-1 font-medium">
+              Manage store operations.
+            </p>
+          </div>
         </div>
-
-        {isAuthLoading ? (
-          <div className="flex justify-center items-center h-48">
-            <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
-          </div>
-        ) : !user ? (
-          <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-gray-100">
-            <p className="text-gray-500 font-medium">
-              Please log in to view the admin dashboard.
-            </p>
-          </div>
-        ) : !isAdmin ? (
-          <div className="bg-red-50 p-8 rounded-2xl shadow-sm text-center border border-red-100 max-w-lg mx-auto">
-            <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-lg font-bold text-red-800 mb-2">
-              Access Denied
-            </h2>
-            <p className="text-sm text-red-600 font-medium">
-              You do not have permission to view the admin dashboard. This area
-              is restricted to administrators.
-            </p>
-            <p className="text-xs text-red-500 font-medium mt-4">
-              Current user: {user.email}
-            </p>
-          </div>
-        ) : loading ? (
-          <div className="flex justify-center items-center h-48">
-            <Loader2 className="w-8 h-8 animate-spin text-[#1E2A44]" />
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm font-medium">
-                {error}
-              </div>
-            )}
-            {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
-                  <Users className="w-24 h-24" />
-                </div>
-                <Users className="w-8 h-8 text-[#1E2A44] mb-4" />
-                <h3 className="text-gray-500 font-medium text-sm">
-                  Total Logged-in Users
-                </h3>
-                <p className="text-4xl font-black text-[#1B1B1B] mt-2">
-                  {usersCount}
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
-                  <Calendar className="w-24 h-24" />
-                </div>
-                <Calendar className="w-8 h-8 text-indigo-600 mb-4" />
-                <h3 className="text-gray-500 font-medium text-sm">
-                  Total Website Visitors
-                </h3>
-                <p className="text-4xl font-black text-[#1B1B1B] mt-2">
-                  {visitorsCount}
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:-translate-y-2 group-hover:scale-110 transition-transform duration-500">
-                  <Clock className="w-24 h-24" />
-                </div>
-                <Clock className="w-8 h-8 text-amber-500 mb-4" />
-                <h3 className="text-gray-500 font-medium text-sm">
-                  Avg Time Spent
-                </h3>
-                <p className="text-4xl font-black text-[#1B1B1B] mt-2">
-                  {formatTime(avgTimeSpent)}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <AdminOrdersDashboard />
-            </div>
-
-            {/* Visitors List */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-8">
-              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#1B1B1B]">
-                  Recent Website Visitors
-                </h3>
-                <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
-                  {visitorsCount} Unique Devices
-                </span>
-              </div>
-              <div className="overflow-x-auto h-64">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100 sticky top-0">
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Device ID
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Language
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Browser/OS
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Time Spent
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Last Visit
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {visitors.slice(0, 100).map((v) => (
-                      <tr
-                        key={v.id}
-                        className="hover:bg-gray-50/50 transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-mono">
-                          {v.id.substring(0, 8)}...
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1B1B1B]">
-                          {v.language}
-                        </td>
-                        <td
-                          className="px-6 py-4 text-xs text-gray-600 max-w-xs truncate"
-                          title={v.userAgent}
-                        >
-                          {v.userAgent}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-amber-600">
-                          {formatTime(v.timeSpent || 0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {v.lastVisit
-                            ? new Date(v.lastVisit).toLocaleString()
-                            : "N/A"}
-                        </td>
-                      </tr>
-                    ))}
-                    {visitors.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="px-6 py-12 text-center text-gray-500 font-medium"
-                        >
-                          No visitors tracked yet.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* User List */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-8">
-              <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#1B1B1B]">
-                  Registered Users
-                </h3>
-                <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
-                  {usersCount} Users
-                </span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        User ID
-                      </th>
-                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Last Login
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {users.map((u) => (
-                      <tr
-                        key={u.id}
-                        className="hover:bg-gray-50/50 transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#1B1B1B]">
-                          {u.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {u.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-400 font-mono">
-                          {u.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {u.lastLogin
-                            ? new Date(u.lastLogin).toLocaleString()
-                            : "N/A"}
-                        </td>
-                      </tr>
-                    ))}
-                    {users.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="px-6 py-12 text-center text-gray-500 font-medium"
-                        >
-                          No users found in the system.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="mt-8">
+          <AdminOrdersDashboard />
+        </div>
       </main>
-
       <Footer />
     </div>
   );
