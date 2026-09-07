@@ -59,6 +59,7 @@ export function ProductInfoAccordion({ product }: { product: any }) {
     if (category === 'sweatshirts') return ["350 GSM heavyweight fabric", "Oversized fit", "Premium structured feel", "Comfortable everyday layering", "Modern streetwear silhouette", "Premium print/detail finish"];
     if (category === 'track-pants') return ["360 GSM fabric", "60% cotton / 40% polyester", "Baggy fit", "Relaxed streetwear silhouette", "Comfortable everyday construction", "Designed for casual and streetwear styling"];
     if (category === 'shorts') return ["240 GSM fabric", "Oversized/relaxed fit", "Comfortable everyday construction", "Modern streetwear silhouette", "Designed for casual styling", "Premium print/detail finish where applicable"];
+    if (category === 'glasses') return ["Premium UV protection", "Durable aesthetic frames", "Comfortable for daily wear", "Modern streetwear styling", "High-quality lens construction", "Scratch-resistant coating"];
     
     // Fallback
     return ["100% Premium Material", "Streetwear Inspired"];
@@ -73,6 +74,7 @@ export function ProductInfoAccordion({ product }: { product: any }) {
     if (category === 'sweatshirts') return "A heavyweight oversized sweatshirt designed for a clean and relaxed streetwear look. The 350 GSM fabric gives it a substantial premium feel while keeping it suitable for everyday styling.";
     if (category === 'track-pants') return "Designed for a relaxed, contemporary streetwear look. The baggy silhouette provides freedom of movement while the 60% cotton / 40% polyester blend balances comfort, durability and everyday practicality.";
     if (category === 'shorts') return "Relaxed streetwear shorts designed around a comfortable oversized silhouette. The 240 GSM construction provides a substantial feel while keeping the shorts practical for everyday wear.";
+    if (category === 'glasses') return "Designed with a clean, contemporary aesthetic, these glasses offer premium UV protection without compromising on style. The durable frames and high-quality lenses provide a perfect balance of everyday utility and modern streetwear appeal.";
     
     // Fallback
     return "This premium piece is inspired by the vibrant culture of streetwear and modern pop phenomena. Designed for those who want to make a statement without saying a word, it features bold typography and a meticulously crafted heavy-weight structure that drops perfectly over the shoulders.";
@@ -86,6 +88,7 @@ export function ProductInfoAccordion({ product }: { product: any }) {
      if (category === 'sweatshirts') return { label: "Oversized Fit:", text: "The sweatshirt is designed with a relaxed oversized silhouette.", recommendation: "Choose your usual size for the intended oversized appearance. For a looser fit, consider sizing up." };
      if (category === 'track-pants') return { label: "Baggy Fit:", text: "The track pants are intentionally designed with a loose, baggy silhouette.", recommendation: "Choose your usual size for the intended baggy fit. If you prefer an even more relaxed fit, consider sizing up." };
      if (category === 'shorts') return { label: "Oversized / Relaxed Fit:", text: "The shorts are designed with a relaxed oversized silhouette.", recommendation: "Choose your usual size for the intended fit. If you prefer a looser fit, consider sizing up." };
+     if (category === 'glasses') return { label: "Standard Fit:", text: "Designed to universally fit most face shapes comfortably.", recommendation: "One size fits all." };
      
      // Fallback
      return { label: "Oversized Fit:", text: "This item is designed to have a dropped shoulder and a roomy, relaxed silhouette.", recommendation: "If you prefer a regular fit, choose one size smaller." };
@@ -104,6 +107,7 @@ export function ProductInfoAccordion({ product }: { product: any }) {
       if (category === 'sweatshirts') return ["Machine wash cold", "Wash inside out", "Use mild detergent", "Do not bleach", "Do not iron directly over prints", "Avoid high heat", "Air dry when possible"];
       if (category === 'track-pants') return ["Machine wash cold", "Wash with similar colours", "Use mild detergent", "Do not bleach", "Avoid high heat", "Do not iron directly over prints/details", "Air dry when possible"];
       if (category === 'shorts') return ["Machine wash cold", "Wash inside out where applicable", "Use mild detergent", "Do not bleach", "Avoid high heat", "Do not iron directly over prints/details", "Air dry when possible"];
+      if (category === 'glasses') return ["Wipe gently with a microfiber cloth", "Avoid using harsh chemicals or glass cleaners", "Store in a protective case when not in use", "Keep away from excessive heat"];
       
       return ["Wash inside out", "Cold machine wash", "Do not bleach", "Do not iron directly on print", "Dry in shade"];
   };
@@ -168,6 +172,12 @@ export function ProductInfoAccordion({ product }: { product: any }) {
             { q: "What GSM are the shorts?", a: "The shorts are 240 GSM." },
             { q: "What is the fit?", a: "They have an oversized/relaxed fit." },
             { q: "Can I return or exchange the shorts?", a: "No. Shorts are non-returnable and non-exchangeable." }
+        ];
+    } else if (category === 'glasses') {
+        apparelFaqs = [
+            { q: "Do these provide UV protection?", a: "Yes, our glasses are designed to offer premium UV protection alongside their stylish aesthetic." },
+            { q: "What is the return policy?", a: "We offer a flexible exchange policy if you encounter any manufacturing defects." },
+            { q: "How should I clean them?", a: "We recommend wiping gently with a clean microfiber cloth. Avoid using harsh chemicals." }
         ];
     } else {
         // Generic fallback for any other apparel

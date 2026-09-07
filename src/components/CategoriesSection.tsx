@@ -32,6 +32,13 @@ const SECTIONS_CONFIG = [
     viewAllUrl: "/collection/track-pants"
   },
   {
+    id: "glasses",
+    sectionId: "section-glasses",
+    title: "GLASSES",
+    subtitle: "Stylish eyewear.",
+    viewAllUrl: "/collection/glasses"
+  },
+  {
     id: "tees",
     sectionId: "section-tees",
     title: "TEES",

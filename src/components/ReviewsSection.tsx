@@ -89,6 +89,14 @@ export const getProductReviewsInfo = (product: Product) => {
       "Really premium 360 GSM material used for this. The relaxed fit is top tier.",
       "Gen Z approved streetwear styling. Perfect baggy fit and the construction is completely flawless."
     ];
+  } else if (product.category === 'glasses') {
+    templates = [
+      "The build quality on these {product} is incredible. True premium feel.",
+      "Best sunglasses I've bought. The UV protection and styling are just insane.",
+      "Vibe is unmatched. Fits exactly how stylish glasses should. The frames feel so premium.",
+      "Really premium materials used for this. The aesthetic appearance is top tier.",
+      "Gen Z approved. Perfect style and the comfort is completely flawless for everyday wear."
+    ];
   } else if (product.category === 'shorts') {
     templates = [
       "The 240 GSM fabric on these {product} shorts is incredible. True oversized relaxed fit.",

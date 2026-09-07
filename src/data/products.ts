@@ -37,6 +37,11 @@ export const categories = [
     seoTitle: "Track Pants",
   },
   {
+    id: "glasses",
+    name: "GLASSES",
+    seoTitle: "Glasses",
+  },
+  {
     id: "tees",
     name: "TEES",
     seoTitle: "Oversized Streetwear Tees",
@@ -113,6 +118,8 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       category = 'sweatshirts';
     } else if (tags.includes('track pant') || tags.includes('track pants') || tags.includes('trackpants') || tags.includes('jogger')) {
       category = 'track-pants';
+    } else if (tags.includes('glass') || tags.includes('glasses') || tags.includes('sunglass') || tags.includes('sunglasses')) {
+      category = 'glasses';
     } else if (tags.includes('short') || tags.includes('shorts')) {
       category = 'shorts';
     } else if (tags.includes('tee') || tags.includes('t-shirt') || tags.includes('tees')) {
@@ -126,6 +133,7 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       else if (titleLower.includes('hoodie')) category = 'hoodies';
       else if (titleLower.includes('sweatshirt')) category = 'sweatshirts';
       else if (titleLower.includes('track pant') || titleLower.includes('trackpants') || titleLower.includes('jogger')) category = 'track-pants';
+      else if (titleLower.includes('glass') || titleLower.includes('sunglass')) category = 'glasses';
       else if (titleLower.includes('short')) category = 'shorts';
     }
 

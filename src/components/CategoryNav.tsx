@@ -5,6 +5,7 @@ const NAVIGATION_ITEMS = [
   { id: "master-version", sectionId: "section-master-version", name: "MASTER VERSION" },
   { id: "fan-set", sectionId: "section-fan-version", name: "FAN VERSION" },
   { id: "track-pants", sectionId: "section-track-pants", name: "TRACKPANTS" },
+  { id: "glasses", sectionId: "section-glasses", name: "GLASSES" },
   { id: "tees", sectionId: "section-tees", name: "TEES" },
   { id: "hoodies", sectionId: "section-hoodies", name: "HOODIES" },
   { id: "sweatshirts", sectionId: "section-sweatshirts", name: "SWEATSHIRT" }
