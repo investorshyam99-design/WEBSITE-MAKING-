@@ -6,11 +6,6 @@ import { cn } from "../lib/utils";
 
 export function MobileBottomNav() {
   const location = useLocation();
-
-
-  if (location.pathname === "/checkout") return null;
-
-
   const navigate = useNavigate();
   const {
     cart,
@@ -22,6 +17,8 @@ export function MobileBottomNav() {
     isCartOpen,
     setIsCartOpen,
   } = useShop();
+
+  if (location.pathname === "/checkout") return null;
 
   // Calculate live cart item count
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);

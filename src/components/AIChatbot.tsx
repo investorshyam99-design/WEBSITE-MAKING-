@@ -74,7 +74,15 @@ export function AIChatbot() {
             ...messages.map(m => ({ role: m.role, content: m.text })),
             { role: 'user', content: userMessage }
           ],
-          storeContext: products.length > 0 ? "Available Products:\n" + products.map(p => `- ${p.name} (₹${p.price}) [URL: /product/${p.slug}]`).join('\n') : ""
+          storeContext: `
+BUSINESS POLICIES & KNOWLEDGE:
+1. COD is AVAILABLE. ₹50 advance payment is required per jersey for COD orders. The rest is collected at delivery.
+2. CUSTOMIZED jerseys are NOT eligible for COD. They require full prepaid payment.
+3. Size exchange is available within 24 hours of delivery. Customer pays shipping. Name/Number customized jerseys cannot be exchanged.
+4. Fast Delivery costs ₹50 per item. Normal delivery is FREE.
+5. Track orders using the AWB Number. Customers should enter their tracking number in the Track Order page.
+${products.length > 0 ? "\nAvailable Products:\n" + products.map(p => `- ${p.name} (₹${p.price}) [URL: /product/${p.slug}]`).join('\n') : ""}
+`
         })
       });
 
