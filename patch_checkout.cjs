@@ -1,39 +1,52 @@
 const fs = require('fs');
-let content = fs.readFileSync('src/pages/CheckoutPage.tsx', 'utf8');
 
-const target1 = `          const estimate = calculateDeliveryEstimate({
-            pincode: deliveryPincode,
-            deliveryMethod,
-            customization: !!item.customization,
-            tat: deliveryTat || undefined
-          });
+const path = 'src/pages/CheckoutPage.tsx';
+let code = fs.readFileSync(path, 'utf8');
 
-          const docRef = await addDoc(collection(db, "orders"), {`;
+const regex = /const isFastDelivery = deliveryMethod === "FAST";[\s\S]*?if \(!fullName/g;
 
-const replace1 = `          const estimate = calculateDeliveryEstimate({
-            pincode: deliveryPincode,
-            deliveryMethod,
-            customization: !!item.customization,
-            tat: deliveryTat || undefined
-          });
+const replaceStr = `const isFastDelivery = deliveryMethod === "FAST";
+  const fastDeliveryCharge = isFastDelivery ? (50 * jerseyCart.reduce((s, i) => s + (i.quantity || 1), 0)) : 0;
+  
+  const totalOrderValue = productSubtotal + fastDeliveryCharge;
 
-          const resolvedDeliveryType = deliveryMethod === "FAST" ? "Express" : "Surface";
-          if (!deliveryMethod) {
-            console.warn("Order creation: deliveryMethod is missing! Defaulting deliveryType to Surface.");
-          }
+  let advanceToCollect = 0;
+  let codAmount = 0;
+  let codAdvance = 0;
+  const totalQuantity = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
-          const docRef = await addDoc(collection(db, "orders"), {`;
+  if (paymentMode === "partial") {
+    codAdvance = 50 * totalQuantity;
+    advanceToCollect = codAdvance + fastDeliveryCharge;
+    codAmount = totalOrderValue - advanceToCollect;
+  } else {
+    advanceToCollect = totalOrderValue;
+    codAmount = 0;
+  }
 
-content = content.replace(target1, replace1);
+  const handleCheckout = async (overrideMode?: "full" | "partial") => {
+    const currentMode = overrideMode || paymentMode;
+    
+    // Recalculate based on currentMode to avoid React state async issues
+    const currentIsFastDelivery = deliveryMethod === "FAST";
+    const currentFastDeliveryCharge = currentIsFastDelivery ? (50 * jerseyCart.reduce((s, i) => s + (i.quantity || 1), 0)) : 0;
+    const currentTotalOrderValue = productSubtotal + currentFastDeliveryCharge;
+    
+    let currentAdvanceToCollect = 0;
+    let currentCodAmount = 0;
+    const totalQty = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
-const target2 = `            productSubtotal: item.price,
-            deliveryType: deliveryMethod,
-            fastDeliveryCharge: itemFastDelivery,`;
+    if (currentMode === "partial") {
+      const currentCodAdvance = 50 * totalQty;
+      currentAdvanceToCollect = currentCodAdvance + currentFastDeliveryCharge;
+      currentCodAmount = currentTotalOrderValue - currentAdvanceToCollect;
+    } else {
+      currentAdvanceToCollect = currentTotalOrderValue;
+      currentCodAmount = 0;
+    }
 
-const replace2 = `            productSubtotal: item.price,
-            deliveryType: resolvedDeliveryType,
-            fastDeliveryCharge: itemFastDelivery,`;
+    if (!fullName`;
 
-content = content.replace(target2, replace2);
-
-fs.writeFileSync('src/pages/CheckoutPage.tsx', content);
+code = code.replace(regex, replaceStr);
+fs.writeFileSync(path, code);
+console.log("Success");

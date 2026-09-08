@@ -51,18 +51,10 @@ export function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.email?.startsWith("+") ? user.email.replace("+91", "") : "");
-  const [houseNo, setHouseNo] = useState("");
-  const [areaStreet, setAreaStreet] = useState("");
-  const [city, setCity] = useState(deliveryLocation?.city || "");
-  const [state, setState] = useState(deliveryLocation?.state || "");
+  const [address, setAddress] = useState("");
   const [paymentMode, setPaymentMode] = useState<"full" | "partial">("full");
 
-  useEffect(() => {
-    if (deliveryLocation) {
-      setCity(deliveryLocation.city || "");
-      setState(deliveryLocation.state || "");
-    }
-  }, [deliveryLocation]);
+  
 
   const jerseyCart = cart.filter(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
   
@@ -88,44 +80,33 @@ export function CheckoutPage() {
     0,
   );
   
-  const isFastDelivery = deliveryMethod === "FAST";
-  const fastDeliveryCharge = isFastDelivery ? (50 * jerseyCart.reduce((s, i) => s + (i.quantity || 1), 0)) : 0;
-  const codHandlingCharge = paymentMode === "partial" ? 50 : 0;
+  const jerseyQuantity = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
   
-  const totalOrderValue = productSubtotal + codHandlingCharge + fastDeliveryCharge;
+  const isFastDelivery = deliveryMethod === "FAST";
+  const fastShippingCharge = isFastDelivery ? (50 * jerseyQuantity) : 0;
+  const codCharge = paymentMode === "partial" ? (50 * jerseyQuantity) : 0;
+  
+  const totalOrderValue = productSubtotal + codCharge + fastShippingCharge;
 
-  let advanceToCollect = 0;
-  let codAmount = 0;
-  const totalQuantity = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  if (paymentMode === "partial") {
-    advanceToCollect = (50 * totalQuantity) + fastDeliveryCharge;
-    codAmount = productSubtotal;
-  } else {
-    advanceToCollect = totalOrderValue;
-    codAmount = 0;
-  }
+  const advanceToCollect = paymentMode === "partial" ? codCharge : totalOrderValue;
+  const codAmount = paymentMode === "partial" ? totalOrderValue - codCharge : 0;
+  const codAdvance = codCharge; // for UI backward compatibility
 
   const handleCheckout = async (overrideMode?: "full" | "partial") => {
     const currentMode = overrideMode || paymentMode;
     
     // Recalculate based on currentMode to avoid React state async issues
+    const currentJerseyQty = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     const currentIsFastDelivery = deliveryMethod === "FAST";
-    const currentFastDeliveryCharge = currentIsFastDelivery ? (50 * jerseyCart.reduce((s, i) => s + (i.quantity || 1), 0)) : 0;
-    const currentCodHandlingCharge = currentMode === "partial" ? 50 : 0;
-    const currentTotalOrderValue = productSubtotal + currentCodHandlingCharge + currentFastDeliveryCharge;
+    const currentFastShippingCharge = currentIsFastDelivery ? (50 * currentJerseyQty) : 0;
+    const currentCodCharge = currentMode === "partial" ? (50 * currentJerseyQty) : 0;
     
-    let currentAdvanceToCollect = 0;
-    let currentCodAmount = 0;
-    const totalQty = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    if (currentMode === "partial") {
-      currentAdvanceToCollect = (50 * totalQty) + currentFastDeliveryCharge;
-      currentCodAmount = productSubtotal;
-    } else {
-      currentAdvanceToCollect = currentTotalOrderValue;
-      currentCodAmount = 0;
-    }
+    const currentTotalOrderValue = productSubtotal + currentCodCharge + currentFastShippingCharge;
+    
+    const currentAdvanceToCollect = currentMode === "partial" ? currentCodCharge : currentTotalOrderValue;
+    const currentCodAmount = currentMode === "partial" ? currentTotalOrderValue - currentCodCharge : 0;
 
-    if (!fullName || !phone || !deliveryPincode || !houseNo) {
+    if (!fullName || !phone || !deliveryPincode || !address) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
       return;
     }
@@ -135,7 +116,7 @@ export function CheckoutPage() {
       return;
     }
 
-    const combinedAddress = [houseNo, areaStreet, city, state, `Pincode: ${deliveryPincode}`].filter(Boolean).join(", ");
+    const combinedAddress = [address, deliveryLocation?.city || "", deliveryLocation?.state || "", `Pincode: ${deliveryPincode}`].filter(Boolean).join(", ");
     setIsSubmitting(true);
     
     try {
@@ -182,8 +163,8 @@ export function CheckoutPage() {
       let isFirstItem = true;
       for (const item of jerseyCart) {
         for (let i = 0; i < item.quantity; i++) {
-          const itemFastDelivery = isFirstItem ? currentFastDeliveryCharge : 0;
-          const itemCodExtra = isFirstItem ? currentCodHandlingCharge : 0;
+          const itemFastDelivery = currentIsFastDelivery ? 50 : 0;
+          const itemCodExtra = currentMode === "partial" ? 50 : 0;
           
           let itemAdvance = 0;
           let itemRemainingCod = 0;
@@ -192,12 +173,8 @@ export function CheckoutPage() {
             itemAdvance = item.price + itemFastDelivery + itemCodExtra;
             itemRemainingCod = 0;
           } else {
-             if (isFirstItem) {
-                itemAdvance = currentAdvanceToCollect; 
-             } else {
-                itemAdvance = 0;
-             }
-             itemRemainingCod = item.price;
+             itemAdvance = itemCodExtra;
+             itemRemainingCod = item.price + itemFastDelivery;
           }
           
           const itemTotalOrderValue = item.price + itemFastDelivery + itemCodExtra;
@@ -230,7 +207,7 @@ export function CheckoutPage() {
             customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
             productSubtotal: item.price,
             deliveryType: resolvedDeliveryType,
-            fastDeliveryCharge: itemFastDelivery,
+            fastShippingCharge: itemFastDelivery,
             codHandlingCharge: itemCodExtra,
             totalOrderValue: itemTotalOrderValue,
             amountPaid: itemAmountPaid,
@@ -251,19 +228,15 @@ export function CheckoutPage() {
             expectedDeliveryEnd: estimate.estimatedEndDate ? estimate.estimatedEndDate.toISOString() : "",
             dispatchDate: estimate.dispatchDate.toISOString(),
             customizationProcessingDays: estimate.processingDays,
-            deliveryCity: deliveryLocation?.city || city,
+            deliveryCity: deliveryLocation?.city || "",
             deliveryDistrict: deliveryLocation?.district || "",
-            deliveryState: deliveryLocation?.state || state,
+            deliveryState: deliveryLocation?.state || "",
             deliveryServiceable: estimate.isServiceable,
             createdAt: serverTimestamp(),
             fullName,
             address: combinedAddress,
             phone,
             pincode: deliveryPincode,
-            houseNo,
-            areaStreet,
-            city,
-            state,
           });
           createdOrderIds.push(docRef.id);
         }
@@ -406,42 +379,19 @@ export function CheckoutPage() {
                   />
                 </div>
               </div>
-
-              <div className="mb-4">
-                <DeliveryChecker customizationEnabled={hasCustomization} />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <div>
                 <input
                   type="text"
                   placeholder="Address (House No, Area, Street)"
-                  value={houseNo}
-                  onChange={(e) => setHouseNo(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Area / Street"
-                  value={areaStreet}
-                  onChange={(e) => setAreaStreet(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-                <input
-                  type="text"
-                  placeholder="State"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
+
+              <div className="mb-4">
+                <DeliveryChecker customizationEnabled={hasCustomization} />
               </div>
             </div>
 
@@ -475,7 +425,7 @@ export function CheckoutPage() {
                   </div>
                   <div className="text-xs text-gray-500">Pay ₹{totalOrderValue.toFixed(2)} securely now.</div>
                   <div className="mt-2 inline-block px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase rounded">
-                    Free Delivery
+                    {fastShippingCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}
                   </div>
                 </button>
 
@@ -509,20 +459,10 @@ export function CheckoutPage() {
 
             {/* Order Summary */}
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Subtotal ({jerseyCart.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
-                <span>₹{productSubtotal.toFixed(2)}</span>
-              </div>
-              {fastDeliveryCharge > 0 && (
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Fast Delivery</span>
-                  <span>Rs. {fastDeliveryCharge.toFixed(2)}</span>
-                </div>
-              )}
               {paymentMode === "partial" && (
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>COD Advance</span>
-                  <span>Rs. {advanceToCollect.toFixed(2)}</span>
+                  <span>Rs. {codAdvance.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">
@@ -547,7 +487,7 @@ export function CheckoutPage() {
               className="w-full bg-[#1B1B1B] text-white h-14 rounded-xl font-bold uppercase tracking-wider shadow-md hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:scale-100 hover:bg-[#2A2A2A] transition-all flex items-center justify-center gap-2 animate-checkout-wiggle"
             >
               <Lock className="w-4 h-4" />
-              {isSubmitting ? "PROCESSING..." : `PAY RS. ${(advanceToCollect).toFixed(2)} SECURELY`}
+              {isSubmitting ? "PROCESSING..." : `PAY RS. ${advanceToCollect.toFixed(2)} SECURELY`}
             </button>
             
             <div className="flex justify-center items-center gap-3 opacity-60">
@@ -581,7 +521,7 @@ export function CheckoutPage() {
                 </div>
               )}
               <span className="text-xs md:text-sm font-black tracking-wider text-[#1E2A44] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><Truck className="w-4 h-4 md:w-5 md:h-5"/> COD</span>
-              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{advanceToCollect.toFixed(0)}</span>
+              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{codAdvance.toFixed(0)}</span>
               <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Remaining on<br/>Delivery</span>
             </button>
           )}
@@ -606,7 +546,7 @@ export function CheckoutPage() {
             )}
             <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID ONLY</span>
             <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay ₹{totalOrderValue.toFixed(0)}</span>
-            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">{fastDeliveryCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}</span>
+            <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">{fastShippingCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}</span>
           </button>
         </div>
       </div>
