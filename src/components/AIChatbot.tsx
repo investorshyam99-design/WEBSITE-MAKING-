@@ -12,9 +12,6 @@ export function AIChatbot() {
   const location = useLocation();
   const { user } = useShop();
 
-  if (location.pathname === '/checkout') {
-    return null;
-  }
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'ai' | 'user', text: string }[]>([
     { role: 'ai', text: 'Hi! I am the Jersey Unicorn Smart Assistant. How can I help you find the perfect fit, track your order, or learn about our collections?' }
@@ -30,6 +27,10 @@ export function AIChatbot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  if (location.pathname === '/checkout') {
+    return null;
+  }
 
   const saveChatToDb = async (updatedMessages: { role: 'ai' | 'user', text: string }[]) => {
     try {

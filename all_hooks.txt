@@ -1,0 +1,238 @@
+src/components/SearchModal.tsx:1:import React, { useState, useEffect, useRef } from "react";
+src/components/SearchModal.tsx:13:  const [query, setQuery] = useState(initialQuery || "");
+src/components/SearchModal.tsx:15:  const inputRef = useRef<HTMLInputElement>(null);
+src/components/SearchModal.tsx:17:  useEffect(() => {
+src/components/AdminChatsList.tsx:1:import React, { useState, useEffect } from 'react';
+src/components/AdminChatsList.tsx:7:  const [chats, setChats] = useState<any[]>([]);
+src/components/AdminChatsList.tsx:8:  const [loading, setLoading] = useState(true);
+src/components/AdminChatsList.tsx:9:  const [error, setError] = useState<string | null>(null);
+src/components/AdminChatsList.tsx:10:  const [expandedChat, setExpandedChat] = useState<string | null>(null);
+src/components/AdminChatsList.tsx:12:  useEffect(() => {
+src/components/ProductInfoAccordion.tsx:1:import React, { useState } from "react";
+src/components/ProductInfoAccordion.tsx:7:  const [isOpen, setIsOpen] = useState(defaultOpen);
+src/components/AIChatbot.tsx:1:import React, { useState, useRef, useEffect, useContext } from 'react';
+src/components/AIChatbot.tsx:15:  const [isOpen, setIsOpen] = useState(false);
+src/components/AIChatbot.tsx:16:  const [messages, setMessages] = useState<{ role: 'ai' | 'user', text: string }[]>([
+src/components/AIChatbot.tsx:19:  const [input, setInput] = useState('');
+src/components/AIChatbot.tsx:20:  const [isLoading, setIsLoading] = useState(false);
+src/components/AIChatbot.tsx:21:  const messagesEndRef = useRef<HTMLDivElement>(null);
+src/components/AIChatbot.tsx:27:  useEffect(() => {
+src/components/RecentOrdersTicker.tsx:1:import React, { useState, useEffect } from "react";
+src/components/RecentOrdersTicker.tsx:46:  const [visible, setVisible] = useState(false);
+src/components/RecentOrdersTicker.tsx:47:  const [order, setOrder] = useState<{ 
+src/components/RecentOrdersTicker.tsx:60:  useEffect(() => {
+src/components/SEO.tsx:1:import { useEffect } from 'react';
+src/components/SEO.tsx:17:  useEffect(() => {
+src/components/Footer.tsx:1:import { useState } from "react";
+src/components/Footer.tsx:7:  const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
+src/components/AdminDashboard.tsx:1:import React, { useState, useMemo } from "react";
+src/components/AdminDashboard.tsx:95:  const [activeTab, setActiveTab] = useState("new");
+src/components/AdminDashboard.tsx:96:  const [search, setSearch] = useState("");
+src/components/AdminDashboard.tsx:97:  const [editingPaymentOrder, setEditingPaymentOrder] = useState<any | null>(null);
+src/components/AdminDashboard.tsx:98:  const [paymentEditTotal, setPaymentEditTotal] = useState<string>("");
+src/components/AdminDashboard.tsx:99:  const [paymentEditPaid, setPaymentEditPaid] = useState<string>("");
+src/components/AdminDashboard.tsx:100:  const [paymentEditCod, setPaymentEditCod] = useState<string>("");
+src/components/AdminDashboard.tsx:101:  const [initialPaymentEditTotal, setInitialPaymentEditTotal] = useState<string>("");
+src/components/AdminDashboard.tsx:102:  const [initialPaymentEditPaid, setInitialPaymentEditPaid] = useState<string>("");
+src/components/AdminDashboard.tsx:103:  const [initialPaymentEditCod, setInitialPaymentEditCod] = useState<string>("");
+src/components/AdminDashboard.tsx:104:  const [currentOrders, setCurrentOrders] = useState<Order[]>([]);
+src/components/AdminDashboard.tsx:105:  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+src/components/AdminDashboard.tsx:107:  const [counts, setCounts] = useState({ new: 0, drafts: 0, placed: 0, delivered: 0, rto: 0, cancelled: 0 });
+src/components/AdminDashboard.tsx:134:  const [page, setPage] = useState(1);
+src/components/AdminDashboard.tsx:135:  const [lastDocs, setLastDocs] = useState<any[]>([]); // stack of previous last docs
+src/components/AdminDashboard.tsx:136:  const [currentLastDoc, setCurrentLastDoc] = useState<any>(null);
+src/components/AdminDashboard.tsx:137:  const [hasNextPage, setHasNextPage] = useState(true);
+src/components/AdminDashboard.tsx:140:  React.useEffect(() => {
+src/components/AdminDashboard.tsx:460:  const groupedOrders = useMemo(() => {
+src/components/AdminDashboard.tsx:697:  const [isFulfillingAll, setIsFulfillingAll] = useState(false);
+src/components/AdminDashboard.tsx:698:  const [isMovingAll, setIsMovingAll] = useState(false);
+src/components/AdminDashboard.tsx:699:  const [showConfirmFulfill, setShowConfirmFulfill] = useState(false);
+src/components/AdminDashboard.tsx:700:  const [fulfillResults, setFulfillResults] = useState<{id: string, success: boolean, msg: string}[]>([]);
+src/components/AdminDashboard.tsx:701:  const [moveResults, setMoveResults] = useState<{id: string, success: boolean, msg: string}[]>([]);
+src/components/AdminDashboard.tsx:801:  const [isMarkingDelivered, setIsMarkingDelivered] = useState(false);
+src/components/AdminDashboard.tsx:968:  const [isExpanded, setIsExpanded] = useState(false);
+src/components/AdminDashboard.tsx:969:  const [trackingId, setTrackingId] = useState(order.trackingId || "");
+src/components/AdminDashboard.tsx:970:  const [trackingUrl, setTrackingUrl] = useState(order.trackingUrl || "");
+src/components/AdminDashboard.tsx:971:  const [courierName, setCourierName] = useState(order.courierName || "");
+src/components/AdminDashboard.tsx:972:  const [showTrackingForm, setShowTrackingForm] = useState(false);
+src/components/AdminDashboard.tsx:974:  const [isFulfilling, setIsFulfilling] = useState(false);
+src/components/AdminDashboard.tsx:975:  const [fulfillmentSuccess, setFulfillmentSuccess] = useState("");
+src/components/AdminDashboard.tsx:976:  const [fulfillmentErr, setFulfillmentErr] = useState("");
+src/components/AdminDashboard.tsx:981:  const [isShippingDelhivery, setIsShippingDelhivery] = useState(false);
+src/components/Header.tsx:22:import { useState, useEffect } from "react";
+src/components/Header.tsx:29:  const [initialSearchQuery, setInitialSearchQuery] = useState("");
+src/components/Header.tsx:30:  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+src/components/Header.tsx:31:  const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
+src/components/Header.tsx:39:  useEffect(() => {
+src/components/TrendingSalesIndicator.tsx:1:import React, { useState, useEffect } from "react";
+src/components/TrendingSalesIndicator.tsx:5:  const [salesData, setSalesData] = useState<{ sold: number; hours: number } | null>(null);
+src/components/TrendingSalesIndicator.tsx:7:  useEffect(() => {
+src/components/AdminProfitsDashboard.tsx:1:import React, { useState, useMemo, useEffect } from 'react';
+src/components/AdminProfitsDashboard.tsx:9:  const [orders, setOrders] = useState<any[]>([]);
+src/components/AdminProfitsDashboard.tsx:10:  useEffect(() => {
+src/components/AdminProfitsDashboard.tsx:59:  const [dateFilter, setDateFilter] = useState('all'); // 'today', 'week', 'month', 'all'
+src/components/AdminProfitsDashboard.tsx:60:  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+src/components/AdminProfitsDashboard.tsx:63:  const [productCost, setProductCost] = useState('');
+src/components/AdminProfitsDashboard.tsx:64:  const [shippingCost, setShippingCost] = useState('');
+src/components/AdminProfitsDashboard.tsx:65:  const [additionalCost, setAdditionalCost] = useState('');
+src/components/AdminProfitsDashboard.tsx:66:  const [isSaving, setIsSaving] = useState(false);
+src/components/AdminProfitsDashboard.tsx:69:  const [manualEntries, setManualEntries] = useState<Record<string, {revenue: number, cost: number}>>({});
+src/components/AdminProfitsDashboard.tsx:70:  const [isEditingManual, setIsEditingManual] = useState(false);
+src/components/AdminProfitsDashboard.tsx:71:  const [manualRevInput, setManualRevInput] = useState('');
+src/components/AdminProfitsDashboard.tsx:72:  const [manualCostInput, setManualCostInput] = useState('');
+src/components/AdminProfitsDashboard.tsx:73:  const [isSavingManual, setIsSavingManual] = useState(false);
+src/components/AdminProfitsDashboard.tsx:75:  useEffect(() => {
+src/components/AdminProfitsDashboard.tsx:91:  const { manualRevenue, manualCost } = useMemo(() => {
+src/components/AdminProfitsDashboard.tsx:169:  const validOrders = useMemo(() => {
+src/components/AdminProfitsDashboard.tsx:173:  const filteredOrders = useMemo(() => {
+src/components/AdminProfitsDashboard.tsx:194:  const stats = useMemo(() => {
+src/components/CartModal.tsx:1:import React, { useState, useEffect } from "react";
+src/components/CartModal.tsx:68:  const [isSubmitting, setIsSubmitting] = useState(false);
+src/components/CartModal.tsx:69:  const [fullName, setFullName] = useState("");
+src/components/CartModal.tsx:70:  const [phone, setPhone] = useState("");
+src/components/CartModal.tsx:71:  const [pincode, setPincode] = useState("");
+src/components/CartModal.tsx:72:  const [houseNo, setHouseNo] = useState("");
+src/components/CartModal.tsx:73:  const [areaStreet, setAreaStreet] = useState("");
+src/components/CartModal.tsx:74:  const [city, setCity] = useState("");
+src/components/CartModal.tsx:75:  const [state, setState] = useState("");
+src/components/CartModal.tsx:76:  const [deliveryEstimate, setDeliveryEstimate] = useState("");
+src/components/CartModal.tsx:77:  const [paymentMode, setPaymentMode] = useState<"full" | "partial">("full");
+src/components/CartModal.tsx:78:  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+src/components/CartModal.tsx:79:  const [autoCheckoutPending, setAutoCheckoutPending] = useState(false);
+src/components/ScrollToTop.tsx:1:import { useEffect } from "react";
+src/components/ScrollToTop.tsx:7:  useEffect(() => {
+src/components/Hero.tsx:1:import { useEffect, useRef, useState } from "react";
+src/components/Hero.tsx:4:  const videoRef = useRef<HTMLVideoElement>(null);
+src/components/Hero.tsx:5:  const [videoUrl, setVideoUrl] = useState("/hero-video.mp4");
+src/components/Hero.tsx:7:  useEffect(() => {
+src/components/Hero.tsx:26:  useEffect(() => {
+src/components/ReviewsSection.tsx:1:import React, { useMemo } from "react";
+src/components/ReviewsSection.tsx:146:  const { productReviews, avgRating, reviewCount } = useMemo(() => getProductReviewsInfo(product), [product]);
+src/components/LiveViewerCount.tsx:1:import React, { useState, useEffect } from "react";
+src/components/LiveViewerCount.tsx:5:  const [viewers, setViewers] = useState<number>(0);
+src/components/LiveViewerCount.tsx:7:  useEffect(() => {
+src/components/LoginModal.tsx:1:import React, { useState, useEffect, useRef } from 'react';
+src/components/LoginModal.tsx:18:  const [loginMethod, setLoginMethod] = useState<'selection' | 'phone'>('selection');
+src/components/LoginModal.tsx:19:  const [phoneNumber, setPhoneNumber] = useState('');
+src/components/LoginModal.tsx:20:  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+src/components/LoginModal.tsx:21:  const [isLoading, setIsLoading] = useState(false);
+src/components/LoginModal.tsx:22:  const [error, setError] = useState('');
+src/components/LoginModal.tsx:23:  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+src/components/LoginModal.tsx:25:  const [countdown, setCountdown] = useState(30);
+src/components/LoginModal.tsx:26:  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+src/components/LoginModal.tsx:29:  useEffect(() => {
+src/components/LoginModal.tsx:36:  useEffect(() => {
+src/components/LoginModal.tsx:112:  useEffect(() => {
+src/components/LoginModal.tsx:172:  useEffect(() => {
+src/components/DeliveryChecker.tsx:1:import React, { useState, useEffect } from 'react';
+src/components/DeliveryChecker.tsx:13:  const [pincodeInput, setPincodeInput] = useState(deliveryPincode);
+src/components/DeliveryChecker.tsx:14:  const [isServiceable, setIsServiceable] = useState<boolean | null>(null);
+src/components/DeliveryChecker.tsx:15:  const [isChecking, setIsChecking] = useState(false);
+src/components/DeliveryChecker.tsx:16:  const [pincodeMessage, setPincodeMessage] = useState<string | null>(null);
+src/components/DeliveryChecker.tsx:17:  const [locationInfo, setLocationInfo] = useState<{city?: string, state?: string} | null>(null);
+src/components/DeliveryChecker.tsx:20:  useEffect(() => {
+src/components/DeliveryChecker.tsx:26:  useEffect(() => {
+src/components/CartReservationTimer.tsx:3:import React, { useState, useEffect } from "react";
+src/components/CartReservationTimer.tsx:10:  const [remaining, setRemaining] = useState<number>(TIMER_DURATION);
+src/components/CartReservationTimer.tsx:18:  useEffect(() => {
+src/components/CategoryNav.tsx:1:import { useState, useEffect, useRef } from "react";
+src/components/CategoryNav.tsx:15:  const [activeCategory, setActiveCategory] = useState<string>("player-version");
+src/components/CategoryNav.tsx:16:  const isManualScroll = useRef(false);
+src/components/CategoryNav.tsx:17:  const scrollTimeout = useRef<number | null>(null);
+src/components/CategoryNav.tsx:19:  useEffect(() => {
+src/pages/GenericPage.tsx:1:import React, { useMemo } from 'react';
+src/pages/GenericPage.tsx:10:  const content = useMemo(() => {
+src/pages/BlogPostPage.tsx:1:import React, { useMemo } from 'react';
+src/pages/BlogPostPage.tsx:12:  const post = useMemo(() => {
+src/pages/AccountPage.tsx:1:import React, { useEffect, useState, useCallback } from "react";
+src/pages/AccountPage.tsx:60:  const [activeTab, setActiveTab] = useState<"orders" | "profile" | "addresses" | "wishlist">("orders");
+src/pages/AccountPage.tsx:61:  const [orders, setOrders] = useState<Order[]>([]);
+src/pages/AccountPage.tsx:62:  const [loading, setLoading] = useState(true);
+src/pages/AccountPage.tsx:79:  const fetchOrders = useCallback(async () => {
+src/pages/AccountPage.tsx:174:  useEffect(() => {
+src/pages/CheckoutPage.tsx:1:import React, { useState, useEffect } from "react";
+src/pages/CheckoutPage.tsx:41:  useEffect(() => {
+src/pages/CheckoutPage.tsx:51:  const [isSubmitting, setIsSubmitting] = useState(false);
+src/pages/CheckoutPage.tsx:52:  const [fullName, setFullName] = useState(user?.name || "");
+src/pages/CheckoutPage.tsx:53:  const [phone, setPhone] = useState(user?.email?.startsWith("+") ? user.email.replace("+91", "") : "");
+src/pages/CheckoutPage.tsx:54:  const [houseNo, setHouseNo] = useState("");
+src/pages/CheckoutPage.tsx:55:  const [areaStreet, setAreaStreet] = useState("");
+src/pages/CheckoutPage.tsx:56:  const [city, setCity] = useState(deliveryLocation?.city || "");
+src/pages/CheckoutPage.tsx:57:  const [state, setState] = useState(deliveryLocation?.state || "");
+src/pages/CheckoutPage.tsx:58:  const [paymentMode, setPaymentMode] = useState<"full" | "partial">("full");
+src/pages/CheckoutPage.tsx:60:  useEffect(() => {
+src/pages/CheckoutPage.tsx:80:  useEffect(() => {
+src/pages/TrackOrderPage.tsx:1:import React, { useState, useEffect } from "react";
+src/pages/TrackOrderPage.tsx:11:  const [searchQuery, setSearchQuery] = useState(searchParams.get("awb") || searchParams.get("order") || "");
+src/pages/TrackOrderPage.tsx:12:  const [loading, setLoading] = useState(false);
+src/pages/TrackOrderPage.tsx:13:  const [trackingData, setTrackingData] = useState<any>(null);
+src/pages/TrackOrderPage.tsx:14:  const [error, setError] = useState("");
+src/pages/TrackOrderPage.tsx:47:  useEffect(() => {
+src/pages/ProductPage.tsx:1:import React, { useState, useEffect, useMemo, useRef } from "react";
+src/pages/ProductPage.tsx:34:  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+src/pages/ProductPage.tsx:36:  useEffect(() => {
+src/pages/ProductPage.tsx:101:  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+src/pages/ProductPage.tsx:104:  const decodedKey = useMemo(
+src/pages/ProductPage.tsx:109:  const [product, setProduct] = useState<Product | null>(null);
+src/pages/ProductPage.tsx:110:  const [isLoading, setIsLoading] = useState(true);
+src/pages/ProductPage.tsx:113:  useEffect(() => {
+src/pages/ProductPage.tsx:160:  const seoDetails = useMemo(() => {
+src/pages/ProductPage.tsx:166:  useEffect(() => {
+src/pages/ProductPage.tsx:172:  useEffect(() => {
+src/pages/ProductPage.tsx:179:  const stats = useMemo(() => {
+src/pages/ProductPage.tsx:184:  const [selectedSize, setSelectedSize] = useState<string>("");
+src/pages/ProductPage.tsx:186:  const [selectedColor, setSelectedColor] = useState<string>(initialColor);
+src/pages/ProductPage.tsx:188:  useEffect(() => {
+src/pages/ProductPage.tsx:197:  useEffect(() => {
+src/pages/ProductPage.tsx:205:  useEffect(() => {
+src/pages/ProductPage.tsx:213:  const availableColors = useMemo(() => {
+src/pages/ProductPage.tsx:224:  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+src/pages/ProductPage.tsx:225:  const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
+src/pages/ProductPage.tsx:226:  const [pendingAction, setPendingAction] = useState<"add" | "buy" | null>(null);
+src/pages/ProductPage.tsx:228:  const variantInventory = useMemo(() => {
+src/pages/ProductPage.tsx:241:  const [isCustomized, setIsCustomized] = useState(false);
+src/pages/ProductPage.tsx:242:  const [customName, setCustomName] = useState("");
+src/pages/ProductPage.tsx:243:  const [customNumber, setCustomNumber] = useState("");
+src/pages/ProductPage.tsx:244:  const [activeImage, setActiveImage] = useState<string>("");
+src/pages/ProductPage.tsx:245:  const [isZoomed, setIsZoomed] = useState(false);
+src/pages/ProductPage.tsx:246:  const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({});
+src/pages/ProductPage.tsx:248:  const [touchStart, setTouchStart] = useState<number | null>(null);
+src/pages/ProductPage.tsx:249:  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+src/pages/ProductPage.tsx:251:  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
+src/pages/ProductPage.tsx:252:  const [isCopied, setIsCopied] = useState(false);
+src/pages/ProductPage.tsx:253:  const [toastMessage, setToastMessage] = useState<string | null>(null);
+src/pages/ProductPage.tsx:292:  useEffect(() => {
+src/pages/ProductPage.tsx:335:  useEffect(() => {
+src/pages/CollectionPage.tsx:1:import React, { useState, useMemo } from 'react';
+src/pages/CollectionPage.tsx:14:  const [sortBy, setSortBy] = useState('featured');
+src/pages/CollectionPage.tsx:15:  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+src/pages/CollectionPage.tsx:18:  const collectionSEO: CollectionSEOConfig = useMemo(() => {
+src/pages/CollectionPage.tsx:53:  const collectionProducts = useMemo(() => {
+src/lib/recentlyViewed.ts:2:import { useState, useEffect } from 'react';
+src/lib/recentlyViewed.ts:36:  const [recentIds, setRecentIds] = useState<string[]>([]);
+src/lib/recentlyViewed.ts:38:  useEffect(() => {
+src/data/products.ts:1:import { useEffect, useState } from "react";
+src/data/products.ts:205:  const [products, setProducts] = useState<Product[]>(shopifyProductsStore);
+src/data/products.ts:206:  const [isLoading, setIsLoading] = useState(shopifyProductsStore.length === 0);
+src/data/products.ts:208:  useEffect(() => {
+src/context/ShopContext.tsx:2:import React, { createContext, useContext, useState, useEffect } from 'react';
+src/context/ShopContext.tsx:65:  const [cart, setCart] = useState<CartItem[]>(() => {
+src/context/ShopContext.tsx:71:  const [wishlist, setWishlist] = useState<Product[]>(() => {
+src/context/ShopContext.tsx:77:  const [isCartOpen, setIsCartOpen] = useState(false);
+src/context/ShopContext.tsx:78:  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+src/context/ShopContext.tsx:79:  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("NORMAL");
+src/context/ShopContext.tsx:80:  const [deliveryPincode, setDeliveryPincode] = useState("");
+src/context/ShopContext.tsx:81:  const [deliveryLocation, setDeliveryLocation] = useState<{ city?: string; district?: string; state?: string } | null>(null);
+src/context/ShopContext.tsx:82:  const [deliveryTat, setDeliveryTat] = useState<{ normal: { days: number; mode: string }; express: { days: number; mode: string; available: boolean } } | null>(null);
+src/context/ShopContext.tsx:85:  const [isLoginOpen, setIsLoginOpen] = useState(false);
+src/context/ShopContext.tsx:86:  const [isSearchOpen, setIsSearchOpen] = useState(false);
+src/context/ShopContext.tsx:87:  const [user, setUser] = useState<{ email: string; name: string; uid: string; phoneNumber?: string } | null>(null);
+src/context/ShopContext.tsx:88:  const [isAuthLoading, setIsAuthLoading] = useState(true);
+src/context/ShopContext.tsx:90:  useEffect(() => {
+src/context/ShopContext.tsx:136:  useEffect(() => {
+src/context/ShopContext.tsx:192:  useEffect(() => {
+src/context/ShopContext.tsx:213:  useEffect(() => {
+src/context/ShopContext.tsx:251:  useEffect(() => {
+src/context/ShopContext.tsx:422:  const context = useContext(ShopContext);
+src/App.tsx:6:import { useEffect } from "react";
+src/App.tsx:32:  useEffect(() => {
