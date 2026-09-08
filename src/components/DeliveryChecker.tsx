@@ -23,6 +23,13 @@ export function DeliveryChecker({ customizationEnabled }: DeliveryCheckerProps) 
     }
   }, [deliveryPincode]);
 
+  useEffect(() => {
+    if (pincodeInput && pincodeInput.length === 6 && pincodeInput !== deliveryPincode) {
+       // Just update context silently so checkout doesn't fail, user can still click check for ETA
+       setDeliveryPincode(pincodeInput);
+    }
+  }, [pincodeInput]);
+
   const handleCheck = async () => {
     if (!/^[1-9][0-9]{5}$/.test(pincodeInput)) {
       alert("Please enter a valid 6-digit Indian Pincode.");

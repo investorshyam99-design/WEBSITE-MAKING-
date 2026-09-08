@@ -43,12 +43,13 @@ async function startServer() {
       // Trust only backend calculation
       const { deliveryMethod } = req.body;
       const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
+      const totalQuantity = items.reduce((sum: any, item: any) => sum + (item.quantity || 1), 0);
       const isFastDelivery = deliveryMethod === "FAST";
-      const fastDeliveryFee = isFastDelivery ? 50 : 0;
+      const fastDeliveryFee = isFastDelivery ? (50 * totalQuantity) : 0;
       
       let amount = 0;
       if (paymentMode === 'partial') {
-        amount = isFastDelivery ? 100 : 50;
+        amount = (50 * totalQuantity) + fastDeliveryFee;
       } else {
         amount = itemsTotal + fastDeliveryFee;
       }

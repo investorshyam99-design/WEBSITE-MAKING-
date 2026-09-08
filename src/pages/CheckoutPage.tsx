@@ -89,20 +89,16 @@ export function CheckoutPage() {
   );
   
   const isFastDelivery = deliveryMethod === "FAST";
-  const fastDeliveryCharge = isFastDelivery ? 50 : 0;
+  const fastDeliveryCharge = isFastDelivery ? (50 * jerseyCart.reduce((s, i) => s + (i.quantity || 1), 0)) : 0;
   const codHandlingCharge = paymentMode === "partial" ? 50 : 0;
   
   const totalOrderValue = productSubtotal + codHandlingCharge + fastDeliveryCharge;
 
   let advanceToCollect = 0;
   let codAmount = 0;
-
+  const totalQuantity = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
   if (paymentMode === "partial") {
-    if (isFastDelivery) {
-      advanceToCollect = 100;
-    } else {
-      advanceToCollect = 50;
-    }
+    advanceToCollect = (50 * totalQuantity) + fastDeliveryCharge;
     codAmount = productSubtotal;
   } else {
     advanceToCollect = totalOrderValue;
@@ -114,19 +110,15 @@ export function CheckoutPage() {
     
     // Recalculate based on currentMode to avoid React state async issues
     const currentIsFastDelivery = deliveryMethod === "FAST";
-    const currentFastDeliveryCharge = currentIsFastDelivery ? 50 : 0;
+    const currentFastDeliveryCharge = currentIsFastDelivery ? (50 * jerseyCart.reduce((s, i) => s + (i.quantity || 1), 0)) : 0;
     const currentCodHandlingCharge = currentMode === "partial" ? 50 : 0;
     const currentTotalOrderValue = productSubtotal + currentCodHandlingCharge + currentFastDeliveryCharge;
     
     let currentAdvanceToCollect = 0;
     let currentCodAmount = 0;
-    
+    const totalQty = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     if (currentMode === "partial") {
-      if (currentIsFastDelivery) {
-        currentAdvanceToCollect = 100;
-      } else {
-        currentAdvanceToCollect = 50;
-      }
+      currentAdvanceToCollect = (50 * totalQty) + currentFastDeliveryCharge;
       currentCodAmount = productSubtotal;
     } else {
       currentAdvanceToCollect = currentTotalOrderValue;
@@ -432,6 +424,22 @@ export function CheckoutPage() {
                   placeholder="City"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Area / Street"
+                  value={areaStreet}
+                  onChange={(e) => setAreaStreet(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+                <input
+                  type="text"
+                  placeholder="State"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>
