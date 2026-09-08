@@ -83,28 +83,45 @@ export function CheckoutPage() {
   const jerseyQuantity = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
   
   const isFastDelivery = deliveryMethod === "FAST";
-  const fastShippingCharge = isFastDelivery ? (50 * jerseyQuantity) : 0;
-  const codCharge = paymentMode === "partial" ? (50 * jerseyQuantity) : 0;
   
-  const totalOrderValue = productSubtotal + codCharge + fastShippingCharge;
-
-  const advanceToCollect = paymentMode === "partial" ? codCharge : totalOrderValue;
-  const codAmount = paymentMode === "partial" ? totalOrderValue - codCharge : 0;
-  const codAdvance = codCharge; // for UI backward compatibility
+  // Base constants
+  const baseCodCharge = 50 * jerseyQuantity;
+  const fastShippingCharge = isFastDelivery ? (50 * jerseyQuantity) : 0;
+  
+  // What-if scenarios for UI cards
+  const prepaidTotalValue = productSubtotal + fastShippingCharge;
+  const codTotalValue = productSubtotal + baseCodCharge + fastShippingCharge;
+  const codAdvanceRequired = baseCodCharge + fastShippingCharge;
+  const codRemainingOnDelivery = productSubtotal;
+  
+  // Active selected state (used for Summary, Pay button, and Razorpay)
+  const isCodSelected = paymentMode === "partial";
+  const totalOrderValue = isCodSelected ? codTotalValue : prepaidTotalValue;
+  const advanceToCollect = isCodSelected ? codAdvanceRequired : prepaidTotalValue;
+  const codAmount = isCodSelected ? codRemainingOnDelivery : 0;
+  const codCharge = isCodSelected ? baseCodCharge : 0; // The actual applied fee
 
   const handleCheckout = async (overrideMode?: "full" | "partial") => {
     const currentMode = overrideMode || paymentMode;
+    const currentIsFastDelivery = deliveryMethod === "FAST";
     
     // Recalculate based on currentMode to avoid React state async issues
     const currentJerseyQty = jerseyCart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    const currentIsFastDelivery = deliveryMethod === "FAST";
+    const currentBaseCodCharge = 50 * currentJerseyQty;
     const currentFastShippingCharge = currentIsFastDelivery ? (50 * currentJerseyQty) : 0;
-    const currentCodCharge = currentMode === "partial" ? (50 * currentJerseyQty) : 0;
     
-    const currentTotalOrderValue = productSubtotal + currentCodCharge + currentFastShippingCharge;
+    const currentIsCod = currentMode === "partial";
+    const currentCodCharge = currentIsCod ? currentBaseCodCharge : 0;
     
-    const currentAdvanceToCollect = currentMode === "partial" ? currentCodCharge : currentTotalOrderValue;
-    const currentCodAmount = currentMode === "partial" ? currentTotalOrderValue - currentCodCharge : 0;
+    const currentTotalOrderValue = currentIsCod 
+      ? productSubtotal + currentBaseCodCharge + currentFastShippingCharge 
+      : productSubtotal + currentFastShippingCharge;
+      
+    const currentAdvanceToCollect = currentIsCod 
+      ? currentBaseCodCharge + currentFastShippingCharge 
+      : currentTotalOrderValue;
+      
+    const currentCodAmount = currentIsCod ? productSubtotal : 0;
 
     if (!fullName || !phone || !deliveryPincode || !address) {
       alert("Please fill in your full name, phone number, pincode and complete delivery address");
@@ -173,8 +190,8 @@ export function CheckoutPage() {
             itemAdvance = item.price + itemFastDelivery + itemCodExtra;
             itemRemainingCod = 0;
           } else {
-             itemAdvance = itemCodExtra;
-             itemRemainingCod = item.price + itemFastDelivery;
+             itemAdvance = itemCodExtra + itemFastDelivery;
+             itemRemainingCod = item.price;
           }
           
           const itemTotalOrderValue = item.price + itemFastDelivery + itemCodExtra;
@@ -423,7 +440,7 @@ export function CheckoutPage() {
                     <span className="font-bold text-sm">Pay Full Amount (Prepaid)</span>
                     {paymentMode === "full" && <ShieldCheck className="w-5 h-5 text-green-600" />}
                   </div>
-                  <div className="text-xs text-gray-500">Pay ₹{totalOrderValue.toFixed(2)} securely now.</div>
+                  <div className="text-xs text-gray-500">Pay ₹{prepaidTotalValue.toFixed(2)} securely now.</div>
                   <div className="mt-2 inline-block px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase rounded">
                     {fastShippingCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}
                   </div>
@@ -442,7 +459,7 @@ export function CheckoutPage() {
                       <span className="font-bold text-sm">💳 COD Available</span>
                       {paymentMode === "partial" && <ShieldCheck className="w-5 h-5 text-[#1E2A44]" />}
                     </div>
-                    <div className="text-xs text-gray-700 font-bold mb-1">₹{advanceToCollect} Advance Payment Required</div>
+                    <div className="text-xs text-gray-700 font-bold mb-1">₹{codAdvanceRequired} Advance Payment Required</div>
                     <div className="text-[11px] text-gray-500 font-medium leading-tight">Remaining Amount Payable on Delivery</div>
                   </button>
                 ) : (
@@ -459,20 +476,35 @@ export function CheckoutPage() {
 
             {/* Order Summary */}
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-              {paymentMode === "partial" && (
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Product Subtotal</span>
+                <span>₹{productSubtotal.toFixed(2)}</span>
+              </div>
+              
+              {fastShippingCharge > 0 && (
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>COD Advance</span>
-                  <span>Rs. {codAdvance.toFixed(2)}</span>
+                  <span>Fast Delivery</span>
+                  <span>+ ₹{fastShippingCharge.toFixed(2)}</span>
                 </div>
               )}
+              
+              {paymentMode === "partial" && (
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>COD Charge</span>
+                  <span>+ ₹{codCharge.toFixed(2)}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">
                 <span>Total Order Value</span>
                 <span className="text-sm">₹{totalOrderValue.toFixed(2)}</span>
               </div>
+              
               <div className="flex justify-between text-sm font-bold text-gray-900 pt-1">
                 <span>Amount to Pay Now</span>
                 <span className="text-xl">₹{advanceToCollect.toFixed(2)}</span>
               </div>
+              
               {paymentMode === "partial" && (
                 <div className="flex justify-between text-xs font-bold text-red-600 pt-2 border-t border-gray-200">
                   <span>To pay on delivery</span>
@@ -521,7 +553,7 @@ export function CheckoutPage() {
                 </div>
               )}
               <span className="text-xs md:text-sm font-black tracking-wider text-[#1E2A44] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><Truck className="w-4 h-4 md:w-5 md:h-5"/> COD</span>
-              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{codAdvance.toFixed(0)}</span>
+              <span className="text-base md:text-xl font-bold text-gray-900 leading-tight mb-1">Pay ₹{codAdvanceRequired.toFixed(0)}</span>
               <span className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide leading-tight">Remaining on<br/>Delivery</span>
             </button>
           )}
@@ -545,7 +577,7 @@ export function CheckoutPage() {
               </div>
             )}
             <span className="text-xs md:text-sm font-black tracking-wider text-[#38D9A9] uppercase mb-1.5 flex items-center justify-center gap-1.5 w-full"><ShieldCheck className="w-4 h-4 md:w-5 md:h-5"/> PREPAID ONLY</span>
-            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay ₹{totalOrderValue.toFixed(0)}</span>
+            <span className="text-base md:text-xl font-bold text-white leading-tight mb-1">Pay ₹{prepaidTotalValue.toFixed(0)}</span>
             <span className="text-[10px] md:text-xs font-medium text-gray-300 uppercase tracking-wide leading-tight">{fastShippingCharge > 0 ? "+₹50 Fast Delivery" : "Free Delivery"}</span>
           </button>
         </div>
