@@ -21,6 +21,7 @@ interface Order { [key: string]: any;
   quantity?: number;
   cartItems?: any[];
   customization?: string;
+  coolPrint?: { selected: boolean; name: string; price: number };
   customizationStatus?: string;
   advancePaid?: number;
   remainingCodAmount?: number;
@@ -484,24 +485,30 @@ function OrderCard({ order, user, handleImageClick }: { order: Order; user: any;
               ₹{calc.finalTotalAmount.toLocaleString("en-IN")}
             </p>
           </div>
-          <div>
-            <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
-              Customization
-            </p>
-            <p className="font-semibold text-[#1B1B1B] text-sm">
-              {order.customizationStatus === "YES" ? "YES" : "NO"}
-            </p>
-          </div>
-          {order.customizationStatus === "YES" && (
-            <div>
+          
+          {order.customization && (
+            <div className="col-span-1 md:col-span-2">
               <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
-                Customization Amount
+                Customization
               </p>
               <p className="font-semibold text-[#1B1B1B] text-sm">
-                ₹199
+                Name/No: {order.customization}
               </p>
+              <p className="text-xs text-gray-500">₹199</p>
             </div>
           )}
+          {order.coolPrint?.selected && (
+            <div className="col-span-1 md:col-span-2">
+              <p className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+                Cool Print
+              </p>
+              <p className="font-semibold text-[#1B1B1B] text-sm">
+                {order.coolPrint.name}
+              </p>
+              <p className="text-xs text-gray-500">₹{order.coolPrint.price}</p>
+            </div>
+          )}
+
           {order.productSubtotal !== undefined && (
           <>
             <div>

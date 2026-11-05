@@ -42,6 +42,49 @@ async function startServer() {
 
       // Trust only backend calculation
       const { deliveryMethod } = req.body;
+
+      // Validate paymentMode against Cool Prints
+      const hasCoolPrint = items.some((item: any) => item.coolPrint?.selected);
+      if (hasCoolPrint && paymentMode === 'partial') {
+        return res.status(400).json({ error: "Cool Print jerseys are not eligible for Cash on Delivery. Please choose Prepaid." });
+      }
+
+      // Validate Cool Print pricing & team logic on backend
+      for (const item of items) {
+        if (item.coolPrint?.selected) {
+          const printName = item.coolPrint.name;
+          const price = item.coolPrint.price;
+          const allTags = item.tags || [];
+          const nameLower = (item.name || "").toLowerCase();
+          const isBarca = allTags.includes('fc barcelona') || allTags.includes('barcelona') || nameLower.includes('barcelona');
+          const isPortugal = allTags.includes('portugal') || nameLower.includes('portugal');
+          const isArgentina = allTags.includes('argentina') || nameLower.includes('argentina');
+          const isMadrid = allTags.includes('real madrid') || nameLower.includes('real madrid');
+          
+          if (price !== 299) {
+            return res.status(400).json({ error: "Invalid Cool Print price." });
+          }
+          
+          if (printName === "THANK GOD I AM NOT MADRIDISTA" && !isBarca) {
+            return res.status(400).json({ error: "Invalid Cool Print for this team." });
+          }
+          
+          if ((printName === "THANK GOD I AM NOT BARCELONISTA" || printName === "12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN") && !isMadrid) {
+             return res.status(400).json({ error: "Invalid Cool Print for this team." });
+          }
+          if (printName === "SHE WAS MY WORLD CUP, BUT I WAS RONALDO" && !isPortugal) {
+             return res.status(400).json({ error: "Invalid Cool Print for this team." });
+          }
+          if (printName === "THE GOAT DEBATE ALREADY ENDED IN QATAR 2022" && !isArgentina) {
+             return res.status(400).json({ error: "Invalid Cool Print for this team." });
+          }
+          
+          if (!isBarca && !isMadrid && !isPortugal && !isArgentina) {
+             return res.status(400).json({ error: "Cool Prints not allowed for this product." });
+          }
+        }
+      }
+
       const itemsTotal = items.reduce((sum: any, item: any) => sum + (item.price * item.quantity), 0);
       const totalQuantity = items.reduce((sum: any, item: any) => sum + (item.quantity || 1), 0);
       const isFastDelivery = deliveryMethod === "FAST";
@@ -479,12 +522,11 @@ BUSINESS KNOWLEDGE & POLICIES
 - COD is AVAILABLE.
 - ₹50 ADVANCE PAYMENT IS REQUIRED PER JERSEY for COD orders. (Example: 1 jersey = ₹50 advance, 2 jerseys = ₹100 advance, 3 jerseys = ₹150 advance).
 - The remaining amount is collected as COD.
-- CUSTOMIZED JERSEYS ARE NOT ELIGIBLE FOR COD. Always mention this if a user asks about COD.
+- COOL PRINT JERSEYS ARE NOT ELIGIBLE FOR COD (prepaid only).
 
-2. CUSTOMIZATION
-- Customization is available (Name and Number).
-- CUSTOMIZED JERSEYS ARE NOT ELIGIBLE FOR COD. Customized orders require online/prepaid payment.
-- Original-style font options are available where supported by our customization service.
+2. COOL PRINTS
+- Cool Prints are exclusive fan print designs available for select teams (Real Madrid, FC Barcelona, Portugal, Argentina) for ₹299 per jersey.
+- Cool Print orders require online/prepaid payment. Custom name/number printing is not offered.
 
 3. EXCHANGE POLICY
 - SIZE EXCHANGE: Size exchange is available, but the customer must pay the applicable delivery/shipping charges.
@@ -584,7 +626,7 @@ BUSINESS KNOWLEDGE & POLICIES
             try {
                 if (call.name === 'checkPincodeServiceability') {
                     const pincode = call.args.pincode;
-                    const apiKey = process.env.DELHIVERY_API_TOKEN;
+                    const apiKey = process.env.DELHIVERY_API_TOKEN || "f602e5a13cb922c48b18950d7a159776776026fd";
                     if (!apiKey) throw new Error("Delhivery API token missing");
                     
                     const res = await fetch(`https://track.delhivery.com/c/api/pin-codes/json/?filter_codes=${pincode}`, {
@@ -606,7 +648,7 @@ BUSINESS KNOWLEDGE & POLICIES
                     }
                 } else if (call.name === 'trackShipmentByAWB') {
                     const awb = call.args.awb;
-                    const apiKey = process.env.DELHIVERY_API_TOKEN;
+                    const apiKey = process.env.DELHIVERY_API_TOKEN || "f602e5a13cb922c48b18950d7a159776776026fd";
                     const res = await fetch(`https://track.delhivery.com/api/v1/packages/json/?waybill=${awb}`, {
                         headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/json" }
                     });
@@ -698,7 +740,7 @@ BUSINESS KNOWLEDGE & POLICIES
   app.all("/api/delhivery", async (req, res) => {
     const { action, awb, dest, pincode, orderData } = req.method === 'POST' ? req.body : req.query;
 
-    const apiKey = process.env.DELHIVERY_API_TOKEN;
+    const apiKey = process.env.DELHIVERY_API_TOKEN || "f602e5a13cb922c48b18950d7a159776776026fd";
     if (!apiKey) {
       return res.status(500).json({ success: false, error: "DELHIVERY_API_TOKEN not configured" });
     }

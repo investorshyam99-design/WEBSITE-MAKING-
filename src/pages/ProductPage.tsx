@@ -222,7 +222,6 @@ export function ProductPage() {
   }, [product]);
 
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
-  const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"add" | "buy" | null>(null);
 
   const variantInventory = useMemo(() => {
@@ -238,11 +237,13 @@ export function ProductPage() {
     return qty;
   }, [product, selectedSize, selectedColor]);
 
-  const [isCustomized, setIsCustomized] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [customNumber, setCustomNumber] = useState("");
+  const [isCoolPrintEnabled, setIsCoolPrintEnabled] = useState(false);
+  const [selectedCoolPrint, setSelectedCoolPrint] = useState<{ selected: boolean; name: string; price: number } | null>(null);
   const [activeImage, setActiveImage] = useState<string>("");
   const [isZoomed, setIsZoomed] = useState(false);
+
+  const finalPrice = (product?.price || 0) + (isCoolPrintEnabled ? 299 : 0);
+
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({});
 
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -382,22 +383,32 @@ export function ProductPage() {
     setSelectedSize(size);
   };
 
-  const proceedToCart = (action: "add" | "buy", isCust: boolean) => {
-    if (isCust && !customName.trim()) {
-      alert("Please enter a name for customization");
-      return;
-    }
+  const proceedToCart = (action: "add" | "buy") => {
     addToCart(
       product!,
       selectedSize,
       selectedColor || undefined,
-      isCust ? { name: customName, number: customNumber } : undefined,
+      undefined,
+      selectedCoolPrint?.selected ? selectedCoolPrint : undefined
     );
     setIsCartOpen(true);
     if (action === "buy") {
        navigate("/checkout");
     }
   };
+
+  const getProductTeam = () => {
+    if (!product) return null;
+    const allTags = product.tags || [];
+    const nameLower = product.name.toLowerCase();
+    if (allTags.includes('fc barcelona') || allTags.includes('barcelona') || nameLower.includes('barcelona')) return 'FC_BARCELONA';
+    if (allTags.includes('real madrid') || nameLower.includes('real madrid')) return 'REAL_MADRID';
+    if (allTags.includes('portugal') || nameLower.includes('portugal')) return 'PORTUGAL';
+    if (allTags.includes('argentina') || nameLower.includes('argentina')) return 'ARGENTINA';
+    return null;
+  };
+
+  const productTeam = getProductTeam();
 
   const handleAction = (action: "add" | "buy") => {
     if (!selectedSize || (product && ['player-version', 'master-version', 'fan-set'].includes(product.category))) {
@@ -415,7 +426,7 @@ export function ProductPage() {
       }
     }
 
-    proceedToCart(action, false);
+    proceedToCart(action);
   };
 
   const handleAddToCart = () => handleAction("add");
@@ -606,16 +617,34 @@ export function ProductPage() {
 
                 <div className="flex items-end gap-3 mb-1">
                   <span className="text-3xl font-black text-[#1E2A44]">
-                    ₹{product.price.toLocaleString("en-IN")}
+                    ₹{finalPrice.toLocaleString("en-IN")}
                   </span>
                   <span className="text-xl font-bold text-gray-400 line-through mb-0.5">
-                    ₹{(product.price + 600).toLocaleString("en-IN")}
+                    ₹{(finalPrice + 600).toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 mb-2">
                   <Truck className="w-3.5 h-3.5" />
                   Estimated Delivery: 4-7 Days
+
                 </div>
+                {isCoolPrintEnabled && (
+                  <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 max-w-xs">
+                    <div className="flex justify-between mb-1">
+                      <span>Base Price</span>
+                      <span className="font-bold">₹{product.price}</span>
+                    </div>
+                    <div className="flex justify-between mb-1 text-blue-700">
+                      <span>Cool Print</span>
+                      <span className="font-bold">+₹299</span>
+                    </div>
+                    <div className="flex justify-between border-t border-gray-200 pt-1 mt-1 font-black text-gray-900">
+                      <span>Total</span>
+                      <span>₹{finalPrice}</span>
+                    </div>
+                  </div>
+                )}
+
               </div>
 
               {/* Thumbnails */}
@@ -698,16 +727,34 @@ export function ProductPage() {
             <div className="hidden lg:flex flex-col gap-1 mb-8">
               <div className="flex items-end gap-3">
                 <span className="text-3xl md:text-4xl font-black text-[#1E2A44]">
-                  ₹{product.price.toLocaleString("en-IN")}
+                  ₹{finalPrice.toLocaleString("en-IN")}
                 </span>
                 <span className="text-xl md:text-2xl font-bold text-gray-400 line-through mb-1">
-                  ₹{(product.price + 600).toLocaleString("en-IN")}
+                  ₹{(finalPrice + 600).toLocaleString("en-IN")}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-bold text-green-600">
                 <Truck className="w-3.5 h-3.5" />
                 Estimated Delivery: 4-7 Days
-              </div>
+
+                </div>
+                {isCoolPrintEnabled && (
+                  <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 max-w-xs">
+                    <div className="flex justify-between mb-1">
+                      <span>Base Price</span>
+                      <span className="font-bold">₹{product.price}</span>
+                    </div>
+                    <div className="flex justify-between mb-1 text-blue-700">
+                      <span>Cool Print</span>
+                      <span className="font-bold">+₹299</span>
+                    </div>
+                    <div className="flex justify-between border-t border-gray-200 pt-1 mt-1 font-black text-gray-900">
+                      <span>Total</span>
+                      <span>₹{finalPrice}</span>
+                    </div>
+                  </div>
+                )}
+
             </div>
 
                         <TrendingSalesIndicator productId={product.id} />
@@ -797,73 +844,138 @@ export function ProductPage() {
 
                
 
-            {/* Customization Section */}
-            {product && ['player-version', 'master-version', 'fan-set'].includes(product.category) && (
-              <div className="mt-6 mb-6 p-4 md:p-5 bg-gray-50 border border-gray-200 rounded-xl">
+            {/* Cool Prints Section */}
+            {productTeam && (
+              <div className="mt-6 mb-6 p-4 md:p-5 bg-gray-50 border border-gray-200 rounded-xl opacity-100 transition-opacity">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm md:text-base font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
-                    🎨 Customize Your Jersey
-                  </h3>
-                  <span className="text-[10px] md:text-xs font-bold bg-[#1E2A44] text-white px-2.5 py-1 rounded-full whitespace-nowrap">+₹199</span>
-                </div>
-                <div className="flex gap-4 mb-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="customization_toggle_main" 
-                      checked={isCustomized} 
-                      onChange={() => setIsCustomized(true)} 
-                      className="accent-[#1E2A44] w-4 h-4"
-                    />
-                    <span className="text-sm font-bold uppercase">Yes</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="customization_toggle_main" 
-                      checked={!isCustomized} 
-                      onChange={() => {
-                        setIsCustomized(false);
-                        setCustomName("");
-                        setCustomNumber("");
-                      }} 
-                      className="accent-[#1E2A44] w-4 h-4"
-                    />
-                    <span className="text-sm font-bold uppercase">No, Thanks</span>
-                  </label>
+                  <div>
+                    <h3 className="text-sm md:text-base font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                      🔥 Cool Prints
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">Would you like a Cool Print?</p>
+                  </div>
+                  <span className="text-[10px] md:text-xs font-bold bg-[#1E2A44] text-white px-2.5 py-1 rounded-full whitespace-nowrap">+₹299</span>
                 </div>
 
-                {isCustomized && (
+                <div className="flex gap-3 mb-4">
+                  <button
+                    onClick={() => setIsCoolPrintEnabled(true)}
+                    className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-bold transition-all ${isCoolPrintEnabled ? 'border-[#1E2A44] bg-[#1E2A44] text-white' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                  >
+                    YES
+                  </button>
+                  <button
+                    onClick={() => { setIsCoolPrintEnabled(false); setSelectedCoolPrint(null); }}
+                    className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-bold transition-all ${!isCoolPrintEnabled ? 'border-[#1E2A44] bg-white text-[#1E2A44]' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                  >
+                    NO
+                  </button>
+                </div>
+
+                {isCoolPrintEnabled && (
                   <div className="flex flex-col gap-3">
-                    <input
-                      type="text"
-                      placeholder="Player Name (Optional)"
-                      maxLength={12}
-                      value={customName}
-                    onChange={(e) => {
-                      setCustomName(e.target.value.toUpperCase());
-                      setIsCustomized(true);
-                    }}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
-                  />
-                    <input
-                      type="text"
-                      placeholder="Player Number (Optional)"
-                      maxLength={2}
-                      value={customNumber}
-                      onChange={(e) => {
-                        setCustomNumber(e.target.value.replace(/\D/g, ''));
-                        setIsCustomized(true);
-                      }}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] transition-all bg-white"
-                    />
+                    {productTeam === 'FC_BARCELONA' && (
+                      <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                        <input
+                          type="checkbox"
+                          checked={selectedCoolPrint?.name === "THANK GOD I AM NOT MADRIDISTA"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCoolPrint({ selected: true, name: "THANK GOD I AM NOT MADRIDISTA", price: 299 });
+                            } else {
+                              setSelectedCoolPrint(null);
+                            }
+                          }}
+                          className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold uppercase tracking-wide">THANK GOD I AM NOT MADRIDISTA</span>
+                        </div>
+                      </label>
+                    )}
+                    {productTeam === 'REAL_MADRID' && (
+                      <>
+                        <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                          <input
+                            type="checkbox"
+                            checked={selectedCoolPrint?.name === "THANK GOD I AM NOT BARCELONISTA"}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCoolPrint({ selected: true, name: "THANK GOD I AM NOT BARCELONISTA", price: 299 });
+                              } else {
+                                setSelectedCoolPrint(null);
+                              }
+                            }}
+                            className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold uppercase tracking-wide">THANK GOD I AM NOT BARCELONISTA</span>
+                          </div>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                          <input
+                            type="checkbox"
+                            checked={selectedCoolPrint?.name === "12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN"}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCoolPrint({ selected: true, name: "12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN", price: 299 });
+                              } else {
+                                setSelectedCoolPrint(null);
+                              }
+                            }}
+                            className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold uppercase tracking-wide">12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN</span>
+                          </div>
+                        </label>
+                      </>
+                    )}
+                    {productTeam === 'PORTUGAL' && (
+                      <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                        <input
+                          type="checkbox"
+                          checked={selectedCoolPrint?.name === "SHE WAS MY WORLD CUP, BUT I WAS RONALDO"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCoolPrint({ selected: true, name: "SHE WAS MY WORLD CUP, BUT I WAS RONALDO", price: 299 });
+                            } else {
+                              setSelectedCoolPrint(null);
+                            }
+                          }}
+                          className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold uppercase tracking-wide">SHE WAS MY WORLD CUP, BUT I WAS RONALDO</span>
+                        </div>
+                      </label>
+                    )}
+                    {productTeam === 'ARGENTINA' && (
+                      <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                        <input
+                          type="checkbox"
+                          checked={selectedCoolPrint?.name === "THE GOAT DEBATE ALREADY ENDED IN QATAR 2022"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCoolPrint({ selected: true, name: "THE GOAT DEBATE ALREADY ENDED IN QATAR 2022", price: 299 });
+                            } else {
+                              setSelectedCoolPrint(null);
+                            }
+                          }}
+                          className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold uppercase tracking-wide">THE GOAT DEBATE ALREADY ENDED IN QATAR 2022</span>
+                        </div>
+                      </label>
+                    )}
                   </div>
                 )}
               </div>
             )}
 
             {/* Delivery Checker Section */}
-            <DeliveryChecker customizationEnabled={!!customName.trim() || !!customNumber.trim()} />
+            <DeliveryChecker />
 
             {/* Low Stock Badge (Task 2B) */}
               {product && (
@@ -1119,66 +1231,131 @@ export function ProductPage() {
                   </div>
                 </div>
                 
-                {/* Customization inside variant modal */}
-                {['player-version', 'master-version', 'fan-set'].includes(product.category) && (
-                  <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
-                        🎨 Customize
-                      </h3>
-                      <span className="text-[10px] font-bold bg-[#1E2A44] text-white px-2 py-0.5 rounded-full whitespace-nowrap">+₹199</span>
-                    </div>
-                    <div className="flex gap-4 mb-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="customization_toggle_modal" 
-                          checked={isCustomized} 
-                          onChange={() => setIsCustomized(true)} 
-                          className="accent-[#1E2A44] w-3.5 h-3.5"
-                        />
-                        <span className="text-xs font-bold uppercase">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="customization_toggle_modal" 
-                          checked={!isCustomized} 
-                          onChange={() => {
-                            setIsCustomized(false);
-                            setCustomName("");
-                            setCustomNumber("");
-                          }} 
-                          className="accent-[#1E2A44] w-3.5 h-3.5"
-                        />
-                        <span className="text-xs font-bold uppercase">No</span>
-                      </label>
+                {/* Cool Prints Section */}
+                {productTeam && (
+                  <div className="mt-4 mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl opacity-100 transition-opacity">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-black text-[#1B1B1B] uppercase tracking-widest flex items-center gap-2">
+                          🔥 Cool Prints
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">Would you like a Cool Print?</p>
+                      </div>
+                      <span className="text-[10px] md:text-xs font-bold bg-[#1E2A44] text-white px-2.5 py-1 rounded-full whitespace-nowrap">+₹299</span>
                     </div>
 
-                    {isCustomized && (
-                      <div className="flex flex-col gap-2">
-                        <input
-                          type="text"
-                          placeholder="Player Name (Optional)"
-                          maxLength={12}
-                          value={customName}
-                        onChange={(e) => {
-                          setCustomName(e.target.value.toUpperCase());
-                          setIsCustomized(true);
-                        }}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
-                      />
-                        <input
-                          type="text"
-                          placeholder="Player Number (Optional)"
-                          maxLength={2}
-                          value={customNumber}
-                          onChange={(e) => {
-                            setCustomNumber(e.target.value.replace(/\D/g, ''));
-                            setIsCustomized(true);
-                          }}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs font-medium uppercase focus:outline-none focus:ring-2 focus:ring-[#1E2A44] bg-white"
-                        />
+                    <div className="flex gap-3 mb-4">
+                      <button
+                        onClick={() => setIsCoolPrintEnabled(true)}
+                        className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-bold transition-all ${isCoolPrintEnabled ? 'border-[#1E2A44] bg-[#1E2A44] text-white' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                      >
+                        YES
+                      </button>
+                      <button
+                        onClick={() => { setIsCoolPrintEnabled(false); setSelectedCoolPrint(null); }}
+                        className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-bold transition-all ${!isCoolPrintEnabled ? 'border-[#1E2A44] bg-white text-[#1E2A44]' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                      >
+                        NO
+                      </button>
+                    </div>
+
+                    {isCoolPrintEnabled && (
+                      <div className="flex flex-col gap-3">
+                        {productTeam === 'FC_BARCELONA' && (
+                          <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                            <input
+                              type="checkbox"
+                              checked={selectedCoolPrint?.name === "THANK GOD I AM NOT MADRIDISTA"}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCoolPrint({ selected: true, name: "THANK GOD I AM NOT MADRIDISTA", price: 299 });
+                                } else {
+                                  setSelectedCoolPrint(null);
+                                }
+                              }}
+                              className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold uppercase tracking-wide">THANK GOD I AM NOT MADRIDISTA</span>
+                            </div>
+                          </label>
+                        )}
+                        {productTeam === 'REAL_MADRID' && (
+                          <>
+                            <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                              <input
+                                type="checkbox"
+                                checked={selectedCoolPrint?.name === "THANK GOD I AM NOT BARCELONISTA"}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedCoolPrint({ selected: true, name: "THANK GOD I AM NOT BARCELONISTA", price: 299 });
+                                  } else {
+                                    setSelectedCoolPrint(null);
+                                  }
+                                }}
+                                className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold uppercase tracking-wide">THANK GOD I AM NOT BARCELONISTA</span>
+                              </div>
+                            </label>
+                            <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                              <input
+                                type="checkbox"
+                                checked={selectedCoolPrint?.name === "12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN"}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedCoolPrint({ selected: true, name: "12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN", price: 299 });
+                                  } else {
+                                    setSelectedCoolPrint(null);
+                                  }
+                                }}
+                                className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold uppercase tracking-wide">12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN</span>
+                              </div>
+                            </label>
+                          </>
+                        )}
+                        {productTeam === 'PORTUGAL' && (
+                          <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                            <input
+                              type="checkbox"
+                              checked={selectedCoolPrint?.name === "SHE WAS MY WORLD CUP, BUT I WAS RONALDO"}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCoolPrint({ selected: true, name: "SHE WAS MY WORLD CUP, BUT I WAS RONALDO", price: 299 });
+                                } else {
+                                  setSelectedCoolPrint(null);
+                                }
+                              }}
+                              className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold uppercase tracking-wide">SHE WAS MY WORLD CUP, BUT I WAS RONALDO</span>
+                            </div>
+                          </label>
+                        )}
+                        {productTeam === 'ARGENTINA' && (
+                          <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all hover:bg-gray-100 bg-white">
+                            <input
+                              type="checkbox"
+                              checked={selectedCoolPrint?.name === "THE GOAT DEBATE ALREADY ENDED IN QATAR 2022"}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCoolPrint({ selected: true, name: "THE GOAT DEBATE ALREADY ENDED IN QATAR 2022", price: 299 });
+                                } else {
+                                  setSelectedCoolPrint(null);
+                                }
+                              }}
+                              className="accent-[#1E2A44] w-5 h-5 flex-shrink-0"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold uppercase tracking-wide">THE GOAT DEBATE ALREADY ENDED IN QATAR 2022</span>
+                            </div>
+                          </label>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1192,8 +1369,13 @@ export function ProductPage() {
                       return;
                     }
                     setIsVariantModalOpen(false);
-                    const isCust = isCustomized ? { name: customName, number: customNumber } : undefined;
-                    addToCart(product!, selectedSize, selectedColor || undefined, isCust);
+                    addToCart(
+                      product!,
+                      selectedSize,
+                      selectedColor || undefined,
+                      undefined,
+                      selectedCoolPrint?.selected ? selectedCoolPrint : undefined
+                    );
                     setIsCartOpen(true);
                     if (pendingAction === "buy") {
                       navigate("/checkout");

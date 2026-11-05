@@ -13,6 +13,7 @@ type CartItem = Product & {
   selectedSize?: string;
   selectedColor?: string;
   customization?: { name: string; number: string };
+  coolPrint?: { selected: boolean; name: string; price: number };
 };
 
 const safeGetItem = (key: string) => { try { return window.localStorage.getItem(key); } catch (e) { return null; } };
@@ -30,9 +31,9 @@ export const getGuestId = () => {
 interface ShopContextType {
   cart: CartItem[];
   wishlist: Product[];
-  addToCart: (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => void;
-  removeFromCart: (productId: string, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => void;
-  updateQuantity: (productId: string, selectedSize: string | undefined, selectedColor: string | undefined, quantity: number, customization?: { name: string; number: string }) => void;
+  addToCart: (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }, coolPrint?: { selected: boolean; name: string; price: number }) => void;
+  removeFromCart: (productId: string, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }, coolPrint?: { selected: boolean; name: string; price: number }) => void;
+  updateQuantity: (productId: string, selectedSize: string | undefined, selectedColor: string | undefined, quantity: number, customization?: { name: string; number: string }, coolPrint?: { selected: boolean; name: string; price: number }) => void;
   toggleWishlist: (product: Product) => void;
   isInWishlist: (productId: string) => boolean;
   isCartOpen: boolean;
@@ -254,7 +255,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setCart([]);
 
-  const addToCart = (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => {
+  const addToCart = (product: Product, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }, coolPrint?: { selected: boolean; name: string; price: number }) => {
     trackAddToCart(product);
     setCart((prev) => {
       const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
@@ -262,13 +263,18 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
         if (!itemCustom || !targetCustom) return false;
         return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
       };
+      const isCoolPrintSame = (itemPrint: { name: string; price: number } | undefined, targetPrint: { name: string; price: number } | undefined) => {
+        if (!itemPrint && !targetPrint) return true;
+        if (!itemPrint || !targetPrint) return false;
+        return itemPrint.name === targetPrint.name;
+      };
 
       const existingItem = prev.find(
-        (item) => item.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization)
+        (item) => item.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization) && isCoolPrintSame(item.coolPrint, coolPrint)
       );
       if (existingItem) {
         return prev.map((item) =>
-          item.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization)
+          item.id === product.id && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization) && isCoolPrintSame(item.coolPrint, coolPrint)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -282,34 +288,44 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
          }
       }
       
-      return [...prev, { ...product, image: itemImage, quantity: 1, selectedSize, selectedColor, customization, price: product.price + (customization ? 199 : 0) }];
+      return [...prev, { ...product, image: itemImage, quantity: 1, selectedSize, selectedColor, customization, coolPrint, price: product.price + (customization ? 199 : 0) + (coolPrint?.selected ? coolPrint.price : 0) }];
     });
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }) => {
+  const removeFromCart = (productId: string, selectedSize?: string, selectedColor?: string, customization?: { name: string; number: string }, coolPrint?: { selected: boolean; name: string; price: number }) => {
     const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
-      if (!itemCustom && !targetCustom) return true;
-      if (!itemCustom || !targetCustom) return false;
-      return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
-    };
-    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization))));
+        if (!itemCustom && !targetCustom) return true;
+        if (!itemCustom || !targetCustom) return false;
+        return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
+      };
+      const isCoolPrintSame = (itemPrint: { name: string; price: number } | undefined, targetPrint: { name: string; price: number } | undefined) => {
+        if (!itemPrint && !targetPrint) return true;
+        if (!itemPrint || !targetPrint) return false;
+        return itemPrint.name === targetPrint.name;
+      };
+    setCart((prev) => prev.filter((item) => !(item.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization) && isCoolPrintSame(item.coolPrint, coolPrint))));
   };
 
-  const updateQuantity = (productId: string, selectedSize: string | undefined, selectedColor: string | undefined, quantity: number, customization?: { name: string; number: string }) => {
+  const updateQuantity = (productId: string, selectedSize: string | undefined, selectedColor: string | undefined, quantity: number, customization?: { name: string; number: string }, coolPrint?: { selected: boolean; name: string; price: number }) => {
     if (quantity < 1) {
-      removeFromCart(productId, selectedSize, selectedColor, customization);
+      removeFromCart(productId, selectedSize, selectedColor, customization, coolPrint);
       return;
     }
     const isCustomSame = (itemCustom: { name: string; number: string } | undefined, targetCustom: { name: string; number: string } | undefined) => {
-      if (!itemCustom && !targetCustom) return true;
-      if (!itemCustom || !targetCustom) return false;
-      return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
-    };
+        if (!itemCustom && !targetCustom) return true;
+        if (!itemCustom || !targetCustom) return false;
+        return itemCustom.name === targetCustom.name && itemCustom.number === targetCustom.number;
+      };
+      const isCoolPrintSame = (itemPrint: { name: string; price: number } | undefined, targetPrint: { name: string; price: number } | undefined) => {
+        if (!itemPrint && !targetPrint) return true;
+        if (!itemPrint || !targetPrint) return false;
+        return itemPrint.name === targetPrint.name;
+      };
     setCart((prev) =>
       prev.map((item) =>
-        item.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization)
-          ? { ...item, quantity }
+        item.id === productId && item.selectedSize === selectedSize && item.selectedColor === selectedColor && isCustomSame(item.customization, customization) && isCoolPrintSame(item.coolPrint, coolPrint)
+            ? { ...item, quantity }
           : item
       )
     );

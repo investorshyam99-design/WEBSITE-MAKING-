@@ -3,7 +3,7 @@ export type DeliveryMethod = "NORMAL" | "FAST";
 export interface DeliveryEstimateParams {
   pincode: string;
   deliveryMethod: DeliveryMethod;
-  customization: boolean;
+  customization?: boolean;
   orderDate?: Date;
   tat?: {
     normal: { days: number; mode: string };

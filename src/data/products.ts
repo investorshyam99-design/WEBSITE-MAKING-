@@ -8,6 +8,7 @@ export type Product = {
   image: string;
   galleryImages: string[];
   category: string;
+  tags?: string[];
   description?: string;
   descriptionHtml?: string;
   variantId?: string;
@@ -148,6 +149,7 @@ export function parseShopifyProducts(nodes: any[]): Product[] {
       descriptionHtml: node.descriptionHtml,
       variants: variants,
       slug: generateProductSlug(node.title, node.id),
+      tags: (node.tags || []).map((t: string) => t.toLowerCase()),
     };
   });
 

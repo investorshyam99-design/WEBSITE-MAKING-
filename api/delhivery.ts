@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { action, awb, dest, pincode, orderData } = req.method === 'POST' ? req.body : req.query;
 
-    const apiKey = process.env.DELHIVERY_API_TOKEN;
+    const apiKey = process.env.DELHIVERY_API_TOKEN || "f602e5a13cb922c48b18950d7a159776776026fd";
     if (!apiKey) {
       return res.status(500).json({ success: false, error: "DELHIVERY_API_TOKEN not configured" });
     }

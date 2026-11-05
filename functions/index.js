@@ -131,7 +131,9 @@ BUSINESS KNOWLEDGE & POLICIES
             try {
                 if (call.name === 'checkPincodeServiceability') {
                     const pincode = call.args.pincode;
-                    const apiKey = delhiveryApiToken.value();
+                    let apiKey = "";
+                    try { apiKey = delhiveryApiToken.value(); } catch (e) {}
+                    if (!apiKey) apiKey = process.env.DELHIVERY_API_TOKEN || "f602e5a13cb922c48b18950d7a159776776026fd";
                     if (!apiKey) throw new Error("Delhivery API token missing");
                     
                     const res = await fetch(`https://track.delhivery.com/c/api/pin-codes/json/?filter_codes=${pincode}`, {
@@ -153,7 +155,9 @@ BUSINESS KNOWLEDGE & POLICIES
                     }
                 } else if (call.name === 'trackShipmentByAWB') {
                     const awb = call.args.awb;
-                    const apiKey = delhiveryApiToken.value();
+                    let apiKey = "";
+                    try { apiKey = delhiveryApiToken.value(); } catch (e) {}
+                    if (!apiKey) apiKey = process.env.DELHIVERY_API_TOKEN || "f602e5a13cb922c48b18950d7a159776776026fd";
                     const res = await fetch(`https://track.delhivery.com/api/v1/packages/json/?waybill=${awb}`, {
                         headers: { "Authorization": `Token ${apiKey}`, "Content-Type": "application/json" }
                     });

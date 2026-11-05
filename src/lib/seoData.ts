@@ -31,8 +31,8 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
         answer: "Yes, COD is available across India with a small advance confirmation fee of ₹50 per item to prevent fake orders, with the balance payable on delivery."
       },
       {
-        question: "Can I customize my World Cup 2026 jersey with name and number?",
-        answer: "Yes! You can add custom player names and numbers (like Messi 10 or Ronaldo 7) for just ₹199 per jersey."
+        question: "Do you offer special fan prints for World Cup 2026 jerseys?",
+        answer: "Yes! You can choose exclusive Cool Prints on select international kits for ₹299."
       }
     ]
   },
@@ -53,8 +53,8 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
         answer: "Player Version has a slim athletic match fit with heat-transferred logos and ventilated mesh panels. Fan Version has an embroidered crest and regular comfortable sizing."
       },
       {
-        question: "Can I get Messi #10 customized on the Argentina kit?",
-        answer: "Absolutely! Select the customization option on the product page to get official style MESSI 10 printed on the back."
+        question: "Can I get exclusive fan prints on the Argentina kit?",
+        answer: "Yes! You can add our exclusive 'THE GOAT DEBATE ALREADY ENDED IN QATAR 2022' Cool Print for just ₹299."
       }
     ]
   },
@@ -89,8 +89,8 @@ export const COLLECTION_SEO_DATA: Record<string, CollectionSEOConfig> = {
         answer: "At Jersey Unicorn! We deliver master version and player edition Real Madrid 2025/26 jerseys directly across all Indian states."
       },
       {
-        question: "Can I customize my Real Madrid jersey with Mbappé or Bellingham?",
-        answer: "Yes, you can add custom name and number prints including MBAPPÉ #9, BELLINGHAM #5, or VINICIUS JR #7."
+        question: "Do you offer special fan prints for Real Madrid jerseys?",
+        answer: "Yes! Choose from exclusive fan prints like 'THANK GOD I AM NOT BARCELONISTA' or '12 YEARS NO UCL, THANK GOD I AM NOT A BARCA FAN' for ₹299."
       }
     ]
   },

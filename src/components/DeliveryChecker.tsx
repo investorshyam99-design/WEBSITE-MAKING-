@@ -5,10 +5,10 @@ import { MapPin, Truck, CheckCircle2, Zap, AlertCircle } from 'lucide-react';
 import { checkPincodeServiceability } from '../services/pincode';
 
 interface DeliveryCheckerProps {
-  customizationEnabled: boolean;
+  customizationEnabled?: boolean;
 }
 
-export function DeliveryChecker({ customizationEnabled }: DeliveryCheckerProps) {
+export function DeliveryChecker({ customizationEnabled = false }: DeliveryCheckerProps) {
   const { deliveryMethod, setDeliveryMethod, deliveryPincode, setDeliveryPincode, setDeliveryLocation, deliveryTat, setDeliveryTat } = useShop();
   const [pincodeInput, setPincodeInput] = useState(deliveryPincode);
   const [isServiceable, setIsServiceable] = useState<boolean | null>(null);

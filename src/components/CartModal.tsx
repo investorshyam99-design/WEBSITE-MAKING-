@@ -524,6 +524,11 @@ export function CartModal() {
                                 {item.customization.number})
                               </div>
                             )}
+                            {item.coolPrint?.selected && (
+                              <div className="mt-1 text-[10px] text-blue-700 font-bold uppercase">
+                                Cool Print: {item.coolPrint.name} (+₹{item.coolPrint.price})
+                              </div>
+                            )}
                             <div className="flex items-center gap-2 mt-2">
                               <span className="text-xs text-gray-400 line-through font-medium">
                                 Rs. 1599.00
@@ -563,13 +568,7 @@ export function CartModal() {
                             <div className="flex items-center border border-gray-200 rounded overflow-hidden">
                               <button
                                 onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    item.selectedSize,
-                                    item.selectedColor,
-                                    item.quantity - 1,
-                                    item.customization,
-                                  )
+                                  updateQuantity(item.id, item.selectedSize, item.selectedColor, item.quantity - 1, item.customization, item.coolPrint)
                                 }
                                 className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
                               >
@@ -582,13 +581,7 @@ export function CartModal() {
                               </span>
                               <button
                                 onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    item.selectedSize,
-                                    item.selectedColor,
-                                    item.quantity + 1,
-                                    item.customization,
-                                  )
+                                  updateQuantity(item.id, item.selectedSize, item.selectedColor, item.quantity + 1, item.customization, item.coolPrint)
                                 }
                                 className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
                               >
@@ -599,12 +592,7 @@ export function CartModal() {
                             </div>
                             <button
                               onClick={() =>
-                                removeFromCart(
-                                  item.id,
-                                  item.selectedSize,
-                                  item.selectedColor,
-                                  item.customization,
-                                )
+                                removeFromCart(item.id, item.selectedSize, item.selectedColor, item.customization, item.coolPrint)
                               }
                               className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                             >

@@ -58,22 +58,13 @@ export function CheckoutPage() {
 
   const jerseyCart = cart.filter(item => ['player-version', 'master-version', 'fan-set'].includes(item.category));
   
-  const hasCustomization = jerseyCart.some(item => {
-    if (!item.customization) return false;
-    if (typeof item.customization === 'object') {
-      return Boolean(item.customization.name?.trim()) || Boolean(item.customization.number?.trim());
-    }
-    if (typeof item.customization === 'string') {
-      return (item.customization as string).trim().length > 0;
-    }
-    return false;
-  });
+  const hasCoolPrint = jerseyCart.some(item => item.coolPrint?.selected);
 
   useEffect(() => {
-    if (hasCustomization) {
+    if (hasCoolPrint) {
       setPaymentMode("full");
     }
-  }, [hasCustomization]);
+  }, [hasCoolPrint]);
 
   const productSubtotal = jerseyCart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -203,7 +194,7 @@ export function CheckoutPage() {
           const estimate = calculateDeliveryEstimate({
             pincode: deliveryPincode,
             deliveryMethod,
-            customization: !!item.customization,
+            customization: false,
             tat: deliveryTat || undefined
           });
 
@@ -221,7 +212,7 @@ export function CheckoutPage() {
             size: item.selectedSize || "N/A",
             color: item.selectedColor || "N/A",
             quantity: 1,
-            customization: item.customization ? `${item.customization.name} (${item.customization.number})` : null,
+            coolPrint: item.coolPrint || null,
             productSubtotal: item.price,
             deliveryType: resolvedDeliveryType,
             fastShippingCharge: itemFastDelivery,
@@ -322,7 +313,7 @@ export function CheckoutPage() {
               }
               // Clear only jersey items from cart
               jerseyCart.forEach(item => {
-                 removeFromCart(item.id, item.selectedSize, item.selectedColor, item.customization);
+                 removeFromCart(item.id, item.selectedSize, item.selectedColor, item.customization, item.coolPrint);
               });
               
               navigate("/account");
@@ -408,7 +399,7 @@ export function CheckoutPage() {
               </div>
 
               <div className="mb-4">
-                <DeliveryChecker customizationEnabled={hasCustomization} />
+                <DeliveryChecker />
               </div>
             </div>
 
@@ -418,11 +409,11 @@ export function CheckoutPage() {
                 <Lock className="w-4 h-4" /> Payment Options
               </h2>
 
-              {hasCustomization && (
+              {hasCoolPrint && (
                 <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs leading-relaxed flex items-start gap-2.5 shadow-sm">
                   <span className="text-base leading-none">ℹ️</span>
                   <span className="font-medium">
-                    Customized jerseys are made exclusively for you. Therefore, Name & Number customized jerseys are available only on Prepaid orders.
+                    Cool Print jerseys are made exclusively for you. Therefore, they are available only on Prepaid orders.
                   </span>
                 </div>
               )}
@@ -446,7 +437,7 @@ export function CheckoutPage() {
                   </div>
                 </button>
 
-                {!hasCustomization ? (
+                {!hasCoolPrint ? (
                   <button
                     onClick={() => setPaymentMode("partial")}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
@@ -468,7 +459,7 @@ export function CheckoutPage() {
                       <span className="font-bold text-sm text-gray-500">💳 COD Unavailable</span>
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Prepaid Only</span>
                     </div>
-                    <div className="text-xs text-gray-500">COD is disabled for Name & Number customized jerseys.</div>
+                    <div className="text-xs text-gray-500">COD is disabled for Cool Print jerseys.</div>
                   </div>
                 )}
               </div>
@@ -534,7 +525,7 @@ export function CheckoutPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:p-6 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)] z-50 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-xl mx-auto px-4 sm:px-0 flex gap-4 md:gap-6">
           {/* LEFT BUTTON - COD */}
-          {!hasCustomization && (
+          {!hasCoolPrint && (
             <button
               disabled={isSubmitting}
               onClick={() => {
