@@ -250,9 +250,11 @@ export function AdminOrdersDashboard() {
     try {
       await updateDoc(doc(db, "orders", orderId), { status: newStatus });
       refreshOrders();
-    } catch (e) {
+      return true;
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to update status");
+      alert(`Failed to update status: ${e.message || "Network / Firestore offline"}`);
+      throw e;
     }
   };
 
@@ -762,23 +764,46 @@ function AdminCustomerGroupCard({
         const response = await fetch("/api/delhivery", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "create_combined", orderIds: unfulfilled.map((o: any) => o.id) })
+            body: JSON.stringify({ 
+              action: "create_combined", 
+              orderIds: unfulfilled.map((o: any) => o.id),
+              orders: unfulfilled 
+            })
         });
         const data = await response.json();
         
         const results = [];
         if (!data.success) {
-           results.push({ id: "Group", success: false, msg: data.error || "Failed" });
+           results.push({ id: "Group", success: false, msg: data.error || "Failed to create combined shipment" });
         } else {
            const awb = data.awb;
            for (const order of unfulfilled) {
-               // Update local UI immediately for responsiveness (real-time listener will also fire)
-               results.push({ id: order.orderNumber || order.id, success: true, msg: "AWB " + awb });
+               try {
+                 await updateDoc(doc(db, "orders", order.id), {
+                   awbNumber: awb,
+                   delhiveryAwb: awb,
+                   delhiveryShipmentId: awb,
+                   shippingProvider: "Delhivery",
+                   shippingStatus: "Manifested",
+                   courierName: "Delhivery",
+                   trackingId: awb,
+                   trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+                   shipmentCreatedAt: new Date().toISOString(),
+                   status: "Order Placed"
+                 });
+                 results.push({ id: order.orderNumber || order.id, success: true, msg: "AWB " + awb });
+               } catch (dbErr: any) {
+                 console.error("Failed to update order document:", dbErr);
+                 results.push({ id: order.orderNumber || order.id, success: false, msg: `Shipment created (${awb}) but database update failed: ${dbErr.message || "client offline"}` });
+               }
+           }
+           if (typeof refreshOrders === "function") {
+             refreshOrders();
            }
         }
         setFulfillResults(results);
     } catch (err: any) {
-        setFulfillResults([{ id: "Group", success: false, msg: err.message }]);
+        setFulfillResults([{ id: "Group", success: false, msg: err.message || "Network error" }]);
     }
     setIsFulfillingAll(false);
   };
@@ -788,14 +813,21 @@ function AdminCustomerGroupCard({
     setMoveResults([]);
     const results = [];
     for (const order of group.orders) {
+      if (order.status === "Order Placed") {
+        results.push({ id: order.orderNumber || order.id, success: true, msg: "Already in Order Placed" });
+        continue;
+      }
       try {
-        onUpdateStatus(order.id, "Order Placed");
+        await updateDoc(doc(db, "orders", order.id), { status: "Order Placed" });
         results.push({ id: order.orderNumber || order.id, success: true, msg: "Moved successfully" });
       } catch (err: any) {
-        results.push({ id: order.orderNumber || order.id, success: false, msg: err.message });
+        results.push({ id: order.orderNumber || order.id, success: false, msg: err.message || "Failed to update status" });
       }
     }
     setMoveResults(results);
+    if (typeof refreshOrders === "function") {
+      refreshOrders();
+    }
     setIsMovingAll(false);
   };
   const [isMarkingDelivered, setIsMarkingDelivered] = useState(false);
@@ -810,13 +842,16 @@ function AdminCustomerGroupCard({
          continue;
       }
       try {
-        onUpdateStatus(order.id, "Delivered");
+        await updateDoc(doc(db, "orders", order.id), { status: "Delivered" });
         results.push({ id: order.orderNumber || order.id, success: true, msg: "Marked as Delivered" });
       } catch (err: any) {
-        results.push({ id: order.orderNumber || order.id, success: false, msg: err.message });
+        results.push({ id: order.orderNumber || order.id, success: false, msg: err.message || "Failed to mark delivered" });
       }
     }
     setMoveResults(results);
+    if (typeof refreshOrders === "function") {
+      refreshOrders();
+    }
     setIsMarkingDelivered(false);
   };
 
@@ -997,7 +1032,7 @@ function AdminOrderCard({
       const response = await fetch("/api/delhivery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create", orderId: order.id })
+        body: JSON.stringify({ action: "create", orderId: order.id, orderData: order })
       });
 
       const data = await response.json();

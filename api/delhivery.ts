@@ -129,14 +129,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
             if (action === 'create') {
-        if (!req.body.orderId) return res.status(400).json({ success: false, error: "Missing orderId" });
-        const orderId = req.body.orderId;
+        if (!req.body.orderId && !req.body.orderData?.id) return res.status(400).json({ success: false, error: "Missing orderId" });
+        const orderId = req.body.orderId || req.body.orderData?.id;
         
-        // Fetch authoritative order record from database
-        const orderSnap = await getDoc(doc(db, 'orders', orderId));
-        if (!orderSnap.exists()) return res.status(404).json({ success: false, error: "Order Data Error: Order not found in database" });
+        // Use provided orderData or fetch from database
+        let order = req.body.orderData;
+        if (!order) {
+          try {
+            const orderSnap = await getDoc(doc(db, 'orders', orderId));
+            if (orderSnap.exists()) {
+              order = orderSnap.data();
+            }
+          } catch (fetchErr: any) {
+            console.warn(`[Delhivery API] Firestore getDoc skipped on server: ${fetchErr.message}`);
+          }
+        }
         
-        const order = orderSnap.data();
+        if (!order) return res.status(404).json({ success: false, error: "Order Data Error: Order not found in database or payload" });
         
         // DUPLICATE SHIPMENT PROTECTION
         if (order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
@@ -160,7 +169,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // WAREHOUSE VALIDATION
         const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
-        const pickupLocation = rawWarehouse.trim();
+        const pickupLocation = (req.body.pickupLocation || rawWarehouse || order.delhiveryPickupLocation || "").trim();
         
         console.log("[Delhivery Diagnostic] Raw WAREHOUSE:", `"${rawWarehouse}"`);
         console.log("[Delhivery Diagnostic] Trimmed WAREHOUSE:", `"${pickupLocation}"`);
@@ -283,47 +292,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         const awb = data.packages[0].waybill;
         
-        // Save to DB
-        await updateDoc(doc(db, 'orders', orderId), {
-          delhiveryAwb: awb,
-          delhiveryShipmentId: data.packages[0].client || "",
-          delhiveryOrderId: String(order.orderNumber || orderId),
-          delhiveryStatus: "Manifested",
-          delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          delhiveryPickupLocation: pickupLocation,
-          delhiveryCreatedAt: new Date().toISOString(),
-          delhiveryUpdatedAt: new Date().toISOString(),
-          // Standard generic shipping fields
-          awbNumber: awb,
-          shippingProvider: "Delhivery",
-          shippingStatus: "Manifested",
-          courierName: "Delhivery",
-          trackingId: awb,
-          trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
-          shipmentCreatedAt: new Date().toISOString()
-        });
+        // Save to DB (wrapped in try/catch so server offline won't fail shipment)
+        try {
+          await updateDoc(doc(db, 'orders', orderId), {
+            delhiveryAwb: awb,
+            delhiveryShipmentId: data.packages[0].client || "",
+            delhiveryOrderId: String(order.orderNumber || orderId),
+            delhiveryStatus: "Manifested",
+            delhiveryTrackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+            delhiveryPickupLocation: pickupLocation,
+            delhiveryCreatedAt: new Date().toISOString(),
+            delhiveryUpdatedAt: new Date().toISOString(),
+            // Standard generic shipping fields
+            awbNumber: awb,
+            shippingProvider: "Delhivery",
+            shippingStatus: "Manifested",
+            courierName: "Delhivery",
+            trackingId: awb,
+            trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
+            shipmentCreatedAt: new Date().toISOString()
+          });
+        } catch (dbErr: any) {
+          console.warn(`[Delhivery API] Server updateDoc skipped (client will persist): ${dbErr.message}`);
+        }
         
         return res.json({ success: true, awb, data });
       }
       if (action === 'create_combined') {
         const orderIds = req.body.orderIds;
-        if (!Array.isArray(orderIds) || orderIds.length === 0) {
+        if ((!Array.isArray(orderIds) || orderIds.length === 0) && (!Array.isArray(req.body.orders) || req.body.orders.length === 0)) {
             return res.status(400).json({ success: false, error: "Missing or empty orderIds array" });
         }
         
-        const orders = [];
-        for (const id of orderIds) {
-            const snap = await getDoc(doc(db, 'orders', id));
-            if (!snap.exists()) return res.status(404).json({ success: false, error: `Order Data Error: Order ${id} not found in database` });
-            const data = snap.data();
-            data.id = id;
-            orders.push(data);
+        let orders = Array.isArray(req.body.orders) && req.body.orders.length > 0 ? [...req.body.orders] : [];
+        if (orders.length === 0 && Array.isArray(orderIds)) {
+          for (const id of orderIds) {
+            try {
+              const snap = await getDoc(doc(db, 'orders', id));
+              if (snap.exists()) {
+                const data = snap.data();
+                data.id = id;
+                orders.push(data);
+              }
+            } catch (fetchErr: any) {
+              console.warn(`[Delhivery API] Firestore getDoc failed for order ${id}: ${fetchErr.message}`);
+            }
+          }
+        }
+
+        if (orders.length === 0) {
+          return res.status(404).json({ success: false, error: "Order Data Error: No order data available" });
         }
 
         // DUPLICATE SHIPMENT PROTECTION
         for (const order of orders) {
             if (order.delhiveryAwb || order.delhiveryShipmentId || order.awbNumber || order.trackingId) {
-                return res.status(400).json({ success: false, error: `Duplicate Shipment: Order ${order.orderNumber || order.id} already has an AWB or Tracking ID`, awb: order.delhiveryAwb || order.awbNumber || order.trackingId });
+                return res.status(400).json({ 
+                  success: false, 
+                  error: `Duplicate Shipment: Order ${order.orderNumber || order.id} already has an AWB or Tracking ID`, 
+                  awb: order.delhiveryAwb || order.awbNumber || order.trackingId 
+                });
             }
         }
         
@@ -391,7 +419,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // WAREHOUSE VALIDATION
         const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
-        const pickupLocation = rawWarehouse.trim();
+        const pickupLocation = (req.body.pickupLocation || rawWarehouse || firstOrder.delhiveryPickupLocation || "").trim();
         if (!pickupLocation) {
              return res.status(400).json({ success: false, error: "Delhivery Configuration Error: DELHIVERY_PICKUP_LOCATION environment variable is not set." });
         }
@@ -456,6 +484,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const awb = data.packages[0].waybill;
         
         for (const order of orders) {
+          try {
             await updateDoc(doc(db, 'orders', order.id), {
               delhiveryAwb: awb,
               delhiveryShipmentId: data.packages[0].client || "",
@@ -473,6 +502,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               trackingUrl: `https://www.delhivery.com/track/package/${awb}`,
               shipmentCreatedAt: new Date().toISOString()
             });
+          } catch (dbErr: any) {
+            console.warn(`[Delhivery API] Server updateDoc skipped for order ${order.id}: ${dbErr.message}`);
+          }
         }
         
         return res.json({ success: true, awb, data });
