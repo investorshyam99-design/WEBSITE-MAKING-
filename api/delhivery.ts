@@ -116,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            success: true,
            diagnostic: {
               orderId: req.body.orderId,
-              pickupLocation: (process.env.DELHIVERY_PICKUP_LOCATION || "").trim(),
+              pickupLocation: (process.env.DELHIVERY_PICKUP_LOCATION || "Fashion house").trim(),
               destinationPincode: order.pincode,
               paymentMode: isCod ? "COD" : "Prepaid",
               codAmount: isCod ? (order.codAmount || 0) : 0,
@@ -168,8 +168,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log(`[Delhivery API] Final Delivery Type sent for order ${orderId}: ${effectiveDeliveryType}`);
 
         // WAREHOUSE VALIDATION
-        const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
-        const pickupLocation = (req.body.pickupLocation || rawWarehouse || order.delhiveryPickupLocation || "").trim();
+        const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "Fashion house";
+        let pickupLocation = (req.body.pickupLocation || rawWarehouse || order.delhiveryPickupLocation || "Fashion house").trim();
+        if (pickupLocation.toLowerCase() === "the fashion house") {
+          pickupLocation = "Fashion house";
+        }
         
         console.log("[Delhivery Diagnostic] Raw WAREHOUSE:", `"${rawWarehouse}"`);
         console.log("[Delhivery Diagnostic] Trimmed WAREHOUSE:", `"${pickupLocation}"`);
@@ -418,8 +421,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const orderIdsStr = combinedOrderNumbers.join("-");
 
         // WAREHOUSE VALIDATION
-        const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "";
-        const pickupLocation = (req.body.pickupLocation || rawWarehouse || firstOrder.delhiveryPickupLocation || "").trim();
+        const rawWarehouse = process.env.DELHIVERY_PICKUP_LOCATION || "Fashion house";
+        let pickupLocation = (req.body.pickupLocation || rawWarehouse || firstOrder.delhiveryPickupLocation || "Fashion house").trim();
+        if (pickupLocation.toLowerCase() === "the fashion house") {
+          pickupLocation = "Fashion house";
+        }
         if (!pickupLocation) {
              return res.status(400).json({ success: false, error: "Delhivery Configuration Error: DELHIVERY_PICKUP_LOCATION environment variable is not set." });
         }
